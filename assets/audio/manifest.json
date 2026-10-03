@@ -1,0 +1,254 @@
+{
+  "generator": {
+    "package": "piper-tts",
+    "version": "1.3.0"
+  },
+  "voice": {
+    "id": "de_DE-thorsten-medium",
+    "modelSha256": "7e64762d8e5118bb578f2eea6207e1a35a8e0c30595010b666f983fc87bb7819",
+    "configSha256": "974adee790533adb273a1ac88f49027d2a1b8f0f2cf4905954a4791e79264e85",
+    "modelCard": "https://huggingface.co/rhasspy/piper-voices/blob/main/de/de_DE/thorsten/medium/MODEL_CARD"
+  },
+  "recordings": [
+    {
+      "seedKey": "seed-01",
+      "text": "der Tisch",
+      "file": "seed-01.wav",
+      "sha256": "3880ee5770b11b174b1fc4fb4b618bfb2c0cfa6db24dafe42ea7ce27c63e2564"
+    },
+    {
+      "seedKey": "seed-02",
+      "text": "der Stuhl",
+      "file": "seed-02.wav",
+      "sha256": "3ee25c7ef0d99b0b8c2e1d3704fe8c7f590e971eaedc1fdb57ed43c2fab39ef7"
+    },
+    {
+      "seedKey": "seed-03",
+      "text": "der Schrank",
+      "file": "seed-03.wav",
+      "sha256": "b3bc1653b6c0a30bf99deadab9bd1d4d590a7b2bdb91be5ece3aa95320cffe97"
+    },
+    {
+      "seedKey": "seed-04",
+      "text": "der Stift",
+      "file": "seed-04.wav",
+      "sha256": "2ee96de6a4ba5e0520738d967c3becb340d35ef927de247d8f63859ca21729ee"
+    },
+    {
+      "seedKey": "seed-05",
+      "text": "der Computer",
+      "file": "seed-05.wav",
+      "sha256": "688bd1f8e4c2fdf30cf4bd7fb91348814231fb8639ba7191365324caaa04c061"
+    },
+    {
+      "seedKey": "seed-06",
+      "text": "der Zug",
+      "file": "seed-06.wav",
+      "sha256": "497b93135bf1fdc5fd3af1fba64339f3cb15656d5f3846446a4673a6c797c612"
+    },
+    {
+      "seedKey": "seed-07",
+      "text": "der Mensch",
+      "file": "seed-07.wav",
+      "sha256": "f7dac4e8b051edb77cad694ed41400d86b980b5ab764e3d61956d3fded1455d6"
+    },
+    {
+      "seedKey": "seed-08",
+      "text": "der Lehrer",
+      "file": "seed-08.wav",
+      "sha256": "718fd3ef1c2f95aa5b7259aead9acaaf16b21f3b3f98668ac41afc67223800a0"
+    },
+    {
+      "seedKey": "seed-09",
+      "text": "die Lampe",
+      "file": "seed-09.wav",
+      "sha256": "6e7e1a0d7995564ccbfa769168f5d7a353b443ec823b5a30038b279c08b9dd53"
+    },
+    {
+      "seedKey": "seed-10",
+      "text": "die Tasche",
+      "file": "seed-10.wav",
+      "sha256": "e59c9f79e9efa311b194cf50dbf838cc7a45c4a12d4f23e41be034553f8a3733"
+    },
+    {
+      "seedKey": "seed-11",
+      "text": "die Blume",
+      "file": "seed-11.wav",
+      "sha256": "e560c44bf5f7ec9fe4721419bc337c521ef1b6d4a081cad25feb5131173b274a"
+    },
+    {
+      "seedKey": "seed-12",
+      "text": "die Vase",
+      "file": "seed-12.wav",
+      "sha256": "a8a4562f5f761b5867c462b9836b2459fc1a6bd4db53a2c9d8daee1e4ba0f648"
+    },
+    {
+      "seedKey": "seed-13",
+      "text": "die Straße",
+      "file": "seed-13.wav",
+      "sha256": "d800ec49eaa06e8b6420782ae21c392b7bee523c0fa6158e58f8982a9376755e"
+    },
+    {
+      "seedKey": "seed-14",
+      "text": "die Übung",
+      "file": "seed-14.wav",
+      "sha256": "8edf65f86117a3f1aae90e3fa81f1e3840584363665ddbdb44d609149ce5dc0e"
+    },
+    {
+      "seedKey": "seed-15",
+      "text": "die Zeitung",
+      "file": "seed-15.wav",
+      "sha256": "22c8d46b33e561a131c75160af64afb38c15d362037859521d69e6d46c60bfa2"
+    },
+    {
+      "seedKey": "seed-16",
+      "text": "die Zeitschrift",
+      "file": "seed-16.wav",
+      "sha256": "942b9ac27d44f2a1d93f00a70eadb795d0f1599d0ae604a1a06dc6da5c88947c"
+    },
+    {
+      "seedKey": "seed-17",
+      "text": "das Buch",
+      "file": "seed-17.wav",
+      "sha256": "c59e255fa67e0afda4f1ab2c6723d786abc0d72eaec11766be1318499052a8f3"
+    },
+    {
+      "seedKey": "seed-18",
+      "text": "das Bild",
+      "file": "seed-18.wav",
+      "sha256": "cd5150b5f063c0871920f16045693b9650e71e7d6f882ec2b7f8951e2ed727fe"
+    },
+    {
+      "seedKey": "seed-19",
+      "text": "das Wort",
+      "file": "seed-19.wav",
+      "sha256": "6b6c3198491d6a507bdd674b63f4c4e7c16af0b1ee4909e19df785c614d76bb0"
+    },
+    {
+      "seedKey": "seed-20",
+      "text": "das Haus",
+      "file": "seed-20.wav",
+      "sha256": "07f73263e91eb16b6b9851ff1791a596fd62d7378d42c8638f82e9380c82ea4e"
+    },
+    {
+      "seedKey": "seed-21",
+      "text": "das Zimmer",
+      "file": "seed-21.wav",
+      "sha256": "4c0cdb02a3d7c2e8695f497ea47fb76da8611d818258c8e6905f8caecfa7c572"
+    },
+    {
+      "seedKey": "seed-22",
+      "text": "das Kind",
+      "file": "seed-22.wav",
+      "sha256": "81e2e57e453338878710d64fb73b1704cef060524d47e352af98c9eed74bc303"
+    },
+    {
+      "seedKey": "seed-23",
+      "text": "das Mädchen",
+      "file": "seed-23.wav",
+      "sha256": "364ee4f340ef9c9ddc2db637e92638ebda84b2a61425fbf0819cc9c8f3b1533e"
+    },
+    {
+      "seedKey": "seed-24",
+      "text": "das Spielzeug",
+      "file": "seed-24.wav",
+      "sha256": "689a22f87413a2fc2306074691da758add78fbf6fc7bdb5d827419a12b222e21"
+    },
+    {
+      "seedKey": "seed-25",
+      "text": "groß",
+      "file": "seed-25.wav",
+      "sha256": "161595476b2a46948e5df7e913d2e7e7786b579114e32a3dcf53575039e1c966"
+    },
+    {
+      "seedKey": "seed-26",
+      "text": "klein",
+      "file": "seed-26.wav",
+      "sha256": "6d501da0befff39dba077e0cf4849113d4b01840cd4e920d7b393749aa1f65d2"
+    },
+    {
+      "seedKey": "seed-27",
+      "text": "neu",
+      "file": "seed-27.wav",
+      "sha256": "6ab761ab33107544ec96c3221aa23eb7c99215f75b4a024f11ad95b23d8df60c"
+    },
+    {
+      "seedKey": "seed-28",
+      "text": "alt",
+      "file": "seed-28.wav",
+      "sha256": "4bae5681dbd1662efc969fc29d6e866bdca108aaadaecb8873b605223cef1a29"
+    },
+    {
+      "seedKey": "seed-29",
+      "text": "gut",
+      "file": "seed-29.wav",
+      "sha256": "b4065c55906aa46c333d6c9fcf01d91976f499e91b1bda5a7e0d9122e043bea3"
+    },
+    {
+      "seedKey": "seed-30",
+      "text": "schlecht",
+      "file": "seed-30.wav",
+      "sha256": "09cb4cc8ff9c01c61a8599bc3d75ad4468ddab2bb011ee014c057bff25602077"
+    },
+    {
+      "seedKey": "seed-31",
+      "text": "schön",
+      "file": "seed-31.wav",
+      "sha256": "720afdc54e423842a6338377a4ba476b1ab87c0ffcc0a99825bdf10d5be3fce4"
+    },
+    {
+      "seedKey": "seed-32",
+      "text": "interessant",
+      "file": "seed-32.wav",
+      "sha256": "1ea9805e6dcb5def74fc4c0e6e860c4afb8b1664559cdac9580fb3406468bc86"
+    },
+    {
+      "seedKey": "seed-33",
+      "text": "weiß",
+      "file": "seed-33.wav",
+      "sha256": "4226c86110f31d841d1fb8ee478304b443cd1dcbebe5f43b97905ae92a3a3808"
+    },
+    {
+      "seedKey": "seed-34",
+      "text": "schwarz",
+      "file": "seed-34.wav",
+      "sha256": "a2daa5dc162b6d7344906acc396b091db546df83963eed5f59be15e0b89989a2"
+    },
+    {
+      "seedKey": "seed-35",
+      "text": "rot",
+      "file": "seed-35.wav",
+      "sha256": "18992a6251bfe6ba15cb3ed7c8e159bb29f943f806611a89a966cf5f2d9f768b"
+    },
+    {
+      "seedKey": "seed-36",
+      "text": "blau",
+      "file": "seed-36.wav",
+      "sha256": "68f291ed3567fba4c7c0ebc6889a6a6a0aadbbe144ff9cd321b1b6717d400607"
+    },
+    {
+      "seedKey": "seed-37",
+      "text": "grün",
+      "file": "seed-37.wav",
+      "sha256": "d5f8c3c63dca6664ff1b33eff23a4b5ef1a517277e2087d2e80f45e2358d6518"
+    },
+    {
+      "seedKey": "seed-38",
+      "text": "grau",
+      "file": "seed-38.wav",
+      "sha256": "8612210bce704ed92df0b612a739fe7967e1bebbdc2e706b707cca1a1e540479"
+    },
+    {
+      "seedKey": "seed-39",
+      "text": "braun",
+      "file": "seed-39.wav",
+      "sha256": "58c532c52b4ac063b4c8a85ec05ae00f0160df9182cfc6e6a343cae9f35eb4d2"
+    },
+    {
+      "seedKey": "seed-40",
+      "text": "gelb",
+      "file": "seed-40.wav",
+      "sha256": "f3d8c315e5c081ea60ed6357177505fca2b3d4a3b7d497b9d942a9e0af3a7ae6"
+    }
+  ]
+}

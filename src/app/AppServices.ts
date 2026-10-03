@@ -1,3 +1,5 @@
+import { createAudioService } from '../features/audio/audioAdapters';
+import type { AudioService } from '../features/audio/audioService';
 import { ProgressRepository } from '../features/progress/progressRepository';
 import { TopicRepository } from '../features/topics/topicRepository';
 import { ReviewRepository } from '../features/reviews/reviewRepository';
@@ -67,7 +69,7 @@ const training = new WeakMap<SqlStore, {
     answers: AnswerService;
 }>();
 export function getTrainingServices(app: AppServices) { let value = training.get(app.db); if (!value) {
-    value = { sessions: new SessionRepository(app.db), answers: new AnswerService(app.db) };
+    value = { sessions: new SessionRepository(app.db, word => getAudioService(app).available(word)), answers: new AnswerService(app.db) };
     training.set(app.db, value);
 } return value; }
 
@@ -88,4 +90,9 @@ export function getTopicRepository(app: AppServices): TopicRepository {
 const progress = new WeakMap<SqlStore, ProgressRepository>();
 export function getProgressRepository(app: AppServices): ProgressRepository {
  let value=progress.get(app.db);if(!value){value=new ProgressRepository(app.db);progress.set(app.db,value);}return value;
+}
+
+const audio = new WeakMap<SqlStore, AudioService>();
+export function getAudioService(app: AppServices): AudioService {
+ let value=audio.get(app.db);if(!value){value=createAudioService();audio.set(app.db,value);}return value;
 }

@@ -1,0 +1,5 @@
+// Development-only embedded audio probe; never changes the product entry.
+gradle.projectsEvaluated {
+  def app = gradle.rootProject.findProject(':app')
+  if (app != null) app.extensions.getByName('react').entryFile = new File(app.rootProject.projectDir.parentFile, 'test/android/audioSmoke.tsx')
+}

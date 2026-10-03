@@ -1,3 +1,4 @@
+import type { OfflineSpeech } from '../../src/features/audio/audioService';
 import { requireNativeModule } from "expo-modules-core";
 import type { LocalFileAdapter } from "../../src/features/assistant/modelFiles";
 export type CopyProgress = {
@@ -26,5 +27,14 @@ export function localFiles(): LocalFileAdapter & {
     readText: (uri) => native.readText(uri),
     subscribeProgress: (listener) =>
       native.addListener("copyProgress", listener),
+  };
+}
+
+export function offlineSpeech(): OfflineSpeech {
+  const native = requireNativeModule<OfflineSpeech>('GermanOfflineSpeech');
+  return {
+    listVoices: () => native.listVoices(),
+    speakOffline: (...args) => native.speakOffline(...args),
+    stopSpeech: () => native.stopSpeech(),
   };
 }

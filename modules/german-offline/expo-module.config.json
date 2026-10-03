@@ -1,4 +1,11 @@
 {
-  "platforms": ["android"],
-  "android": { "modules": ["expo.modules.germanoffline.LocalFilesModule"] }
+  "platforms": [
+    "android"
+  ],
+  "android": {
+    "modules": [
+      "expo.modules.germanoffline.LocalFilesModule",
+      "expo.modules.germanoffline.OfflineSpeechModule"
+    ]
+  }
 }
