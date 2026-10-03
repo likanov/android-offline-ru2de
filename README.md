@@ -51,9 +51,9 @@ full Android report and pending physical Pixel acceptance. Read
   --report-dir "$PWD/../../work/android-regression/full"
 
 # This existing failed report is packaged honestly as a blocked candidate.
-npm run package:release -- \
+./scripts/toolchain.sh npm run package:release -- \
   --report "$PWD/../../work/android-regression/fix1-final/report.json"
-npm run verify:release -- "$PWD/../german-vocabulary-android"
+./scripts/toolchain.sh npm run verify:release -- "$PWD/../german-vocabulary-android"
 ```
 
 Host verification logs can be supplied with `--verification-dir DIR` (default

@@ -64,5 +64,9 @@ repeat full regression on the resulting signed APK, collect audio/language
 observations and physical Pixel results, then package into a fresh directory.
 Do not edit a failed report to mark it passed. A generated blocked candidate is
 retained for inspection, and the command exits2. An existing output directory is
-preserved and rejected; choose `--output` for a new candidate. No ZIP, public
+preserved and rejected; choose `--output` for a new candidate. On this host use `./scripts/toolchain.sh npm run package:release` and
+`./scripts/toolchain.sh npm run verify:release`: system npm runs under x86_64,
+and its child Apple Python launcher cannot load the arm64-only xcrun library.
+The pinned ARM64 toolchain successfully inspects all embedded assets.
+No ZIP, public
 hosting or store publication is performed by this task.
