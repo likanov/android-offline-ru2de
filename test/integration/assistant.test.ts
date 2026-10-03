@@ -195,3 +195,56 @@ test('saved_aids_survive_database_close_and_reopen_without_model', async () => {
         rmSync(directory, { recursive: true, force: true });
     }
 });
+
+// Cleanup must settle the old helper operation, not just invalidate its load epoch.
+test('switch_during_pending_load_waits_for_disposal_then_immediately_generates_for_next_profile', async () => {
+    await h.assistant.cancelAndRelease();
+    h.close();
+    let finishLoad!: (context: import('../../src/features/assistant/llamaRuntime').RuntimeContext) => void;
+    let finishRelease!: () => void;
+    let announceRelease!: () => void;
+    const releaseStarted = new Promise<void>(resolve => { announceRelease = resolve; });
+    let loads = 0;
+    const events: string[] = [];
+    h = await createAssistantHarness(new LlamaRuntime(async () => {
+        ++loads;
+        events.push(`load ${loads}`);
+        if (loads === 1) return new Promise(resolve => { finishLoad = resolve; });
+        return { completion: async () => ({ text: 'P2 fresh result' }), stopCompletion: async () => {}, release: async () => {} };
+    }));
+    const { p1, p2, first } = await fixture();
+    const nextWord = (await h.words.list(p2.id))[0];
+    const tokens: string[] = [];
+    const firstOutcome = h.assistant.generate(request(p1.id, first.id), new AbortController().signal, text => tokens.push(text)).then(draft => draft, error => error);
+    for (let i = 0; i < 100 && !finishLoad; ++i) await new Promise(resolve => setTimeout(resolve, 1));
+    expect(finishLoad).toBeDefined();
+    let cleanupResolved = false;
+    const switchOutcome = (async () => {
+        await h.assistant.cancelAndRelease();
+        cleanupResolved = true;
+        events.push('cleanup settled');
+        await setActiveProfile(h.db, p2.id);
+        return h.assistant.generate(request(p2.id, nextWord.id), new AbortController().signal, text => tokens.push(text));
+    })().then(draft => draft, error => error);
+    for (let i = 0; i < 20; ++i) await Promise.resolve();
+    const cleanupDuringLoad = cleanupResolved;
+    finishLoad({ completion: async () => ({ text: 'P1 late result' }), stopCompletion: async () => {}, release: async () => {
+        events.push('P1 release started');
+        announceRelease();
+        await new Promise<void>(resolve => { finishRelease = resolve; });
+        events.push('P1 release finished');
+    } });
+    await releaseStarted;
+    for (let i = 0; i < 20; ++i) await Promise.resolve();
+    const cleanupDuringRelease = cleanupResolved;
+    finishRelease();
+    const cancelled = await firstOutcome, second = await switchOutcome;
+    expect({ cleanupDuringLoad, cleanupDuringRelease, firstCode: cancelled.code, secondCode: second.code ?? null, secondText: second.text ?? null }).toEqual({
+        cleanupDuringLoad: false, cleanupDuringRelease: false, firstCode: 'CANCELLED', secondCode: null, secondText: 'P2 fresh result',
+    });
+    expect(second.profileId).toBe(p2.id);
+    expect(events.indexOf('P1 release finished')).toBeLessThan(events.indexOf('cleanup settled'));
+    expect(events.indexOf('cleanup settled')).toBeLessThan(events.indexOf('load 2'));
+    expect(tokens).toEqual([]);
+    expect(await h.db.all('SELECT * FROM aids')).toEqual([]);
+});

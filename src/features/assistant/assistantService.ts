@@ -13,6 +13,7 @@ import { buildMessages } from './assistantPrompts';
 export class AssistantService {
     private epoch = 0;
     private active?: AbortController;
+    private activeDone?: Promise<void>;
     private draining: Promise<void> = Promise.resolve();
     private issued = new WeakMap<HelperDraft, {
         epoch: number;
@@ -44,6 +45,8 @@ export class AssistantService {
             throw new AppError('BUSY', 'Помощник занят');
         const controller = new AbortController(), epoch = this.epoch, selection = profileSelectionVersion(this.db);
         this.active = controller;
+        let finish!: () => void;
+        this.activeDone = new Promise<void>(resolve => { finish = resolve; });
         const abort = () => controller.abort();
         signal.addEventListener('abort', abort);
         const stop = () => { void this.runtime.cancel().catch(() => { }); };
@@ -98,8 +101,11 @@ export class AssistantService {
             off?.();
             signal.removeEventListener('abort', abort);
             controller.signal.removeEventListener('abort', stop);
-            if (this.active === controller)
+            if (this.active === controller) {
                 this.active = undefined;
+                this.activeDone = undefined;
+            }
+            finish();
         }
     }
     async save(draft: HelperDraft, editedText: string): Promise<void> {
@@ -128,13 +134,22 @@ export class AssistantService {
     }
     async cancelAndRelease(): Promise<void> {
         ++this.epoch;
+        const activeDone = this.activeDone;
         this.active?.abort();
         const pending = this.draining.catch(() => { }).then(async () => {
             try {
                 await this.runtime.cancel();
             }
             finally {
-                await this.runtime.release();
+                try {
+                    await this.runtime.release();
+                }
+                finally {
+                    // Runtime release can invalidate initialization before its
+                    // factory returns. Wait for generate's finally block too,
+                    // so late native disposal and the active slot both finish.
+                    await activeDone;
+                }
             }
         });
         this.draining = pending;
