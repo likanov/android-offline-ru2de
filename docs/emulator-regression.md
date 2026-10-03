@@ -152,5 +152,13 @@ Flows use content-scoped swipes for the fixed navigation layout. Maestro 2.11.0 
 
 Assistant checks run before JSON roundtrip so the exported backup contains an
 actual generated, edited aid with dependency links. Roundtrip state assertions
-compare learning state, XP and all history/link collection counts in the new
-profiles, including aid dependencies, topic memberships and saved sessions.
+compare every exported field and nested payload with regenerated UUIDs mapped
+back to the source graph. The intermediate normal UI export is retained as
+`transfer.json-roundtrip-restored.json`: translations, helper text and embedded
+word IDs, dependency revisions, settings, questions, sessions, results, history
+and memberships must all match. Originals must remain unchanged. The flow resumes
+an answered mastery question twice, then double-taps a new answer in the restored
+continuation profile and resumes its result again. Final export checks require
+exactly one new correct attempt worth 10 XP, unchanged rewards and old attempts,
+and no changes to any other original/restored profile. Missing intermediate
+preservation or final answer evidence cannot pass.

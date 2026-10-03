@@ -221,5 +221,142 @@ name: transfer.json-roundtrip
   },
   {
     "assertVisible": "Восстановлено профилей:.*"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/export-state.yaml",
+      "env": {
+        "EXPORT_NAME": "${RESTORE_CHECKPOINT_NAME}"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия — 20 UI восстановлено 2"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Верно! \\+60 XP"
+      }
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Верно! \\+60 XP"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Верно! \\+60 XP"
+      }
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Верно! \\+60 XP"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия — продолжение восстановлено 2"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-topics"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать набор: Регрессия"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Изучать набор"
+      }
+    }
+  },
+  {
+    "tapOn": "Изучать набор"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/answer-double.yaml",
+      "env": {
+        "WORD_DE": "Prüfstuhl",
+        "WORD_RU": "новый перевод"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Верно! \\+10 XP"
+      }
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Верно! \\+10 XP"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Верно! \\+10 XP"
+      }
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Верно! \\+10 XP"
+    }
   }
 ]

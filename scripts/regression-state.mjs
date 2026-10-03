@@ -1,6 +1,6 @@
 // Read only exported BackupV1 data produced by the normal Android save screen.
 // This module never opens or mutates the application's SQLite database.
-export function verifyScenarioState(id,backup,{before,today,fixtureDay}={}) {
+export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCheckpoint}={}) {
  const errors=[];const check=(ok,label)=>{if(!ok)errors.push(label);};
  const part=name=>backup?.profiles?.find(p=>p.profile.name===name);
  const old=name=>before?.profiles?.find(p=>p.profile.name===name);
@@ -34,7 +34,37 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay}={}) {
  if(id==='progress.no-passive-xp'||id==='audio.wav-listening'){for(const p of backup.profiles)check(!old(p.profile.name)||conserved(p,old(p.profile.name)),'PASSIVE_XP:'+p.profile.name);}
  if(id==='transfer.csv-picker-escaping'){const p=part('Регрессия UI');check(p?.words.some(w=>w.de==='Prüfstuhl'&&w.note.includes('"внутри"')&&w.note.includes('\n')),'CSV_ESCAPED_NOTE');check(p?.words.some(w=>w.de==='regressionsschön')&&p?.topics.some(t=>t.name==='Регрессия'),'CSV_TOPIC_UNICODE');}
  if(id==='transfer.csv-preview-cancel-profile'||id==='transfer.invalid-interrupted')check(same(backup.profiles,before?.profiles),'TRANSFER_CANCEL_MUTATED');
- if(id==='transfer.json-roundtrip'){const count=before?.profiles?.length;check(backup.profiles.length===count*2,'RESTORE_NEW_PROFILES');for(const p of before?.profiles??[]){const restored=backup.profiles.find(r=>r.profile.name===p.profile.name+' восстановлено 2');check(restored?.profile.xp===p.profile.xp,'RESTORE_XP:'+p.profile.name);for(const collection of ['words','progress','skillStats','skillHistory','dailyActivity','aids','aidWords','sessions','questions','attempts','rewards','topics','wordTopics'])check(restored?.[collection]?.length===p[collection]?.length,'RESTORE_LINKS:'+p.profile.name+':'+collection);const learning=part=>part?.progress.map(r=>({...r,profileId:undefined,wordId:part.words.find(w=>w.id===r.wordId)?.de})).sort((a,b)=>a.wordId.localeCompare(b.wordId));check(same(learning(restored),learning(p)),'RESTORE_LEARNING:'+p.profile.name);}}
+ if(id==='transfer.json-roundtrip'){
+  const restoredBackup=restoreCheckpoint??backup;
+  check(!!restoreCheckpoint,'RESTORE_ANSWER_EVIDENCE_MISSING');
+  check(!!before?.profiles?.length,'RESTORE_SOURCE_MISSING');
+  check(restoredBackup.profiles.length===before?.profiles?.length*2,'RESTORE_NEW_PROFILES');
+  for(const p of before?.profiles??[]){
+   check(stable(partFrom(restoredBackup,p.profile.name))===stable(p),'RESTORE_ORIGINAL_CHANGED:'+p.profile.name);
+   const restored=partFrom(restoredBackup,p.profile.name+' восстановлено 2');
+   for(const error of restorationErrors(p,restored))check(false,'RESTORE_FIDELITY:'+p.profile.name+':'+error);
+  }
+  if(restoreCheckpoint){
+   check(backup.profiles.length===restoreCheckpoint.profiles.length,'RESTORE_AFTER_PROFILE_COUNT');
+   const targetName='Регрессия — продолжение восстановлено 2';
+   for(const p of restoreCheckpoint.profiles){
+    const after=partFrom(backup,p.profile.name);
+    if(p.profile.name!==targetName)check(stable(after)===stable(p),'RESTORE_REPLAY_CHANGED:'+p.profile.name);
+   }
+   const target=part(targetName),baseline=partFrom(restoreCheckpoint,targetName);
+   check(!!target&&!!baseline,'RESTORE_ANSWER_PROFILE_MISSING');
+   if(target&&baseline){
+    const additions=target.attempts.filter(a=>!baseline.attempts.some(b=>b.attemptId===a.attemptId));
+    check(target.attempts.length===baseline.attempts.length+1&&additions.length===1,'RESTORE_DOUBLE_ANSWER_ATTEMPTS');
+    check(target.profile.xp===baseline.profile.xp+10&&additions[0]?.xpDelta===10&&additions[0]?.right===1,'RESTORE_DOUBLE_ANSWER_XP');
+    check(stable(target.rewards)===stable(baseline.rewards),'RESTORE_DOUBLE_ANSWER_REWARD');
+    check(stable(target.attempts.filter(a=>baseline.attempts.some(b=>b.attemptId===a.attemptId)))===stable(baseline.attempts),'RESTORE_OLD_ATTEMPTS_CHANGED');
+    for(const key of ['words','settings','topics','wordTopics','aids','aidWords'])check(stable(target[key])===stable(baseline[key]),'RESTORE_ANSWER_CHANGED:'+key);
+    const answer=additions[0],question=target.questions.find(q=>q.attemptId===answer?.attemptId),session=target.sessions.find(s=>s.id===answer?.sessionId);
+    check(question?.status==='answered'&&question?.wordId===answer?.wordId&&question?.sessionId===answer?.sessionId&&session?.currentQuestion?.attemptId===answer?.attemptId&&stable(session?.result)===stable(answer?.result),'RESTORE_DOUBLE_ANSWER_PAYLOAD');
+   }
+  }
+ }
  if(id==='assistant.helper-save-edit')check(part('Регрессия UI')?.aids.some(a=>JSON.parse(a.content).text.includes('Проверено')),'HELPER_EDIT_NOT_SAVED');
  if(id==='assistant.helper-cancel-background')check(same(part('Регрессия UI')?.aids,old('Регрессия UI')?.aids),'LATE_HELPER_SAVED');
  if(id==='assistant.helper-profile-dependency'){check(part('Регрессия UI')?.aids.filter(a=>!a.stale).length===0,'STALE_HELPER_VISIBLE');check(part('Второй переименован')?.aids.length===old('Второй переименован')?.aids.length,'CROSS_PROFILE_HELPER');}
@@ -42,4 +72,49 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay}={}) {
  if(id.startsWith('upgrade.')){const p=part('Миграция UI');check(p?.words.some(w=>w.de==='Upgradeprobe'),'UPGRADE_CUSTOM_WORD_LOST');check(p?.profile.xp===1250&&p.rewards.length===5&&p.attempts.length===100,'UPGRADE_EARNED_HISTORY');if(id==='upgrade.topic-migration')check(p?.topics.length>=6&&p.wordTopics.length>0,'TOPIC_MIGRATION_MISSING');if(before?.profiles?.length){const b=old('Миграция UI');check(p?.profile.xp===b?.profile.xp&&same(p?.attempts,b?.attempts)&&same(p?.rewards,b?.rewards),'UPGRADE_DUPLICATE_REWARD');}}
  if(id==='resilience.picker-double-answer'){const p=part('Регрессия — трудное'),b=old('Регрессия — трудное');check(p?.attempts.length===b?.attempts.length+1&&p?.profile.xp===b?.profile.xp+10,'DOUBLE_ANSWER_REWARDED');}
  return {ok:errors.length===0,errors};
+}
+
+// Compare every exported value, tolerating only UUID regeneration and the new
+// profile name. Array order remains significant for question choices/word pools.
+function partFrom(backup,name){return backup?.profiles?.find(p=>p.profile.name===name);}
+function stable(value){
+ if(Array.isArray(value))return '['+value.map(stable).join(',')+']';
+ if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(key=>JSON.stringify(key)+':'+stable(value[key])).join(',')+'}';
+ return JSON.stringify(value);
+}
+function restorationErrors(source,restored){
+ if(!restored)return ['PROFILE_MISSING'];
+ const errors=[],ids=new Map(),oldIds=new Set([source.profile.id]);
+ const definitions=[['words','id'],['topics','id'],['aids','id'],['sessions','id'],['questions','attemptId']];
+ for(const [collection,key]of definitions)for(const row of source[collection]??[])oldIds.add(row[key]);
+ function pair(oldId,newId){
+  if(typeof newId!=='string'||!newId||oldIds.has(newId)||ids.has(newId))errors.push('REGENERATED_ID_INVALID');
+  else ids.set(newId,oldId);
+ }
+ pair(source.profile.id,restored.profile.id);
+ for(const [collection,key]of definitions){
+  const original=source[collection]??[],copy=restored[collection]??[];
+  for(let i=0;i<Math.min(original.length,copy.length);i++)pair(original[i][key],copy[i][key]);
+ }
+ const references=new Set(['id','profileId','wordId','topicId','aidId','sessionId','attemptId']);
+ function normalize(value,key=''){
+  if(typeof value==='string'&&references.has(key))return ids.get(value)??'UNMAPPED_REFERENCE:'+value;
+  if(key==='content'&&typeof value==='string'){
+   // Legacy opaque helper content is preserved byte-for-byte. Structured aid
+   // content must preserve all fields and the embedded word reference.
+   try{return normalize(JSON.parse(value));}catch{return value;}
+  }
+  if(Array.isArray(value))return value.map(v=>normalize(v,key==='wordIds'?'wordId':''));
+  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,normalize(v,k)]));
+  return value;
+ }
+ function original(value,key=''){
+  if(key==='content'&&typeof value==='string'){try{return original(JSON.parse(value));}catch{return value;}}
+  if(Array.isArray(value))return value.map(v=>original(v));
+  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,original(v,k)]));
+  return value;
+ }
+ const copy=normalize(restored);copy.profile.name=source.profile.name;
+ for(const key of new Set([...Object.keys(source),...Object.keys(copy)]))if(stable(copy[key])!==stable(original(source[key])))errors.push(key);
+ return errors;
 }

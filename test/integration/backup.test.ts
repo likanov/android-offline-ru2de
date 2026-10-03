@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'expo-crypto';
 import { createWordHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
@@ -136,4 +137,36 @@ test.each(['distractor', 'typing alias'] as const)('export_survives_editing_an_a
     const resumed = (await h.sessions.resume(restored.profileIds[0]))!;
     const next = (await h.sessions.next(restored.profileIds[0],resumed.id,day))!;
     expect(await h.answers.submit(restored.profileIds[0],resumed.id,next.attemptId,next.expected[0],day)).toMatchObject({right:true,xpDelta:10});
+});
+
+test('android_roundtrip_state_validator_accepts_real_remapped_backup_and_duplicate_submission', async () => {
+    const p = await createProfile(h.db, 'Регрессия — продолжение');
+    const w = await h.words.create(p.id, {de:'Prüfstuhl',ru:'контрольный стул',pos:'noun',gender:'m'});
+    const s = await h.sessions.start(p.id, {mode:'study',wordIds:[w.id]}, day);
+    const q = (await h.sessions.next(p.id,s.id,day))!;
+    await h.answers.submit(p.id,s.id,q.attemptId,q.expected[0],day);
+    await h.sessions.next(p.id,s.id,day);
+    await h.words.update(p.id,w.id,{...w,ru:'новый перевод'});
+    const aid = randomUUID();
+    await h.db.run('INSERT INTO aids(id,profileId,content) VALUES (?,?,?)',[aid,p.id,JSON.stringify({format:'assistant-aid-v1',wordId:w.id,mode:'association',ruleTopic:null,referenceTitle:null,text:'Проверенная подсказка'})]);
+    await h.db.run('INSERT INTO aid_words(aidId,profileId,wordId,revision) VALUES (?,?,?,?)',[aid,p.id,w.id,2]);
+    const before = await h.backup.exportAll();
+    const result = await h.backup.restore(h.backup.preview(JSON.stringify(before)));
+    const restoreCheckpoint = await h.backup.exportAll();
+    const restoredId = result.profileIds[0], word = (await h.words.list(restoredId)).find(w=>w.de==='Prüfstuhl')!;
+    const session = await h.sessions.start(restoredId,{mode:'study',wordIds:[word.id]},day);
+    const next = (await h.sessions.next(restoredId,session.id,day))!;
+    const answered = await h.answers.submit(restoredId,session.id,next.attemptId,next.expected[0],day);
+    expect(answered.xpDelta).toBe(10);
+    const answeredBackup = await h.backup.exportAll();
+    expect(await h.answers.submit(restoredId,session.id,next.attemptId,next.expected[0],day)).toEqual(answered);
+    expect(await h.answers.submit(restoredId,session.id,next.attemptId,'wrong',day)).toEqual(answered);
+    const after = await h.backup.exportAll();
+    expect(after.profiles).toEqual(answeredBackup.profiles);
+    const script = `import {verifyScenarioState} from './scripts/regression-state.mjs';
+      import {readFileSync} from 'node:fs';
+      const e=JSON.parse(readFileSync(0,'utf8'));
+      console.log(JSON.stringify(verifyScenarioState('transfer.json-roundtrip',e.after,e)));`;
+    const validation = execFileSync(process.execPath,['--input-type=module','-e',script],{input:JSON.stringify({before,restoreCheckpoint,after}),encoding:'utf8'});
+    expect(JSON.parse(validation)).toEqual({ok:true,errors:[]});
 });

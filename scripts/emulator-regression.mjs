@@ -249,13 +249,20 @@ async function group(row,baseline) {
   let before=baseline??latestBackup;
   if(check.state&&check.id!=='assistant.helper-save-edit'&&!baseline)before=captureState(check.id+'-before');
   await beforeCheck(check);
-  const extra={FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:check.id+'-operation.json'};
+  const extra={FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:check.id+'-operation.json',RESTORE_CHECKPOINT_NAME:check.id+'-restored.json'};
   flow(check.id,check.flow,extra);
   await afterCheck(check);
   if(check.state) {
    const after=captureState(check.id+'-after'),today=shell('date','+%Y-%m-%d').stdout.trim();
-   const result=verifyScenarioState(check.id,after,{before,today,fixtureDay});
-   const scenario=report.scenarios.find(s=>s.id===check.id);scenario.stateEvidence=join(reportDir,check.id+'-after.json');scenario.stateValidation=result;
+   let restoreCheckpoint,restoreEvidence;
+   if(check.id==='transfer.json-roundtrip'){
+    restoreEvidence=join(reportDir,check.id+'-restored.json');
+    execute(adb,['-s',serial,'pull','/sdcard/Download/GermanVocabulary/'+check.id+'-restored.json',restoreEvidence]);
+    restoreCheckpoint=JSON.parse(readFileSync(restoreEvidence,'utf8'));
+    if(restoreCheckpoint.format!=='german-vocabulary-backup')throw Error('RESTORE_CHECKPOINT_INVALID');
+   }
+   const result=verifyScenarioState(check.id,after,{before,today,fixtureDay,restoreCheckpoint});
+   const scenario=report.scenarios.find(s=>s.id===check.id);scenario.stateEvidence=join(reportDir,check.id+'-after.json');scenario.stateValidation=result;if(restoreEvidence)scenario.restoreEvidence=restoreEvidence;
    if(!result.ok){scenario.status='failed';scenario.reason=result.errors.join(';');throw Error('STATE_ASSERTION_FAILED:'+check.id+':'+scenario.reason);}
   }
  }
