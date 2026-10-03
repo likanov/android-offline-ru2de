@@ -35,8 +35,8 @@ another directory. Hashes bind those artifacts and files in
 `release-manifest.json`. `apk-inspection.json` records actual commands and their
 outputs. `device-acceptance.json` contains explicit pending Pixel results.
 Host checks passed on the Task15 source tree: typecheck and lint exit0; full Jest
-41 suites/248 tests; SQL12 suites/74 tests; release verifier41 tests, and the
-complete scripts suite86 tests. Actual command logs and source commit receipt
+41 suites/248 tests; SQL12 suites/74 tests; release verifier42 tests, and the
+complete scripts suite87 tests. Actual command logs and source commit receipt
 are retained in `verification/` when the candidate is assembled.
 The detailed TDD/host-verification report is the Task15 implementation report
 outside this Git checkout under the enclosing task's `work/sdd/` directory.

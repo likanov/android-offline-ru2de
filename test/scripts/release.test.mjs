@@ -90,7 +90,7 @@ test('package keeps failed regression evidence and returns invalid candidate sta
   assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).status, 'blocked');
 });
 
-test('accepts empty retained stderr in file inventory', t => { const f = fixture(t); put(f.dir, 'regression/stderr.log', ''); f.report.commands = [{ stdout: 'regression/device.log', stderr: 'regression/stderr.log', status: 0 }]; f.save(); assert.equal(verifyRelease(f.dir, f.options).ok, true); });
+test('accepts empty retained stderr in file inventory', t => { const f = fixture(t); put(f.dir, 'regression/stderr.log', ''); f.report.commands = [{ command: 'retained-command', stdout: 'regression/device.log', stderr: 'regression/stderr.log', status: 0 }]; f.save(); assert.equal(verifyRelease(f.dir, f.options).ok, true); });
 test('rejects unapproved manifest fields such as model download URLs', t => { const f = fixture(t); const path = 'model/model-manifest.json'; const manifest = JSON.parse(readFileSync(join(f.dir, path))); manifest.downloadUrl = 'https://example.invalid/model'; put(f.dir, path, manifest); f.save(); rejects(f, 'MODEL_MANIFEST_MISMATCH'); });
 test('rejects missing v2 signature confirmation', t => { const f = fixture(t); f.inspection.signedV2 = false; rejects(f, 'APK_V2_SIGNATURE_MISSING'); });
 test('classifies malformed regression arrays as invalid evidence', t => { const f = fixture(t); f.report.generations = {}; f.report.scenarios = [null]; f.save(); rejects(f, 'REGRESSION_INVALID'); });
@@ -140,4 +140,10 @@ test('packages host verification logs and binds them in file inventory', t => {
   const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'host'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
   assert.equal(result.ok, true); assert.equal(readFileSync(join(output, 'verification/typecheck.log'), 'utf8'), 'tsc exited 0');
   assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).files['verification/typecheck.log'].sha256, digest('tsc exited 0'));
+});
+test('keeps inline emulator stdout/stderr separate from command artifact paths', t => {
+  const f = fixture(t), output = join(f.dir, 'candidate'); f.report.environment = { emulator: { status: 0, stdout: '', stderr: '' } }; f.save();
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  const saved = JSON.parse(readFileSync(join(output, 'regression/report.json'))); assert.equal(saved.environment.emulator.stdout, ''); assert.equal(saved.environment.emulator.stderr, '');
 });

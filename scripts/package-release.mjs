@@ -3,7 +3,7 @@ import { dirname, join, resolve, relative, basename, isAbsolute } from 'node:pat
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { sha256File } from './regression-report.mjs';
-import { verifyRelease, verificationExit, inspectApk, EXPECTED_CERTIFICATE, EXPECTED_MODEL, DOCUMENTS, EVIDENCE_KEYS, listBundleFiles, privateFile } from './verify-release.mjs';
+import { verifyRelease, verificationExit, inspectApk, EXPECTED_CERTIFICATE, EXPECTED_MODEL, DOCUMENTS, isEvidencePath, listBundleFiles, privateFile } from './verify-release.mjs';
 const root = fileURLToPath(new URL('..', import.meta.url));
 class ReleaseInputError extends Error {}
 function stageRelease({ output, apk, modelDir, report: reportPath, audioDir = join(root, 'assets/audio'), docsDir = join(root, 'docs'), acceptance = join(docsDir, 'device-acceptance.json'), sourceCommit, verificationDir, expectedModel = EXPECTED_MODEL, inspectApk: inspect = inspectApk }) {
@@ -46,10 +46,10 @@ function stageRelease({ output, apk, modelDir, report: reportPath, audioDir = jo
   cpSync(reportDir, join(output, 'regression'), { recursive: true, dereference: false });
   copy(reportPath, 'regression/source-report.json');
   const remap = new Map([[resolve(apk), 'app-release.apk'], [resolve(modelDir, expectedModel.fileName), 'model/' + expectedModel.fileName], [resolve(modelDir, 'model-manifest.json'), 'model/model-manifest.json']]);
-  function relocate(value, key) {
+  function relocate(value, key, container) {
     if (Array.isArray(value)) return value.map(item => relocate(item));
-    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, value]) => [key, relocate(value, key)]));
-    if (typeof value === 'string' && EVIDENCE_KEYS.has(key)) {
+    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, relocate(item, key, value)]));
+    if (typeof value === 'string' && isEvidencePath(key, container)) {
       const path = isAbsolute(value) ? resolve(value) : resolve(dirname(reportDir), value);
       if (remap.has(path)) return remap.get(path);
       const inside = relative(reportDir, path);

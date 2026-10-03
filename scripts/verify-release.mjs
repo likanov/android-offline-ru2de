@@ -8,6 +8,9 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 export const EXPECTED_MODEL = JSON.parse(readFileSync(join(root, 'docs/model-manifest.json'), 'utf8'));
 export const EXPECTED_CERTIFICATE = 'b61708a517c2ea04e3879f6b5dddae93413ef284152bc6707a6d23fa2ff48ba3';
 export const EVIDENCE_KEYS = new Set(['path', 'junit', 'screenshot', 'hierarchy', 'logcat', 'apk', 'provenancePath', 'manifestPath', 'stateEvidence', 'restoreEvidence', 'stdout', 'stderr']);
+export function isEvidencePath(key, container) {
+  return EVIDENCE_KEYS.has(key) && (!['stdout', 'stderr'].includes(key) || typeof container?.command === 'string');
+}
 export const DOCUMENTS = ['install-android.md', 'device-acceptance.md', 'third-party-notices.md', 'release-report.md'];
 const hashPattern = /^[a-f0-9]{64}$/;
 export const privateFile = path => /(?:^|\/)(?:signing\.env|\.env(?:\..*)?|[^/]+\.(?:keystore|jks|pem|key|p12|pfx))$/i.test(path);
@@ -122,10 +125,10 @@ export function verifyRelease(bundle, { expectedModel = EXPECTED_MODEL, inspectA
       }
     }
   }
-  function evidence(value, key) {
+  function evidence(value, key, container) {
     if (Array.isArray(value)) return value.map(item => evidence(item));
-    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, value]) => [key, evidence(value, key)]));
-    if (typeof value === 'string' && EVIDENCE_KEYS.has(key)) {
+    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, evidence(item, key, value)]));
+    if (typeof value === 'string' && isEvidencePath(key, container)) {
       const path = local(value);
       require(path, 'EVIDENCE_PATH_OUTSIDE_BUNDLE:' + key);
       if (path) require(existsSync(path) && statSync(path).isFile() && manifest?.files && Object.hasOwn(manifest.files, value), 'EVIDENCE_MISSING:' + value);
