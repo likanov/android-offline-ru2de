@@ -12,7 +12,9 @@ Only local scheduling APIs are used. No push-token registration or Expo push req
 
 The installed Expo library's `NotificationsService.SETUP_ACTIONS` and manifest receive BOOT_COMPLETED and restore persisted notifications via `ExpoSchedulingDelegate.setupScheduledNotifications()`. Its `DailyTrigger.nextTriggerDate()` recalculates local calendar hour/minute for each delivery. Its manifest and setup actions do **not** receive TIME_SET or TIMEZONE_CHANGED. The next alarm is an RTC timestamp, so a timezone change can otherwise leave one delivery at the previous zone's instant.
 
-For that confirmed gap, `ReminderTimeReceiver` receives TIME_SET and TIMEZONE_CHANGED and reuses Expo's persisted request and scheduling delegate. The same notification identifier replaces the existing alarm. The persisted Expo request contains the selected profile ID and local hour/minute; there is no second reminder store or additional boot receiver. SDK 56's shipped notifications AAR is linked through its local Maven publication (source-project builds use the Gradle project fallback).
+For that confirmed gap, `ReminderTimeReceiver` replaces Expo's designated notification receiver and inherits its handling/presentation behavior, adding TIME_SET and TIMEZONE_CHANGED. Its scheduling delegate shares a process-wide dispatcher across JS scheduling/cancellation, boot/timezone restoration and reminder delivery. Restoration reads a revision-tagged snapshot; if cancellation or profile switching committed in between, it discards the snapshot. Trigger delivery reschedules directly inside the critical section, avoiding a later asynchronous schedule of an old request.
+
+The same notification identifier replaces the existing alarm. Legacy default-receiver PendingIntents are explicitly cancelled during upgrade as well. The persisted Expo request contains the selected profile ID and local hour/minute; there is no second reminder store. SDK 56's shipped notifications AAR is linked through its local Maven publication (source-project builds use the Gradle project fallback).
 
 The config plugin registers the receiver; normal Expo prebuild regenerates it. The receiver does not launch JS, request permission, or use a network service.
 
@@ -23,13 +25,14 @@ Reference: [Expo SDK 56 notifications](https://docs.expo.dev/versions/v56.0.0/sd
 - Service tests exercise real SQLite and a stateful notification boundary: off defaults, P1→off P2→P1, cancellation with no profile, denied permission, permission restored, persisted time, repeated/concurrent reconciliation, disabling, invalid hour/minute.
 - React Native settings tests check initial off/19:00, saved 20:30, denied permission explanation, invalid-time rejection preserving the saved preference, and a save racing with a profile switch.
 - Full Jest run: 29 suites / 173 tests passed. TypeScript and ESLint passed.
+- Native dispatcher regressions pause restoration after reading the previous request, commit disable or a new active profile, resume restoration, and assert both persisted request and alarm remain the committed state. A normal-restoration test verifies unchanged requests still recreate alarms. All 3 native tests passed; the hardened release build passed in 11 seconds. APK manifest inspection confirmed only the replacement receiver handles Expo notification events.
 - Expo Android prebuild passed. Controller-escalated `./scripts/toolchain.sh sh -c 'cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a'` passed in 22 seconds. The release includes the compiled time receiver and SDK 56 notifications AAR.
 
 ## Release-device checks and limitations
 
 An isolated API36 ARM64 emulator is available (`emulator-5554`). Sandbox adb initially could not start its local server; a controller-authorized unsandboxed device query confirmed the emulator. Physical OEM devices have not been tested.
 
-Actual release emulator checks (API36 ARM64, Wi-Fi/mobile data disabled, adb reverse removed):
+Actual release emulator checks (API36 ARM64, Wi-Fi/mobile data disabled, adb reverse removed), recorded before the native race hardening. A final hardened-release smoke attempt could not run because no emulator/device was attached; native regression/build/manifest verification passed as described above:
 
 - Existing Anton profile and data survived installation/migration. Initial reminder controls showed off and 19:00.
 - Enabling prompted the real Android notification permission dialog. Choosing “Don’t allow” retained enabled/19:00 and displayed the permission explanation; `dumpsys alarm` had no app alarm.
