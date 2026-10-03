@@ -19,6 +19,7 @@ function fixture(t) {
   const modelManifest = { ...JSON.parse(readFileSync(join(root, 'docs/model-manifest.json'))), bytes: model.length, sha256: digest(model) };
   put(dir, 'app-release.apk', apk); put(dir, 'model/' + modelManifest.fileName, model); put(dir, 'model/model-manifest.json', modelManifest);
   cpSync(join(root, 'assets/audio'), join(dir, 'audio'), { recursive: true });
+  cpSync(join(root, 'docs/licenses'), join(dir, 'licenses'), { recursive: true });
   for (const name of ['install-android.md', 'device-acceptance.md', 'third-party-notices.md', 'release-report.md']) put(dir, name, 'Synthetic documentation for verifier unit tests only.');
   put(dir, 'regression/device.log', 'Synthetic device log without runtime failures');
   put(dir, 'regression/previous.apk', 'synthetic previous APK');
@@ -35,19 +36,26 @@ function fixture(t) {
     upgrade: { previousCommit: '19b2e0c1cf36eda73159aff9bb2d94b757d24144', apk: 'regression/previous.apk', apkSha256: digest('synthetic previous APK'), provenancePath: 'regression/provenance.json' },
     restoration: { status: 'passed', failures: [] },
   };
-  const acceptance = { status: 'passed', apkSha256: digest(apk), modelSha256: modelManifest.sha256, device: { physical: true, manufacturer: 'Google', model: 'Pixel 9 Pro XL', androidVersion: '16' }, checkedAt: '2026-10-04T00:00:00Z', metrics: ['association', 'example', 'text', 'rule'].map(mode => ({ mode, firstTokenMs: 100, totalMs: 1000, tokens: 10, peakRssBytes: 1000000, evidence: 'regression/device.log' })), criteria: Array.from({ length: 14 }, (_, i) => ({ id: i + 1, status: 'passed', actual: 'Synthetic assertion.', evidence: 'regression/device.log' })) };
+  const acceptance = { status: 'passed', blockers: [], apkSha256: digest(apk), modelSha256: modelManifest.sha256, device: { physical: true, manufacturer: 'Google', model: 'Pixel 9 Pro XL', androidVersion: '16' }, checkedAt: '2026-10-04T00:00:00Z', metrics: ['association', 'example', 'text', 'rule'].map(mode => ({ mode, firstTokenMs: 100, totalMs: 1000, tokens: 10, peakRssBytes: 1000000, evidence: 'regression/device.log' })), criteria: Array.from({ length: 14 }, (_, i) => ({ id: i + 1, status: 'passed', actual: 'Synthetic assertion.', evidence: 'regression/device.log' })) };
   const manifest = { schemaVersion: 1, sourceCommit: 'a'.repeat(40), applicationId: 'com.personal.germanvocabulary', certificateSha256: certificate, apk: 'app-release.apk', modelManifest: 'model/model-manifest.json', audioManifest: 'audio/manifest.json', regressionReport: 'regression/report.json', deviceAcceptance: 'device-acceptance.json', files: {} };
+  const host = { status: 'passed', commit: 'a'.repeat(40), checkedAt: '2026-10-04T00:00:00Z', commands: [
+    ['./scripts/toolchain.sh npm run typecheck', 'verification/typecheck.log'],
+    ['./scripts/toolchain.sh npm run lint', 'verification/lint.log'],
+    ['./scripts/toolchain.sh npm test -- --runInBand', 'verification/jest.log'],
+    ['./scripts/toolchain.sh npm run test:sql', 'verification/sql.log'],
+    ['./scripts/toolchain.sh npm run test:scripts', 'verification/scripts.log'],
+  ].map(([command, log]) => { put(dir, log, 'Synthetic successful host command: ' + command); return { command, exitCode: 0, log }; }) };
   const audio = JSON.parse(readFileSync(join(dir, 'audio/manifest.json')));
   // Native Android tools are the external boundary; these tests exercise real filesystem/hash/report validation.
   const inspection = { certificateSha256: certificate, applicationId: manifest.applicationId, versionName: '0.1.0', versionCode: '1', abi: ['arm64-v8a'], signedV2: true, permissions: [], jsBundle: true, audioSha256: audio.recordings.map(row => row.sha256) };
   function save() {
-    put(dir, 'regression/report.json', report); put(dir, 'device-acceptance.json', acceptance);
+    put(dir, 'regression/report.json', report); put(dir, 'device-acceptance.json', acceptance); put(dir, 'verification/report.json', host);
     const walk = path => readdirSync(path, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(join(path, entry.name)) : [join(path, entry.name)]);
     manifest.files = Object.fromEntries(walk(dir).filter(path => !path.endsWith('/release-manifest.json')).map(path => [path.slice(dir.length + 1), { bytes: readFileSync(path).length, sha256: digest(readFileSync(path)) }]));
     put(dir, 'release-manifest.json', manifest);
   }
   save();
-  return { dir, report, acceptance, manifest, inspection, save, options: { expectedModel: modelManifest, inspectApk: () => inspection } };
+  return { dir, report, acceptance, host, manifest, inspection, save, options: { expectedModel: modelManifest, inspectApk: () => inspection } };
 }
 function rejects(f, code) { const result = verifyRelease(f.dir, f.options); assert.equal(result.ok, false); assert.ok(result.errors.some(error => error.includes(code)), JSON.stringify(result)); }
 
@@ -84,7 +92,7 @@ test('internal inspection errors propagate to CLI-equivalent caller', t => { con
 test('package keeps failed regression evidence and returns invalid candidate status', t => {
   const f = fixture(t); f.report.status = 'failed'; f.report.exitCode = 1; f.save();
   const output = join(f.dir, 'candidate');
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, false); assert.ok(result.errors.includes('RUN_NOT_COMPLETE'));
   assert.equal(JSON.parse(readFileSync(join(output, 'regression/report.json'))).status, 'failed');
   assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).status, 'blocked');
@@ -97,7 +105,7 @@ test('classifies malformed regression arrays as invalid evidence', t => { const 
 test('rejects symlink to model outside bundle', t => { const f = fixture(t); const path = join(f.dir, 'model/Qwen3-1.7B-Q4_K_M.gguf'), external = join(f.dir, 'outside.gguf'); cpSync(path, external); rmSync(path); symlinkSync(external, path); rejects(f, 'MODEL_MISSING'); });
 test('packager refuses private material before creating bundle', t => {
   const f = fixture(t); put(f.dir, 'regression/signing.env', 'synthetic secret, never copied'); const output = join(f.dir, 'candidate');
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, false); assert.match(result.errors.join('\n'), /PRIVATE_MATERIAL_FORBIDDEN/); assert.equal(result.output, undefined);
   assert.equal(spawnSync(process.execPath, ['-e', 'process.exit(require("fs").existsSync(process.argv[1])?1:0)', output]).status, 0);
 });
@@ -109,7 +117,7 @@ test('requires exact target Pixel 9 Pro XL', t => { const f = fixture(t); f.acce
 test('requires measured model speed and memory for every Pixel assistant mode', t => { const f = fixture(t); f.acceptance.metrics = []; f.save(); rejects(f, 'PIXEL_METRICS_MISSING:association'); });
 test('full synthetic package remains verifiable after moving to another directory', t => {
   const f = fixture(t), output = join(f.dir, 'candidate');
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, true, JSON.stringify(result.errors));
   const moved = mkdtempSync(join(tmpdir(), 'vocabulary-relocated-')); t.after(() => rmSync(moved, { recursive: true, force: true })); cpSync(output, moved, { recursive: true });
   rmSync(output, { recursive: true });
@@ -120,30 +128,61 @@ test('packages separately recorded Pixel acceptance artifacts with portable path
   put(f.dir, 'pixel/measured.log', 'Synthetic Pixel artifact.');
   for (const row of [...f.acceptance.criteria, ...f.acceptance.metrics]) row.evidence = 'pixel/measured.log';
   f.save();
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, true, JSON.stringify(result.errors));
   assert.equal(readFileSync(join(output, 'pixel/measured.log'), 'utf8'), 'Synthetic Pixel artifact.');
 });
 test('packager rejects output nested inside regression source', t => {
   const f = fixture(t), output = join(f.dir, 'regression/candidate');
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, false); assert.match(result.errors.join('\n'), /OUTPUT_OVERLAPS_INPUT/);
 });
 test('Pixel artifact cannot overwrite the delivered APK', t => {
   const f = fixture(t), output = join(f.dir, 'candidate');
   f.acceptance.criteria[0].evidence = 'app-release.apk'; f.save();
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, false); assert.match(result.errors.join('\n'), /PIXEL_ARTIFACT_PATH_INVALID/);
 });
 test('packages host verification logs and binds them in file inventory', t => {
-  const f = fixture(t), output = join(f.dir, 'candidate'); put(f.dir, 'host/typecheck.log', 'tsc exited 0');
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'host'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const f = fixture(t), output = join(f.dir, 'candidate'); cpSync(join(f.dir, 'verification'), join(f.dir, 'host'), { recursive: true }); put(f.dir, 'host/typecheck.log', 'tsc exited 0');
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'host'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, true); assert.equal(readFileSync(join(output, 'verification/typecheck.log'), 'utf8'), 'tsc exited 0');
   assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).files['verification/typecheck.log'].sha256, digest('tsc exited 0'));
 });
 test('keeps inline emulator stdout/stderr separate from command artifact paths', t => {
   const f = fixture(t), output = join(f.dir, 'candidate'); f.report.environment = { emulator: { status: 0, stdout: '', stderr: '' } }; f.save();
-  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, true, JSON.stringify(result.errors));
   const saved = JSON.parse(readFileSync(join(output, 'regression/report.json'))); assert.equal(saved.environment.emulator.stdout, ''); assert.equal(saved.environment.emulator.stderr, '');
+});
+
+// Removing a required notice must fail even after refreshing the bundle's inventory.
+const requiredLicenses = ['Qwen3-1.7B-LICENSE.txt', 'expo-LICENSE.txt', 'expo-asset-LICENSE.txt', 'expo-audio-LICENSE.txt', 'expo-crypto-LICENSE.txt', 'expo-document-picker-LICENSE.txt', 'expo-notifications-LICENSE.txt', 'expo-sqlite-LICENSE.txt', 'llama.cpp-LICENSE.txt', 'llama.rn-LICENSE.txt', 'react-LICENSE.txt', 'react-native-LICENSE.txt', 'thorsten-MODEL_CARD.txt', 'npm-production-inventory.json', 'npm-production-notices.txt'];
+for (const name of requiredLicenses) test('rejects missing required license payload ' + name, t => {
+  const f = fixture(t); rmSync(join(f.dir, 'licenses', name)); f.save(); rejects(f, 'LICENSE_MISSING:' + name);
+});
+test('rejects absent license directory even when omitted from inventory', t => { const f = fixture(t); rmSync(join(f.dir, 'licenses'), { recursive: true }); f.save(); rejects(f, 'LICENSE_MISSING:Qwen3-1.7B-LICENSE.txt'); });
+test('rejects replaced attribution after file inventory is refreshed', t => { const f = fixture(t); put(f.dir, 'licenses/npm-production-notices.txt', 'Incomplete attribution'); f.save(); rejects(f, 'LICENSE_SHA256_MISMATCH:npm-production-notices.txt'); });
+for (const name of ['licenses', 'licenses/npm-production-inventory.json']) test('packager refuses missing ' + name, t => {
+  const f = fixture(t), output = join(f.dir, 'candidate'); rmSync(join(f.dir, name), { recursive: true }); f.save();
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
+  assert.equal(result.ok, false); assert.match(result.errors.join('\n'), /LICENSE_MISSING:/); assert.equal(result.output, undefined);
+});
+
+test('rejects missing host verification receipt despite refreshed inventory', t => { const f = fixture(t); f.save(); rmSync(join(f.dir, 'verification/report.json')); delete f.manifest.files['verification/report.json']; put(f.dir, 'release-manifest.json', f.manifest); rejects(f, 'HOST_VERIFICATION_MISSING'); });
+for (const [name, mutate, code] of [
+  ['stale host receipt commit', f => { f.host.commit = '0'.repeat(40); }, 'HOST_COMMIT_MISMATCH'],
+  ['failed host receipt', f => { f.host.status = 'failed'; }, 'HOST_VERIFICATION_NOT_PASSED'],
+  ['missing Jest command result', f => { f.host.commands = f.host.commands.filter(row => row.log !== 'verification/jest.log'); }, 'HOST_COMMAND_NOT_PASSED:./scripts/toolchain.sh npm test -- --runInBand'],
+  ['failed SQL command result', f => { f.host.commands.find(row => row.log === 'verification/sql.log').exitCode = 1; }, 'HOST_COMMAND_NOT_PASSED:./scripts/toolchain.sh npm run test:sql'],
+  ['host log outside bundle', f => { f.host.commands[0].log = '/tmp/host-typecheck.log'; }, 'HOST_LOG_MISSING:./scripts/toolchain.sh npm run typecheck'],
+  ['Pixel acceptance blockers', f => { f.acceptance.blockers = ['MEMORY_MEASUREMENT_INCOMPLETE']; }, 'PIXEL_BLOCKERS'],
+]) test('rejects ' + name, t => { const f = fixture(t); mutate(f); f.save(); rejects(f, code); });
+test('rejects missing host command log after refreshing inventory', t => { const f = fixture(t); rmSync(join(f.dir, 'verification/lint.log')); f.save(); rejects(f, 'HOST_LOG_MISSING:./scripts/toolchain.sh npm run lint'); });
+
+test('packager cannot verify a candidate without the host verification receipt', t => {
+  const f = fixture(t), output = join(f.dir, 'candidate');
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
+  assert.equal(result.ok, false); assert.ok(result.errors.includes('HOST_VERIFICATION_MISSING'));
+  assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).status, 'blocked');
 });

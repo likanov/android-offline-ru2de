@@ -78,3 +78,11 @@ before staging, then verifies the actual candidate. Unit/SQL/scripts suites,
 typecheck and lint supplement the full installed Android suite. Repeat native
 build and full device regression after product/dependency/asset/model/build
 setting changes. Packaging/documentation changes alone do not produce a new APK.
+
+Release completeness also requires every canonical file under `docs/licenses/`
+and a passing `verification/report.json` bound to the manifest's `sourceCommit`.
+The receipt must retain successful typecheck, lint, full Jest, SQL and scripts
+results with logs inside `verification/`. A missing receipt, stale commit,
+nonzero result, missing log or nonempty Pixel acceptance blocker rejects the
+candidate. Generate the receipt from actual checks after committing the source;
+copying logs alone does not certify their result.

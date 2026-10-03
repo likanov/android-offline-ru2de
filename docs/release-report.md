@@ -70,3 +70,11 @@ and its child Apple Python launcher cannot load the arm64-only xcrun library.
 The pinned ARM64 toolchain successfully inspects all embedded assets.
 No ZIP, public
 hosting or store publication is performed by this task.
+
+Review fix round 1 additionally requires the complete referenced license payload:
+all 15 canonical license, voice attribution, production inventory and notice
+files. Missing/replaced texts cannot pass by refreshing the bundle inventory.
+A successful host receipt and retained command logs for typecheck, lint, full
+Jest, SQL and scripts must identify the bundle's `sourceCommit`. Pixel acceptance
+must have an explicitly empty blockers array. These packaging gates do not
+change the APK or establish successful device acceptance.

@@ -12,6 +12,8 @@ export function isEvidencePath(key, container) {
   return EVIDENCE_KEYS.has(key) && (!['stdout', 'stderr'].includes(key) || typeof container?.command === 'string');
 }
 export const DOCUMENTS = ['install-android.md', 'device-acceptance.md', 'third-party-notices.md', 'release-report.md'];
+export const REQUIRED_LICENSES = ['Qwen3-1.7B-LICENSE.txt', 'expo-LICENSE.txt', 'expo-asset-LICENSE.txt', 'expo-audio-LICENSE.txt', 'expo-crypto-LICENSE.txt', 'expo-document-picker-LICENSE.txt', 'expo-notifications-LICENSE.txt', 'expo-sqlite-LICENSE.txt', 'llama.cpp-LICENSE.txt', 'llama.rn-LICENSE.txt', 'react-LICENSE.txt', 'react-native-LICENSE.txt', 'thorsten-MODEL_CARD.txt', 'npm-production-inventory.json', 'npm-production-notices.txt'];
+const REQUIRED_HOST_COMMANDS = ['./scripts/toolchain.sh npm run typecheck', './scripts/toolchain.sh npm run lint', './scripts/toolchain.sh npm test -- --runInBand', './scripts/toolchain.sh npm run test:sql', './scripts/toolchain.sh npm run test:scripts'];
 const hashPattern = /^[a-f0-9]{64}$/;
 export const privateFile = path => /(?:^|\/)(?:signing\.env|\.env(?:\..*)?|[^/]+\.(?:keystore|jks|pem|key|p12|pfx))$/i.test(path);
 export function listBundleFiles(dir) {
@@ -80,6 +82,11 @@ export function verifyRelease(bundle, { expectedModel = EXPECTED_MODEL, inspectA
     }
   }
   for (const path of DOCUMENTS) require(file(path), path === 'install-android.md' ? 'INSTRUCTION_MISSING' : 'DOCUMENT_MISSING:' + path);
+  for (const name of REQUIRED_LICENSES) {
+    const path = file('licenses/' + name);
+    require(path, 'LICENSE_MISSING:' + name);
+    if (path) require(sha256File(path) === sha256File(join(root, 'docs/licenses', name)), 'LICENSE_SHA256_MISMATCH:' + name);
+  }
   const audio = json('audio/manifest.json', 'AUDIO_MANIFEST');
   const expectedAudio = JSON.parse(readFileSync(join(root, 'assets/audio/manifest.json'), 'utf8'));
   if (audio) {
@@ -125,6 +132,18 @@ export function verifyRelease(bundle, { expectedModel = EXPECTED_MODEL, inspectA
       }
     }
   }
+  const host = json('verification/report.json', 'HOST_VERIFICATION');
+  if (host) {
+    require(host.status === 'passed', 'HOST_VERIFICATION_NOT_PASSED');
+    require(host.commit === manifest?.sourceCommit, 'HOST_COMMIT_MISMATCH');
+    require(typeof host.checkedAt === 'string' && !Number.isNaN(Date.parse(host.checkedAt)), 'HOST_TIMESTAMP_MISSING');
+    const commands = Array.isArray(host.commands) ? host.commands : [];
+    for (const command of REQUIRED_HOST_COMMANDS) {
+      const matching = commands.filter(row => row?.command === command), row = matching[0];
+      require(matching.length === 1 && row.exitCode === 0, 'HOST_COMMAND_NOT_PASSED:' + command);
+      require(typeof row?.log === 'string' && row.log.startsWith('verification/') && file(row.log) && manifest?.files && Object.hasOwn(manifest.files, row.log), 'HOST_LOG_MISSING:' + command);
+    }
+  }
   function evidence(value, key, container) {
     if (Array.isArray(value)) return value.map(item => evidence(item));
     if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, evidence(item, key, value)]));
@@ -154,6 +173,7 @@ export function verifyRelease(bundle, { expectedModel = EXPECTED_MODEL, inspectA
   const acceptance = json('device-acceptance.json', 'PIXEL_ACCEPTANCE');
   if (acceptance) {
     require(acceptance.status === 'passed', 'PIXEL_NOT_PASSED');
+    require(Array.isArray(acceptance.blockers) && acceptance.blockers.length === 0, 'PIXEL_BLOCKERS');
     require(acceptance.apkSha256 === apkHash, 'PIXEL_APK_SHA256_MISMATCH');
     require(acceptance.modelSha256 === expectedModel.sha256, 'PIXEL_MODEL_SHA256_MISMATCH');
     require(acceptance.device?.physical === true && acceptance.device.manufacturer === 'Google' && acceptance.device.model === 'Pixel 9 Pro XL' && typeof acceptance.device.androidVersion === 'string', 'PIXEL_PHYSICAL_DEVICE_REQUIRED');

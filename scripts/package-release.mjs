@@ -3,13 +3,15 @@ import { dirname, join, resolve, relative, basename, isAbsolute } from 'node:pat
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { sha256File } from './regression-report.mjs';
-import { verifyRelease, verificationExit, inspectApk, EXPECTED_CERTIFICATE, EXPECTED_MODEL, DOCUMENTS, isEvidencePath, listBundleFiles, privateFile } from './verify-release.mjs';
+import { verifyRelease, verificationExit, inspectApk, EXPECTED_CERTIFICATE, EXPECTED_MODEL, DOCUMENTS, REQUIRED_LICENSES, isEvidencePath, listBundleFiles, privateFile } from './verify-release.mjs';
 const root = fileURLToPath(new URL('..', import.meta.url));
 class ReleaseInputError extends Error {}
 function stageRelease({ output, apk, modelDir, report: reportPath, audioDir = join(root, 'assets/audio'), docsDir = join(root, 'docs'), acceptance = join(docsDir, 'device-acceptance.json'), sourceCommit, verificationDir, expectedModel = EXPECTED_MODEL, inspectApk: inspect = inspectApk }) {
   output = resolve(output);
   if (existsSync(output)) return { ok: false, errors: ['OUTPUT_EXISTS:choose a fresh path or preserve/remove the old candidate explicitly'] };
   for (const [path, code] of [[apk, 'APK_MISSING'], [join(modelDir, expectedModel.fileName), 'MODEL_MISSING'], [join(modelDir, 'model-manifest.json'), 'MODEL_MANIFEST_MISSING'], [reportPath, 'REGRESSION_MISSING']]) if (!existsSync(path)) return { ok: false, errors: [code] };
+  const missingLicenses = REQUIRED_LICENSES.filter(name => { const path = join(docsDir, 'licenses', name); return !existsSync(path) || !statSync(path).isFile() || statSync(path).size === 0; });
+  if (missingLicenses.length) return { ok: false, errors: missingLicenses.map(name => 'LICENSE_MISSING:' + name) };
   const reportDir = dirname(resolve(reportPath)), original = JSON.parse(readFileSync(reportPath, 'utf8'));
   for (const source of [reportDir, resolve(modelDir), resolve(audioDir), ...(verificationDir ? [resolve(verificationDir)] : [])]) {
     const inside = relative(source, output);
@@ -41,7 +43,7 @@ function stageRelease({ output, apk, modelDir, report: reportPath, audioDir = jo
     }
     writeFileSync(join(output, 'device-acceptance.json'), JSON.stringify(data, null, 2) + '\n');
   }
-  if (existsSync(join(docsDir, 'licenses'))) cpSync(join(docsDir, 'licenses'), join(output, 'licenses'), { recursive: true, dereference: false });
+  cpSync(join(docsDir, 'licenses'), join(output, 'licenses'), { recursive: true, dereference: false });
   if (verificationDir && existsSync(verificationDir)) cpSync(verificationDir, join(output, 'verification'), { recursive: true, dereference: false });
   cpSync(reportDir, join(output, 'regression'), { recursive: true, dereference: false });
   copy(reportPath, 'regression/source-report.json');
