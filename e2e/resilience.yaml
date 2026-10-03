@@ -1,0 +1,10 @@
+appId: com.personal.germanvocabulary
+name: resilience
+---
+- pressKey: HOME
+- launchApp
+- tapOn: "Словарь"
+- tapOn: "Поиск слов"
+- inputText: "ü"
+- hideKeyboard
+- takeScreenshot: "${REPORT_DIR}/keyboard"

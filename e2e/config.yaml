@@ -1,0 +1,12 @@
+flows:
+  - first-launch.yaml
+  - profiles.yaml
+  - dictionary.yaml
+  - learning.yaml
+  - reviews.yaml
+  - progress.yaml
+  - audio.yaml
+  - reminders.yaml
+  - transfer.yaml
+  - assistant.yaml
+  - resilience.yaml

@@ -1,0 +1,19 @@
+appId: com.personal.germanvocabulary
+name: first-launch
+---
+# runner installs the signed release on a wiped dedicated AVD before this flow.
+# No clearState here: no other phase may erase the database.
+- launchApp
+- assertVisible: "Активный профиль: не выбран"
+- tapOn: "Имя нового профиля"
+- inputText: "Регрессия UI"
+- hideKeyboard
+- tapOn: "Создать профиль"
+- assertVisible: "Активный профиль: Регрессия UI"
+- tapOn:
+    text: "Словарь"
+    index: 1
+- scrollUntilVisible:
+    element: "Найдено: 40"
+- assertVisible: "Найдено: 40"
+- takeScreenshot: "${REPORT_DIR}/first-launch"

@@ -1,0 +1,20 @@
+appId: com.personal.germanvocabulary
+name: assistant
+---
+- tapOn: "Словарь"
+- tapOn: "Поиск слов"
+- eraseText
+- inputText: "Stuhl"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "der Stuhl — стул"
+- tapOn: "der Stuhl — стул"
+- tapOn: "Помоги запомнить"
+- assertVisible: "Ассоциация"
+- tapOn: "Создать подсказку"
+- extendedWaitUntil:
+    visible: "Установить локальную модель"
+    timeout: 60000
+- tapOn: "Установить локальную модель"
+- assertVisible: "Выбрать описание модели"
+# Model install and four real generations are still pending; runner cannot pass.

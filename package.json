@@ -10,7 +10,13 @@
     "test:sql": "node --experimental-sqlite node_modules/jest/bin/jest.js --selectProjects sql --runInBand",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "prebuild:android": "expo prebuild --platform android --template expo-template-bare-minimum@56.0.37"
+    "build:android": "./scripts/toolchain.sh ./scripts/build-android.sh",
+    "prepare:android:emulator": "./scripts/toolchain.sh ./scripts/prepare-avd.sh",
+    "test:android:regression": "./scripts/toolchain.sh node scripts/emulator-regression.mjs",
+    "test:scripts": "node --test test/scripts/*.test.mjs",
+    "fixtures:android": "npm run test:sql -- --runTestsByPath test/integration/regressionFixtures.test.ts",
+    "android:prebuild": "expo prebuild --platform android --template expo-template-bare-minimum@56.0.37",
+    "build:android:upgrade": "./scripts/toolchain.sh ./scripts/build-upgrade-candidate.sh"
   },
   "dependencies": {
     "expo": "56.0.23",

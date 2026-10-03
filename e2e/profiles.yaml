@@ -1,0 +1,27 @@
+appId: com.personal.germanvocabulary
+name: profiles
+---
+- tapOn: "Профили"
+- scrollUntilVisible:
+    element: "Имя нового профиля"
+- tapOn: "Имя нового профиля"
+- inputText: "Второй UI"
+- hideKeyboard
+- tapOn: "Создать профиль"
+- assertVisible: "Активный профиль: Второй UI"
+- scrollUntilVisible:
+    element: "Переименовать Второй UI"
+- tapOn: "Переименовать Второй UI"
+- scrollUntilVisible:
+    element: "Новое имя профиля"
+- tapOn: "Новое имя профиля"
+- eraseText
+- inputText: "Второй переименован"
+- hideKeyboard
+- tapOn: "Сохранить имя"
+- assertVisible: "Активный профиль: Второй переименован"
+- scrollUntilVisible:
+    element: "Выбрать Регрессия UI"
+    direction: UP
+- tapOn: "Выбрать Регрессия UI"
+- assertVisible: "Активный профиль: Регрессия UI"

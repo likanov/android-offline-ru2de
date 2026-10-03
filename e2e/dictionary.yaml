@@ -1,0 +1,27 @@
+appId: com.personal.germanvocabulary
+name: dictionary
+---
+- tapOn: "Словарь"
+- scrollUntilVisible:
+    element: "Найдено: 40"
+- assertVisible: "Найдено: 40"
+- scrollUntilVisible:
+    element: "Поиск слов"
+    direction: UP
+- tapOn: "Поиск слов"
+- inputText: "Stuhl"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "der Stuhl — стул"
+- tapOn: "der Stuhl — стул"
+- assertVisible: "стул"
+- assertVisible: "Мои подсказки"
+- tapOn: "Редактировать"
+- assertVisible: "Редактор карточки"
+- tapOn: "Немецкое слово"
+- assertVisible: "Stuhl"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Отмена"
+- tapOn: "Отмена"
+- tapOn: "Назад в словарь"

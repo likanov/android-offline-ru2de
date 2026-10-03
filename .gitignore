@@ -13,3 +13,9 @@ android/app/src/main/assets/ggml-hexagon/
 # Local Expo module build outputs
 modules/**/android/build/
 modules/**/android/.gradle/
+
+# Regression artifacts and signing material never belong in source control
+*.keystore
+!android/app/debug.keystore
+*.jks
+regression-reports/

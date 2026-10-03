@@ -1,6 +1,14 @@
-const { withAndroidManifest } = require('expo/config-plugins');
+const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 // Expo restores alarms at boot, but does not listen for timezone/time changes.
 module.exports = function withOfflineAndroid(config) {
+  config = withDangerousMod(config, ['android', async config => {
+    const fs = require('node:fs/promises');
+    const path = require('node:path');
+    const directory = path.join(config.modRequest.platformProjectRoot, 'app/src/release');
+    await fs.mkdir(directory, {recursive:true});
+    await fs.writeFile(path.join(directory, 'AndroidManifest.xml'), '<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"><uses-permission android:name="android.permission.INTERNET" tools:node="remove"/></manifest>\n');
+    return config;
+  }]);
   return withAndroidManifest(config, config => {
     const app = config.modResults.manifest.application[0];
     app['meta-data'] = app['meta-data'] || [];

@@ -1,0 +1,358 @@
+[
+  {
+    "id": "first-launch",
+    "flow": "first-launch.yaml",
+    "phase": "clean",
+    "expectation": "Clean offline first launch; 40 starter words; profile; model through file picker; every screen",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "first-launch.offline-network",
+        "status": "not-implemented"
+      },
+      {
+        "id": "first-launch.clean-40-words",
+        "status": "not-implemented"
+      },
+      {
+        "id": "first-launch.model-picker",
+        "status": "not-implemented"
+      },
+      {
+        "id": "first-launch.all-screens",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "profiles",
+    "flow": "profiles.yaml",
+    "phase": "main",
+    "expectation": "Create, rename, select; profile-owned words/topics/settings/aids/XP",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "profiles.profile-create-rename",
+        "status": "not-implemented"
+      },
+      {
+        "id": "profiles.profile-isolation",
+        "status": "not-implemented"
+      },
+      {
+        "id": "profiles.active-profile",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "dictionary",
+    "flow": "dictionary.yaml",
+    "phase": "main",
+    "expectation": "Noun/adjective create/edit/search; NFC/NFD duplicates; lexical reset; cosmetic edits preserve progress",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "dictionary.noun-adjective-edit",
+        "status": "not-implemented"
+      },
+      {
+        "id": "dictionary.search-nfc-nfd",
+        "status": "not-implemented"
+      },
+      {
+        "id": "dictionary.lexical-reset",
+        "status": "not-implemented"
+      },
+      {
+        "id": "dictionary.cosmetic-preserve",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "learning",
+    "flow": "learning.yaml",
+    "phase": "main",
+    "expectation": "All six modes; hidden hints; unique choices; umlauts/ß; 20 UI answers; error at 19; no second bonus",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "learning.six-modes",
+        "status": "not-implemented"
+      },
+      {
+        "id": "learning.hidden-unique-choices",
+        "status": "not-implemented"
+      },
+      {
+        "id": "learning.umlauts-eszett",
+        "status": "not-implemented"
+      },
+      {
+        "id": "learning.twenty-ui-answers",
+        "status": "not-implemented"
+      },
+      {
+        "id": "learning.nineteen-error",
+        "status": "not-implemented"
+      },
+      {
+        "id": "learning.bonus-once",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "reviews",
+    "flow": "reviews.yaml",
+    "phase": "main",
+    "expectation": "1/3/7/14/30/60/60 scheduling; early/late; errors; difficult recovery; timezone/DST",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "reviews.all-intervals",
+        "status": "not-implemented"
+      },
+      {
+        "id": "reviews.early-overdue",
+        "status": "not-implemented"
+      },
+      {
+        "id": "reviews.learned-error",
+        "status": "not-implemented"
+      },
+      {
+        "id": "reviews.difficult-recovery",
+        "status": "not-implemented"
+      },
+      {
+        "id": "reviews.timezone-dst",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "progress",
+    "flow": "progress.yaml",
+    "phase": "main",
+    "expectation": "10 XP/one 50 reward; 499/500; goal1–200; calendar/streak/skills; no XP from card/audio/help",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "progress.xp-levels",
+        "status": "not-implemented"
+      },
+      {
+        "id": "progress.goal-bounds",
+        "status": "not-implemented"
+      },
+      {
+        "id": "progress.calendar-streak-skills",
+        "status": "not-implemented"
+      },
+      {
+        "id": "progress.no-passive-xp",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "audio",
+    "flow": "audio.yaml",
+    "phase": "main",
+    "expectation": "40 local WAVs; listening; absent German offline TTS; real offline TTS if installed; audible recording",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "audio.wav-listening",
+        "status": "not-implemented"
+      },
+      {
+        "id": "audio.tts-absent",
+        "status": "not-implemented"
+      },
+      {
+        "id": "audio.tts-offline",
+        "status": "not-implemented"
+      },
+      {
+        "id": "audio.audible",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "reminders",
+    "flow": "reminders.yaml",
+    "phase": "main",
+    "expectation": "Permission allowed/denied; time; profile switch; boot; timezone",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "reminders.permission-allow-deny",
+        "status": "not-implemented"
+      },
+      {
+        "id": "reminders.reminder-time",
+        "status": "not-implemented"
+      },
+      {
+        "id": "reminders.reminder-profile",
+        "status": "not-implemented"
+      },
+      {
+        "id": "reminders.reminder-boot-zone",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "transfer",
+    "flow": "transfer.yaml",
+    "phase": "main",
+    "expectation": "Real picker CSV escaping/errors/duplicates/cancel/profile switch; JSON export/restore; bad/interrupted atomicity",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "transfer.csv-picker-escaping",
+        "status": "not-implemented"
+      },
+      {
+        "id": "transfer.csv-preview-cancel-profile",
+        "status": "not-implemented"
+      },
+      {
+        "id": "transfer.json-roundtrip",
+        "status": "not-implemented"
+      },
+      {
+        "id": "transfer.invalid-interrupted",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "assistant",
+    "flow": "assistant.yaml",
+    "phase": "main",
+    "expectation": "Real llama.rn GGUF four modes; save/edit; cancel/background/profile/dependency; absent/corrupt model",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "assistant.four-real-modes",
+        "status": "not-implemented"
+      },
+      {
+        "id": "assistant.helper-save-edit",
+        "status": "not-implemented"
+      },
+      {
+        "id": "assistant.helper-cancel-background",
+        "status": "not-implemented"
+      },
+      {
+        "id": "assistant.helper-profile-dependency",
+        "status": "not-implemented"
+      },
+      {
+        "id": "assistant.model-absent-corrupt",
+        "status": "not-implemented"
+      },
+      {
+        "id": "assistant.sources-articles",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "persistence-force-stop",
+    "flow": "persistence-after.yaml",
+    "phase": "force-stop",
+    "expectation": "XP/word/streak/active profile/session retained after force-stop",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "persistence-force-stop.saved-session-xp",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "persistence-reboot",
+    "flow": "persistence-after.yaml",
+    "phase": "reboot",
+    "expectation": "Same database survives reboot and offline relaunch",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "persistence-reboot.saved-session-xp",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "upgrade",
+    "flow": "upgrade.yaml",
+    "phase": "upgrade",
+    "expectation": "Task5 release candidate from original commit; create data/XP through UI; upgrade to final APK; topic migration; no second reward",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "upgrade.original-task5-apk",
+        "status": "not-implemented"
+      },
+      {
+        "id": "upgrade.old-ui-word-xp",
+        "status": "not-implemented"
+      },
+      {
+        "id": "upgrade.topic-migration",
+        "status": "not-implemented"
+      },
+      {
+        "id": "upgrade.resume-no-second-bonus",
+        "status": "not-implemented"
+      }
+    ]
+  },
+  {
+    "id": "resilience",
+    "flow": "resilience.yaml",
+    "phase": "main",
+    "expectation": "Keyboard/large font/320dp/background/picker cancel/double answer; no crash/ANR",
+    "coverage": "draft",
+    "required": true,
+    "checks": [
+      {
+        "id": "resilience.320dp-large-font",
+        "status": "not-implemented"
+      },
+      {
+        "id": "resilience.keyboard-background",
+        "status": "not-implemented"
+      },
+      {
+        "id": "resilience.picker-double-answer",
+        "status": "not-implemented"
+      },
+      {
+        "id": "resilience.crash-anr",
+        "status": "not-implemented"
+      }
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+de,ru,pos,gender,note,topic
+Prüfstuhl,контрольный стул,noun,m,"кавычки ""внутри"" и
+перенос строки",Регрессия
+schön,красивый,adjective,,ä ö ü ß,Регрессия
+Prüfstuhl,дубликат,noun,m,,Регрессия
+kaputt,неверный,noun,z,,Регрессия

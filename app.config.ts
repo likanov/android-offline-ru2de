@@ -1,6 +1,6 @@
 import type { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
-  name: "Немецкие слова",
+  name: "Немецкий словарь",
   slug: "german-vocabulary",
   version: "0.1.0",
   orientation: "portrait",

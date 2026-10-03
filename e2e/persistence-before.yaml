@@ -1,0 +1,7 @@
+appId: com.personal.germanvocabulary
+name: persistence-before
+---
+- tapOn: "Профили"
+- assertVisible: "Активный профиль: Регрессия UI"
+- assertVisible: "0 XP · Стартовый словарь: 40 слов"
+- takeScreenshot: "${REPORT_DIR}/persistence-before"

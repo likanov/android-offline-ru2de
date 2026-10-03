@@ -1,0 +1,11 @@
+appId: com.personal.germanvocabulary
+name: ${PHASE_ID}
+---
+# Invoked after runner force-stop/reboot. launchApp preserves SQLite.
+- launchApp
+- assertVisible: "Активный профиль: Регрессия UI"
+- assertVisible: "Регрессия UI"
+- assertVisible: "Второй переименован"
+- tapOn: "Прогресс"
+- assertVisible: "XP: 0"
+- takeScreenshot: "${REPORT_DIR}/${PHASE_ID}"

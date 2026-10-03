@@ -36,7 +36,7 @@ Run commands through `./scripts/toolchain.sh`, for example:
 ./scripts/toolchain.sh npm run test:sql -- --runTestsByPath test/integration/profiles.test.ts
 ./scripts/toolchain.sh npm run typecheck
 ./scripts/toolchain.sh npm run lint
-./scripts/toolchain.sh npm run prebuild:android -- --no-install
+./scripts/toolchain.sh npm run android:prebuild -- --no-install
 ./scripts/toolchain.sh sh -c 'cd android && ./gradlew assembleDebug'
 ```
 
@@ -65,3 +65,7 @@ The native probe is `test/android/profilesSmoke.tsx`, selected only by its Gradl
 Install that test APK into the isolated emulator, launch it offline and inspect `adb logcat -d -s ReactNativeJS` for NATIVE_PROFILES_RESULT. Expected status is PASS. A normal `assembleRelease` without the init script restores the actual product entry. Test APKs are development evidence, not the final app deliverable.
 
 The initial dependency installation reports 54 audit findings (7 moderate, 47 high) in the resolved npm graph. No forced major upgrades were applied to the fixed Expo SDK baseline. Review the dependency audit before a production release.
+
+## Task 14 regression infrastructure
+
+`npm run build:android` uses a persistent private release key under `../../work/release-signing/`, removes INTERNET only in release, and verifies signature, SHA-256, embedded JS and all 40 WAVs. Native regeneration is `npm run android:prebuild` to avoid npm automatic lifecycle execution before `build:android`. The Task14 AVD is separate under `../../work/android-regression/avd/` with 8192MiB RAM, 12GiB data,1080×1920 at480dpi. Actual host is macOS arm64,36GiB RAM; emulator37.2.12 and adb37.0.1. Maestro is unavailable. Sandbox execution of emulator and Gradle may fail; these are environment limitations, not product regressions. See `docs/emulator-regression.md` for incomplete coverage and report contract.

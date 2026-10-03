@@ -1,0 +1,11 @@
+appId: com.personal.germanvocabulary
+name: learning
+---
+- tapOn: "Тренировка"
+- assertVisible: "Открыть карточку"
+# Deliberately no predetermined assistant output and no answer injection.
+# This draft covers UI entry and cancellation, not 20 answers/all six modes.
+- tapOn: "Открыть карточку"
+- assertVisible: "Мои подсказки"
+- tapOn: "Назад в словарь"
+- assertVisible: "Открыть карточку"

@@ -1,0 +1,11 @@
+appId: com.personal.germanvocabulary
+name: upgrade-before
+---
+# Must run on ORIGINAL Task5 candidate in a second clean isolated AVD.
+- launchApp
+- tapOn: "Имя нового профиля"
+- inputText: "Миграция UI"
+- hideKeyboard
+- tapOn: "Создать профиль"
+- assertVisible: "Активный профиль: Миграция UI"
+# Creating words and earning XP through UI are pending in this draft.

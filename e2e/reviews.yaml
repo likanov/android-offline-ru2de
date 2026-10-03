@@ -1,0 +1,8 @@
+appId: com.personal.germanvocabulary
+name: reviews
+---
+- tapOn: "Повторение"
+- assertVisible: "Повторения"
+- assertVisible: "На сегодня повторений нет"
+- tapOn: "Трудные"
+- assertVisible: "Трудных слов пока нет"

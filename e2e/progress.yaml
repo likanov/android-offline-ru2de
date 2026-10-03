@@ -1,0 +1,15 @@
+appId: com.personal.germanvocabulary
+name: progress
+---
+- tapOn: "Прогресс"
+- assertVisible: "XP: 0"
+- assertVisible: "Ещё нет ответов"
+- tapOn: "Сегодня"
+- scrollUntilVisible:
+    element: "Дневная цель"
+- tapOn: "Дневная цель"
+- eraseText
+- inputText: "200"
+- hideKeyboard
+- tapOn: "Сохранить цель"
+- takeScreenshot: "${REPORT_DIR}/goal-200"
