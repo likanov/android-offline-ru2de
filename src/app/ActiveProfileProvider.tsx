@@ -1,0 +1,52 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import type { Profile } from "../core/types";
+import { useAppServices } from "./AppServices";
+import {
+  getActiveProfile,
+  setActiveProfile,
+} from "../features/profiles/profileRepository";
+type ActiveProfile = {
+  profile: Profile | null;
+  select(profileId: string): Promise<void>;
+  reload(): Promise<void>;
+};
+const Context = createContext<ActiveProfile>({
+  profile: null,
+  select: async () => {},
+  reload: async () => {},
+});
+export const useActiveProfile = () => useContext(Context);
+export function ActiveProfileProvider({ children }: React.PropsWithChildren) {
+  const { db } = useAppServices();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const reload = useCallback(async () => {
+    setProfile(await getActiveProfile(db));
+  }, [db]);
+  const select = useCallback(
+    async (id: string) => {
+      await setActiveProfile(db, id);
+      await reload();
+    },
+    [db, reload],
+  );
+  useEffect(() => {
+    let mounted = true;
+    void getActiveProfile(db).then((saved) => {
+      if (mounted) setProfile(saved);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [db]);
+  return (
+    <Context.Provider value={{ profile, select, reload }}>
+      {children}
+    </Context.Provider>
+  );
+}
