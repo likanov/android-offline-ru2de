@@ -86,3 +86,58 @@ for (const refresh of ['midnight', 'foreground'] as const) test(`training_refres
         expect(screen.queryByRole('alert')).toBeNull();
     } finally {view.unmount();h.close();listener.mockRestore();jest.useRealTimers();}
 });
+
+test('midnight_refresh_cannot_restore_stale_question_after_answer_commits', async () => {
+    const listener=jest.spyOn(AppState,'addEventListener').mockImplementation(()=>({remove:()=>{}}));
+    jest.useFakeTimers();jest.setSystemTime(new Date(2026,9,3,23,59,59));
+    const h=await createWordHarness();const p=await createProfile(h.db,'A');const w=(await h.words.list(p.id)).find(x=>x.de==='Stuhl')!;
+    const view=render(<TrainingScreen db={h.db} profileId={p.id} selection={{mode:'study',wordIds:[w.id]}}/>);
+    let releaseRefresh!: () => void;
+    let refreshStarted!: () => void;
+    const blocked = new Promise<void>(resolve=>{releaseRefresh=resolve;});
+    const started = new Promise<void>(resolve=>{refreshStarted=resolve;});
+    const originalFirst=h.db.first.bind(h.db);
+    try {
+        await screen.findByRole('button',{name:'der Stuhl'});
+        let delayRefresh=true;
+        h.db.first=async <T,>(...args: Parameters<typeof h.db.first>): Promise<T | null> => {
+            const value=await originalFirst<T>(...args);
+            if(delayRefresh && args[0]==='SELECT * FROM words WHERE profileId=? AND id=?') {
+                delayRefresh=false;refreshStarted();await blocked;
+            }
+            return value;
+        };
+        await act(async()=>{jest.advanceTimersByTime(1100);});
+        await started;
+        fireEvent.press(screen.getByRole('button',{name:'der Stuhl'}));
+        await screen.findByText('Верно! +10 XP');
+        await act(async()=>{releaseRefresh();await blocked;});
+        expect(screen.getByText('Верно! +10 XP')).toBeTruthy();
+        expect(screen.getByRole('button',{name:'Продолжить'})).toBeTruthy();
+        expect(await h.db.first('SELECT day FROM attempts WHERE profileId=?',[p.id])).toMatchObject({day:'2026-10-04'});
+    } finally {releaseRefresh();view.unmount();h.close();listener.mockRestore();jest.useRealTimers();}
+});
+
+test('midnight_refresh_keeps_answer_locked_until_its_transaction_finishes', async () => {
+    const listener=jest.spyOn(AppState,'addEventListener').mockImplementation(()=>({remove:()=>{}}));
+    jest.useFakeTimers();jest.setSystemTime(new Date(2026,9,3,23,59,59));
+    const h=await createWordHarness();const p=await createProfile(h.db,'A');const w=(await h.words.list(p.id)).find(x=>x.de==='Stuhl')!;
+    const view=render(<TrainingScreen db={h.db} profileId={p.id} selection={{mode:'study',wordIds:[w.id]}}/>);
+    let finishAnswer!: () => void;
+    const blocked=new Promise<void>(resolve=>{finishAnswer=resolve;});
+    const transaction=h.db.transaction.bind(h.db);
+    try {
+        await screen.findByRole('button',{name:'der Stuhl'});
+        let delayAnswer=true;
+        h.db.transaction=async work=>{
+            if(delayAnswer){delayAnswer=false;await blocked;}
+            return transaction(work);
+        };
+        fireEvent.press(screen.getByRole('button',{name:'der Stuhl'}));
+        await act(async()=>{jest.advanceTimersByTime(1100);});
+        expect(screen.getByRole('button',{name:'der Stuhl'})).toBeDisabled();
+        await act(async()=>{finishAnswer();});
+        await screen.findByText('Верно! +10 XP');
+        expect(await h.profile(p.id)).toMatchObject({xp:10});
+    }finally{finishAnswer();view.unmount();h.close();listener.mockRestore();jest.useRealTimers();}
+});

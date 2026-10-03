@@ -28,15 +28,22 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
     const services = useMemo(() => ({ sessions: new SessionRepository(db,word=>audio.available(word)), answers: new AnswerService(db) }), [db,audio]);
     const [session, setSession] = useState<Session | null>(null), [question, setQuestion] = useState<Question | null>(null), [result, setResult] = useState<AttemptResult | null>(null), [word, setWord] = useState<Word | null>(null), [error, setError] = useState(''), [busy, setBusy] = useState(true), [finished, setFinished] = useState(false);
     const lock = useRef(false);
+    const actionEpoch = useRef(0);
     const playbackEpoch = useRef({generation:0});
     const selectionRef = useRef(selection);
-    useEffect(() => { const playback=playbackEpoch.current; let alive = true; (async () => { try {
+    useEffect(() => {
+        // Calendar refreshes cannot interrupt actions or apply snapshots read before them.
+        if (lock.current) return;
+        const epoch = actionEpoch.current;
+        let alive = true;
+        const current = () => alive && epoch === actionEpoch.current;
+        (async () => { try {
         const existing = await services.sessions.resume(profileId);
         const requested = selectionRef.current;
         const s = existing && (!requested || existing.mode === requested.mode) ? existing : await services.sessions.start(profileId, requested ?? { mode: 'study' }, today);
         const q = s.currentQuestion ?? await services.sessions.next(profileId, s.id, today);
         const w = q ? await db.first<Word>('SELECT * FROM words WHERE profileId=? AND id=?', [profileId, q.wordId]) : null;
-        if (alive) {
+        if (current()) {
             setError('');
             setSession(s);
             setQuestion(q);
@@ -46,15 +53,18 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
         }
     }
     catch (e) {
-        if (alive)
+        if (current())
             setError(String(e));
     }
     finally {
-        if (alive)
+        if (current())
             setBusy(false);
-    } })(); return () => { alive = false; ++playback.generation; lock.current=false; void audio.stop(); }; }, [services, profileId, today, db, audio]);
+    } })(); return () => { alive = false; }; }, [services, profileId, today, db]);
+    useEffect(() => { const playback=playbackEpoch.current, actions=actionEpoch; return () => {
+        ++actions.current; ++playback.generation; lock.current=false; void audio.stop();
+    }; }, [services, profileId, audio]);
     async function submit(answer: string) { if (lock.current || !session || !question || result)
-        return; lock.current = true; setBusy(true); setError(''); try {
+        return; ++actionEpoch.current; lock.current = true; setBusy(true); setError(''); try {
         setResult(await services.answers.submit(profileId, session.id, question.attemptId, answer, currentDay()));
     }
     catch (e) {
@@ -65,7 +75,7 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
         setBusy(false);
     } }
     async function next(reveal: 'card'|'helper'|false = false) { if (lock.current || !session)
-        return; lock.current = true; setBusy(true); setError(''); try {
+        return; ++actionEpoch.current; lock.current = true; setBusy(true); setError(''); try {
         await audio.stop();
         if (reveal)
             await services.sessions.cancelQuestion(profileId, session.id);
@@ -94,6 +104,7 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
     useEffect(()=>{const playback=playbackEpoch.current;return()=>{++playback.generation;void audio.stop();};},[audio,question?.attemptId]);
     async function play(){
         if(!word||!session||!question||lock.current)return;
+        ++actionEpoch.current;
         const epoch=++playbackEpoch.current.generation;
         const current=()=>epoch===playbackEpoch.current.generation;
         lock.current=true;setBusy(true);
