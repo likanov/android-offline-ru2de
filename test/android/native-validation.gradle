@@ -1,0 +1,7 @@
+// Test-only embedded entry. Does not change the production package main/App.tsx.
+gradle.projectsEvaluated {
+  def app = gradle.rootProject.findProject(':app')
+  if (app != null) {
+    app.extensions.getByName('react').entryFile = new File(app.rootProject.projectDir.parentFile, 'test/android/profilesSmoke.tsx')
+  }
+}

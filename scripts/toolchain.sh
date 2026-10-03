@@ -12,7 +12,13 @@ elif [ -d /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ]; then
   JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
 fi
 if [ -n "${JAVA_HOME:-}" ]; then export JAVA_HOME; PATH="$JAVA_HOME/bin:$PATH"; fi
-if [ -d "$TOOLS/android-sdk" ]; then ANDROID_HOME="$TOOLS/android-sdk"; export ANDROID_HOME; PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"; fi
+if [ -d "$TOOLS/android-sdk" ]; then
+  ANDROID_HOME="$TOOLS/android-sdk"
+  ANDROID_USER_HOME="$TOOLS/android-user"
+  ANDROID_AVD_HOME="$TOOLS/android-avd"
+  export ANDROID_HOME ANDROID_USER_HOME ANDROID_AVD_HOME
+  PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$PATH"
+fi
 export PATH
 GRADLE_USER_HOME="$TOOLS/gradle"
 export GRADLE_USER_HOME
