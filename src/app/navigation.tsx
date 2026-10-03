@@ -37,8 +37,13 @@ function NavigationRoutes() {
         }
     }
     function back() {
-        const screen = route.screen === 'editor' && route.wordId ? 'card' : route.fromTraining ? 'training' : 'dictionary';
-        void navigate({ ...route, screen });
+        if (route.screen === 'editor' && route.wordId) {
+            void navigate({ ...route, screen: 'card' });
+        } else if (route.screen === 'card' && route.fromTraining) {
+            void navigate({ screen: 'training', mode: route.mode });
+        } else {
+            void navigate({ screen: 'dictionary' });
+        }
     }
     useEffect(() => {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {

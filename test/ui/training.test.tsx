@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent , waitFor } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { createWordHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import { TrainingScreen } from '../../src/features/learning/TrainingScreen';
@@ -19,4 +20,32 @@ test('helper_cancels_without_opening_unrelated_card', async()=>{
  const h=await createWordHarness();const p=await createProfile(h.db,'A');const w=(await h.words.list(p.id)).find(x=>x.de==='Stuhl')!;let revealed='';
  render(<TrainingScreen db={h.db} profileId={p.id} today="2026-10-03" selection={{mode:'study',wordIds:[w.id]}} onReveal={id=>{revealed=id;}}/>);
  fireEvent.press(await screen.findByRole('button',{name:'Помощник'}));await screen.findByText('Помощник пока недоступен');expect(revealed).toBe('');expect(await h.wordState(p.id,w.id)).toMatchObject({streak:0,totalErrors:0});h.close();
+});
+
+test('hardware_back_leaves_training_after_card_return_and_cancels_question', async () => {
+    const h = await createWordHarness();
+    const p = await createProfile(h.db, 'A');
+    let pressBack: (() => boolean | null | undefined) | undefined;
+    const subscription = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
+        pressBack = handler;
+        return { remove: () => { if (pressBack === handler) pressBack = undefined; } };
+    });
+    const view = render(<AppServicesContext.Provider value={{ db: h.db }}><ActiveProfileProvider><Navigation /></ActiveProfileProvider></AppServicesContext.Provider>);
+    try {
+        await screen.findByText('Активный профиль: A');
+        fireEvent.press(screen.getByRole('button', { name: 'Тренировка' }));
+        fireEvent.press(await screen.findByRole('button', { name: 'Открыть карточку' }));
+        fireEvent.press(await screen.findByRole('button', { name: 'Назад в словарь' }));
+        await screen.findByRole('button', { name: 'Открыть карточку' });
+        const session = (await h.sessions.resume(p.id))!;
+        const q = session.currentQuestion!;
+        await act(async () => { expect(pressBack?.()).toBe(true); });
+        await screen.findByRole('button', { name: 'Добавить слово' });
+        await expect(h.answers.submit(p.id, session.id, q.attemptId, q.expected[0], '2026-10-03')).rejects.toMatchObject({ code: 'STALE_QUESTION' });
+        expect(await h.profile(p.id)).toMatchObject({ xp: 0 });
+    } finally {
+        view.unmount();
+        subscription.mockRestore();
+        h.close();
+    }
 });

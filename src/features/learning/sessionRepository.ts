@@ -52,7 +52,14 @@ export class SessionRepository {
             continue;
         const kinds: QuizKind[] = ['ru-de', 'de-ru', 'typing', 'definite-article', 'indefinite-article', 'listening'];
         let q: Question | null = null;
-        let k = s.kindIndex;
+        // Each word continues its own persisted rotation. Advancing only a global
+        // kind alongside the word cursor locks five-word pools to five kinds.
+        const previous = await tx.first<{payload: string}>(
+            'SELECT payload FROM questions WHERE profileId=? AND sessionId=? AND wordId=? ORDER BY rowid DESC LIMIT 1',
+            [profileId, sessionId, w.id],
+        );
+        const previousKind: QuizKind | undefined = previous ? (JSON.parse(previous.payload) as Question).kind : undefined;
+        let k = previousKind ? kinds.indexOf(previousKind) + 1 : s.kindIndex;
         while (!q) {
             const kind = kinds[k % kinds.length];
             k++;

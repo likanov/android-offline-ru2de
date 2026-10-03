@@ -48,3 +48,25 @@ finally {
     store.close();
     rmSync(directory, { recursive: true, force: true });
 } });
+
+test('five_noun_pool_rotates_each_word_across_types_after_repository_restart', async () => {
+    const nouns = (await h.words.list(p1)).filter((word: { pos: string }) => word.pos === 'noun').slice(0, 5);
+    const session = await s.start(p1, { mode: 'study', wordIds: nouns.map((word: { id: string }) => word.id) }, day);
+    const byWord = new Map<string, string[]>();
+    for (let round = 0; round < 5; round++) {
+        // Recreate the repository at every round to require persisted rotation state.
+        s = new SessionRepository(h.db);
+        const seen = new Set<string>();
+        for (let i = 0; i < 5; i++) {
+            const q = await s.next(p1, session.id, day);
+            seen.add(q.wordId);
+            byWord.set(q.wordId, [...(byWord.get(q.wordId) ?? []), q.kind]);
+            await a.submit(p1, session.id, q.attemptId, q.expected[0], day);
+        }
+        expect(seen.size).toBe(5);
+    }
+    for (const kinds of byWord.values()) {
+        expect(new Set(kinds).size).toBe(5);
+        expect([...kinds].sort()).toEqual(['de-ru', 'definite-article', 'indefinite-article', 'ru-de', 'typing']);
+    }
+});
