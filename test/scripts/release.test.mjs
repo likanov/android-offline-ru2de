@@ -37,7 +37,7 @@ function fixture(t) {
     restoration: { status: 'passed', failures: [] },
   };
   const acceptance = { status: 'passed', blockers: [], apkSha256: digest(apk), modelSha256: modelManifest.sha256, device: { physical: true, manufacturer: 'Google', model: 'Pixel 9 Pro XL', androidVersion: '16' }, checkedAt: '2026-10-04T00:00:00Z', metrics: ['association', 'example', 'text', 'rule'].map(mode => ({ mode, firstTokenMs: 100, totalMs: 1000, tokens: 10, peakRssBytes: 1000000, evidence: 'regression/device.log' })), criteria: Array.from({ length: 14 }, (_, i) => ({ id: i + 1, status: 'passed', actual: 'Synthetic assertion.', evidence: 'regression/device.log' })) };
-  const manifest = { schemaVersion: 1, sourceCommit: 'a'.repeat(40), applicationId: 'com.personal.germanvocabulary', certificateSha256: certificate, apk: 'app-release.apk', modelManifest: 'model/model-manifest.json', audioManifest: 'audio/manifest.json', regressionReport: 'regression/report.json', deviceAcceptance: 'device-acceptance.json', files: {} };
+  const manifest = { schemaVersion: 1, sourceCommit: 'a'.repeat(40), builtFromCommit: 'a'.repeat(40), applicationId: 'com.personal.germanvocabulary', certificateSha256: certificate, apk: 'app-release.apk', modelManifest: 'model/model-manifest.json', audioManifest: 'audio/manifest.json', regressionReport: 'regression/report.json', deviceAcceptance: 'device-acceptance.json', files: {} };
   const host = { status: 'passed', commit: 'a'.repeat(40), checkedAt: '2026-10-04T00:00:00Z', commands: [
     ['./scripts/toolchain.sh npm run typecheck', 'verification/typecheck.log'],
     ['./scripts/toolchain.sh npm run lint', 'verification/lint.log'],
@@ -184,5 +184,22 @@ test('packager cannot verify a candidate without the host verification receipt',
   const f = fixture(t), output = join(f.dir, 'candidate');
   const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'a'.repeat(40), ...f.options });
   assert.equal(result.ok, false); assert.ok(result.errors.includes('HOST_VERIFICATION_MISSING'));
+  assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).status, 'blocked');
+});
+
+for (const [name, mutate, code] of [
+  ['stale successful regression commit', f => { f.report.commit = 'b'.repeat(40); }, 'REGRESSION_COMMIT_MISMATCH'],
+  ['stale APK build commit', f => { f.manifest.builtFromCommit = 'b'.repeat(40); }, 'APK_BUILD_COMMIT_MISMATCH'],
+  ['missing APK build commit', f => { delete f.manifest.builtFromCommit; }, 'APK_BUILD_COMMIT_MISMATCH'],
+]) test('rejects ' + name + ' despite refreshed inventory', t => {
+  const f = fixture(t); mutate(f); f.save(); rejects(f, code);
+});
+test('fresh host checks cannot certify an older successful APK and regression against changed source', t => {
+  const f = fixture(t), output = join(f.dir, 'candidate');
+  f.host.commit = 'b'.repeat(40); f.save();
+  const result = packageRelease({ output, apk: join(f.dir, 'app-release.apk'), modelDir: join(f.dir, 'model'), report: join(f.dir, 'regression/report.json'), audioDir: join(f.dir, 'audio'), docsDir: f.dir, verificationDir: join(f.dir, 'verification'), acceptance: join(f.dir, 'device-acceptance.json'), sourceCommit: 'b'.repeat(40), ...f.options });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.includes('REGRESSION_COMMIT_MISMATCH'));
+  assert.ok(result.errors.includes('APK_BUILD_COMMIT_MISMATCH'));
   assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).status, 'blocked');
 });

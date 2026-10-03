@@ -9,10 +9,11 @@ import { AnswerService } from './answerService';
 import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
 import { TypedAnswer } from './TypedAnswer';
+import { useCurrentDay } from '../../app/useCurrentDay';
 import { localDay } from '../../core/calendar';
 import { genderPresentation } from '../dictionary/wordValidation';
 import type { Word } from './learningTypes';
-export function TrainingScreen({ db, profileId, selection, today = localDay(new Date()), onReveal, onHelper, audio: providedAudio }: {
+export function TrainingScreen({ db, profileId, selection, today: injectedDay, onReveal, onHelper, audio: providedAudio }: {
     audio?: AudioService;
     db: SqlStore;
     profileId: string;
@@ -21,6 +22,8 @@ export function TrainingScreen({ db, profileId, selection, today = localDay(new 
     onReveal?: (wordId: string) => void;
     onHelper?: (wordId: string) => void;
 }) {
+    const calendarDay = useCurrentDay(), today = injectedDay ?? calendarDay;
+    const currentDay = () => injectedDay ?? localDay(new Date());
     const audio=useMemo(()=>providedAudio ?? getAudioService({db}),[providedAudio,db]);
     const services = useMemo(() => ({ sessions: new SessionRepository(db,word=>audio.available(word)), answers: new AnswerService(db) }), [db,audio]);
     const [session, setSession] = useState<Session | null>(null), [question, setQuestion] = useState<Question | null>(null), [result, setResult] = useState<AttemptResult | null>(null), [word, setWord] = useState<Word | null>(null), [error, setError] = useState(''), [busy, setBusy] = useState(true), [finished, setFinished] = useState(false);
@@ -34,6 +37,7 @@ export function TrainingScreen({ db, profileId, selection, today = localDay(new 
         const q = s.currentQuestion ?? await services.sessions.next(profileId, s.id, today);
         const w = q ? await db.first<Word>('SELECT * FROM words WHERE profileId=? AND id=?', [profileId, q.wordId]) : null;
         if (alive) {
+            setError('');
             setSession(s);
             setQuestion(q);
             setResult(s.result);
@@ -51,7 +55,7 @@ export function TrainingScreen({ db, profileId, selection, today = localDay(new 
     } })(); return () => { alive = false; ++playback.generation; lock.current=false; void audio.stop(); }; }, [services, profileId, today, db, audio]);
     async function submit(answer: string) { if (lock.current || !session || !question || result)
         return; lock.current = true; setBusy(true); setError(''); try {
-        setResult(await services.answers.submit(profileId, session.id, question.attemptId, answer, today));
+        setResult(await services.answers.submit(profileId, session.id, question.attemptId, answer, currentDay()));
     }
     catch (e) {
         setError(`Не удалось сохранить ответ. Повторите попытку. ${String(e)}`);
@@ -73,7 +77,7 @@ export function TrainingScreen({ db, profileId, selection, today = localDay(new 
             onHelper(question.wordId);
             return;
         }
-        const q = await services.sessions.next(profileId, session.id, today);
+        const q = await services.sessions.next(profileId, session.id, currentDay());
         setQuestion(q);
         setResult(null);
         setFinished(!q);
@@ -99,7 +103,7 @@ export function TrainingScreen({ db, profileId, selection, today = localDay(new 
             if(!current())return;
             await services.sessions.cancelQuestion(profileId,session.id);
             if(!current())return;
-            const q=await services.sessions.next(profileId,session.id,today);
+            const q=await services.sessions.next(profileId,session.id,currentDay());
             if(!current())return;
             const w=q ? await db.first<Word>('SELECT * FROM words WHERE profileId=? AND id=?',[profileId,q.wordId]):null;
             if(!current())return;

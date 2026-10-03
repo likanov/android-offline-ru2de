@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler } from 'react-native';
+import { AppState, type AppStateStatus, BackHandler } from 'react-native';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { createWordHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
@@ -48,4 +48,41 @@ test('hardware_back_leaves_training_after_card_return_and_cancels_question', asy
         subscription.mockRestore();
         h.close();
     }
+});
+
+
+test('answer_after_midnight_uses_submission_day_even_before_calendar_timer_fires', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 9, 3, 23, 59, 59));
+    const h = await createWordHarness();
+    const p = await createProfile(h.db, 'A');
+    const w = (await h.words.list(p.id)).find(x => x.de === 'Stuhl')!;
+    await h.db.run('UPDATE word_progress SET streak=19 WHERE profileId=? AND wordId=?', [p.id, w.id]);
+    const view = render(<TrainingScreen db={h.db} profileId={p.id} selection={{mode:'study',wordIds:[w.id]}}/>);
+    try {
+        const answer = await screen.findByRole('button', {name:'der Stuhl'});
+        jest.setSystemTime(new Date(2026, 9, 4, 0, 0, 1));
+        fireEvent.press(answer);
+        await screen.findByText('Верно! +60 XP');
+        expect(await h.db.first('SELECT day FROM attempts WHERE profileId=?', [p.id])).toMatchObject({day:'2026-10-04'});
+        expect(await h.db.first('SELECT day,xp FROM daily_activity WHERE profileId=?', [p.id])).toMatchObject({day:'2026-10-04',xp:60});
+        expect(await h.wordState(p.id,w.id)).toMatchObject({dueDay:'2026-10-05'});
+    } finally {view.unmount();h.close();jest.useRealTimers();}
+});
+
+
+for (const refresh of ['midnight', 'foreground'] as const) test(`training_refreshes_empty_review_eligibility_on_${refresh}`, async () => {
+    jest.useFakeTimers();jest.setSystemTime(new Date(2026,9,3,23,59,59));
+    let lifecycle: (state: AppStateStatus) => void = () => {};
+    const listener=jest.spyOn(AppState,'addEventListener').mockImplementation((_event,handler)=>{lifecycle=handler;return {remove:()=>{}};});
+    const h=await createWordHarness();const p=await createProfile(h.db,'A');const w=(await h.words.list(p.id)).find(x=>x.de==='Stuhl')!;
+    await h.db.run("UPDATE word_progress SET learned=1,streak=20,bonusAwarded=1,dueDate='2026-10-04' WHERE wordId=?",[w.id]);
+    const view=render(<TrainingScreen db={h.db} profileId={p.id} selection={{mode:'review',wordIds:[w.id]}}/>);
+    try {
+        await screen.findByRole('alert');
+        if(refresh==='midnight') {await act(async()=>{jest.advanceTimersByTime(1100);});}
+        else {act(()=>{lifecycle('background');});jest.setSystemTime(new Date(2026,9,4,9));await act(async()=>{lifecycle('active');});}
+        await screen.findByRole('button',{name:'der Stuhl'});
+        expect(screen.queryByRole('alert')).toBeNull();
+    } finally {view.unmount();h.close();listener.mockRestore();jest.useRealTimers();}
 });

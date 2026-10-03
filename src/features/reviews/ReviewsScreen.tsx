@@ -5,12 +5,14 @@ import type { DayKey, Word } from '../learning/learningTypes';
 import type { TrainingSelection } from '../learning/questionTypes';
 import { getReviewRepository, getTrainingServices } from '../../app/AppServices';
 
+import { useCurrentDay } from '../../app/useCurrentDay';
 import { localDay } from '../../core/calendar';
 import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
-export function ReviewsScreen({ db, profileId, today = localDay(new Date()), onStart }: {
+export function ReviewsScreen({ db, profileId, today: injectedDay, onStart }: {
     db: SqlStore; profileId: string; today?: DayKey; onStart: (selection: TrainingSelection) => void;
 }) {
+    const calendarDay = useCurrentDay(), today = injectedDay ?? calendarDay;
     const reviews = useMemo(() => getReviewRepository({ db }), [db]);
     const [words, setWords] = useState<Word[]>([]), [nextDay, setNextDay] = useState<DayKey | null>(null), [busy, setBusy] = useState(true), [error, setError] = useState('');
     useEffect(() => {
@@ -26,7 +28,7 @@ export function ReviewsScreen({ db, profileId, today = localDay(new Date()), onS
         try {
             // Select the oldest five before SessionRepository applies its pool limit.
             const selection: TrainingSelection = { mode: 'review', wordIds: words.slice(0, 5).map(w => w.id) };
-            await getTrainingServices({ db }).sessions.start(profileId, selection, today);
+            await getTrainingServices({ db }).sessions.start(profileId, selection, injectedDay ?? localDay(new Date()));
             onStart(selection);
         } catch (e) { setError(String(e)); } finally { setBusy(false); }
     }

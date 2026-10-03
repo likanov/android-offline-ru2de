@@ -2,7 +2,8 @@ import { AppServicesContext } from '../../src/app/AppServices';
 import { ActiveProfileProvider } from '../../src/app/ActiveProfileProvider';
 import { Navigation } from '../../src/app/navigation';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { AppState, type AppStateStatus } from 'react-native';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { createWordHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import { ReviewsScreen } from '../../src/features/reviews/ReviewsScreen';
@@ -40,4 +41,21 @@ test('navigation_opens_difficult_queue_and_trains_only_selected_words', async()=
  fireEvent.press(await screen.findByRole('button',{name:'Изучать трудные слова'}));await screen.findByRole('button',{name:'Открыть карточку'});
  expect(await h.sessions.resume(p.id)).toMatchObject({mode:'study',wordIds:[w.id],currentQuestion:{wordId:w.id}});
  }finally{h.close();}
+});
+
+
+for (const refresh of ['midnight', 'foreground'] as const) test(`review_eligibility_refreshes_on_${refresh}`, async () => {
+ jest.useFakeTimers();jest.setSystemTime(new Date(2026,9,3,23,59,59));
+ let lifecycle: (state: AppStateStatus) => void = () => {};
+ const listener=jest.spyOn(AppState,'addEventListener').mockImplementation((_event,handler)=>{lifecycle=handler;return {remove:()=>{}};});
+ const h=await createWordHarness();const p=await createProfile(h.db,'A');const w=(await h.words.list(p.id))[0];
+ await h.db.run("UPDATE word_progress SET learned=1,streak=20,bonusAwarded=1,dueDate='2026-10-04' WHERE wordId=?",[w.id]);
+ const view=render(<ReviewsScreen db={h.db} profileId={p.id} onStart={()=>{}}/>);
+ try {
+  await screen.findByText('На сегодня повторений нет');
+  if(refresh==='midnight') {await act(async()=>{jest.advanceTimersByTime(1100);});}
+  else {act(()=>{lifecycle('background');});jest.setSystemTime(new Date(2026,9,4,9));await act(async()=>{lifecycle('active');});}
+  await screen.findByText('К повторению: 1');
+  expect(screen.getByRole('button',{name:'Начать повторение'})).not.toBeDisabled();
+ }finally{view.unmount();h.close();listener.mockRestore();jest.useRealTimers();}
 });

@@ -112,6 +112,7 @@ export function verifyRelease(bundle, { expectedModel = EXPECTED_MODEL, inspectA
   }
   if (manifest) {
     require(manifest.schemaVersion === 1 && /^[a-f0-9]{40}$/.test(manifest.sourceCommit ?? ''), 'RELEASE_MANIFEST_INVALID');
+    require(manifest.builtFromCommit === manifest.sourceCommit, 'APK_BUILD_COMMIT_MISMATCH');
     require(manifest.applicationId === 'com.personal.germanvocabulary' && manifest.certificateSha256 === EXPECTED_CERTIFICATE, 'RELEASE_IDENTITY_MISMATCH');
     for (const [key, value] of Object.entries({ apk: 'app-release.apk', modelManifest: 'model/model-manifest.json', audioManifest: 'audio/manifest.json', regressionReport: 'regression/report.json', deviceAcceptance: 'device-acceptance.json' })) require(manifest[key] === value, 'RELEASE_PATH_INVALID:' + key);
     const files = manifest.files;
@@ -157,6 +158,7 @@ export function verifyRelease(bundle, { expectedModel = EXPECTED_MODEL, inspectA
   }
   const report = json('regression/report.json', 'REGRESSION');
   if (report) {
+    require(report.commit === manifest?.sourceCommit, 'REGRESSION_COMMIT_MISMATCH');
     require(report.apk?.sha256 === apkHash, 'REGRESSION_APK_SHA256_MISMATCH');
     require(report.model?.sha256 === expectedModel.sha256, 'REGRESSION_MODEL_SHA256_MISMATCH');
     require(report.apk?.path === 'app-release.apk' && report.model?.path === modelPath && report.model?.manifestPath === 'model/model-manifest.json', 'REGRESSION_INPUT_PATH_MISMATCH');
