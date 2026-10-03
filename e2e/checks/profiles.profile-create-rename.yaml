@@ -79,6 +79,14 @@ name: profiles.profile-create-rename
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Имя нового профиля"
+      }
+    }
+  },
+  {
     "tapOn": "Имя нового профиля"
   },
   {
@@ -89,6 +97,14 @@ name: profiles.profile-create-rename
   },
   {
     "hideKeyboard": {}
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать профиль"
+      }
+    }
   },
   {
     "tapOn": "Создать профиль"
@@ -159,6 +175,14 @@ name: profiles.profile-create-rename
   {
     "assertVisible": {
       "text": "Переименовать Второй UI"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Переименовать Второй UI"
+      }
     }
   },
   {
@@ -233,6 +257,14 @@ name: profiles.profile-create-rename
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Новое имя профиля"
+      }
+    }
+  },
+  {
     "tapOn": "Новое имя профиля"
   },
   {
@@ -243,6 +275,14 @@ name: profiles.profile-create-rename
   },
   {
     "hideKeyboard": {}
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить имя"
+      }
+    }
   },
   {
     "tapOn": "Сохранить имя"

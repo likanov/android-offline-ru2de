@@ -16,6 +16,14 @@ name: resilience.keyboard-background
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {

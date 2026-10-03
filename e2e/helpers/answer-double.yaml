@@ -11,6 +11,14 @@ name: answer-double
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
+            }
+          }
+        },
+        {
           "tapOn": "Продолжить"
         }
       ]
@@ -62,6 +70,14 @@ name: answer-double
         }
       },
       "commands": [
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Ответ на немецком"
+            }
+          }
+        },
         {
           "tapOn": "Ответ на немецком"
         },
@@ -129,7 +145,23 @@ name: answer-double
           }
         },
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Прослушать"
+            }
+          }
+        },
+        {
           "tapOn": "Прослушать"
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Ответ на немецком"
+            }
+          }
         },
         {
           "tapOn": "Ответ на немецком"

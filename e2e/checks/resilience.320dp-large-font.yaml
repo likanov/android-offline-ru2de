@@ -16,6 +16,14 @@ name: resilience.320dp-large-font
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {

@@ -76,6 +76,14 @@ name: export-state
     }
   },
   {
+    "runFlow": {
+      "file": "ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить резервную копию"
+      }
+    }
+  },
+  {
     "tapOn": "Сохранить резервную копию"
   },
   {
@@ -98,7 +106,8 @@ name: export-state
   },
   {
     "tapOn": {
-      "id": "android:id/title", "text": "german-vocabulary-.*\\.json"
+      "id": "android:id/title",
+      "text": "german-vocabulary-.*\\.json"
     }
   },
   {

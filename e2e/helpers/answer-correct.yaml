@@ -11,6 +11,14 @@ name: answer-correct
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
+            }
+          }
+        },
+        {
           "tapOn": "Продолжить"
         }
       ]
@@ -35,6 +43,14 @@ name: answer-correct
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.german}"
+            }
+          }
+        },
+        {
           "tapOn": "${output.answer.german}"
         }
       ]
@@ -48,6 +64,14 @@ name: answer-correct
         }
       },
       "commands": [
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.ru}"
+            }
+          }
+        },
         {
           "tapOn": "${output.answer.ru}"
         }
@@ -63,6 +87,14 @@ name: answer-correct
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Ответ на немецком"
+            }
+          }
+        },
+        {
           "tapOn": "Ответ на немецком"
         },
         {
@@ -70,6 +102,14 @@ name: answer-correct
         },
         {
           "hideKeyboard": {}
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Проверить"
+            }
+          }
         },
         {
           "tapOn": "Проверить"
@@ -88,6 +128,14 @@ name: answer-correct
         {
           "assertNotVisible": {
             "id": "training-gender-hint"
+          }
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.article}"
+            }
           }
         },
         {
@@ -110,6 +158,14 @@ name: answer-correct
           }
         },
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.indefinite}"
+            }
+          }
+        },
+        {
           "tapOn": "${output.answer.indefinite}"
         }
       ]
@@ -129,7 +185,23 @@ name: answer-correct
           }
         },
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Прослушать"
+            }
+          }
+        },
+        {
           "tapOn": "Прослушать"
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Ответ на немецком"
+            }
+          }
         },
         {
           "tapOn": "Ответ на немецком"
@@ -139,6 +211,14 @@ name: answer-correct
         },
         {
           "hideKeyboard": {}
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Проверить"
+            }
+          }
         },
         {
           "tapOn": "Проверить"

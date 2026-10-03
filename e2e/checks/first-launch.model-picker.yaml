@@ -8,6 +8,14 @@ name: first-launch.model-picker
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать описание модели"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать описание модели"
   },
   {
@@ -58,6 +66,14 @@ name: first-launch.model-picker
   },
   {
     "assertVisible": "Описание:.*"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать файл GGUF"
+      }
+    }
   },
   {
     "tapOn": "Выбрать файл GGUF"

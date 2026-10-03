@@ -16,6 +16,14 @@ name: transfer.csv-preview-cancel-profile
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать CSV"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать CSV"
   },
   {
@@ -82,6 +90,14 @@ name: transfer.csv-preview-cancel-profile
   },
   {
     "assertNotVisible": "Импортировать"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать CSV"
+      }
+    }
   },
   {
     "tapOn": "Выбрать CSV"

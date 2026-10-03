@@ -16,6 +16,14 @@ name: assistant.model-absent-corrupt
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -96,6 +104,14 @@ name: assistant.model-absent-corrupt
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Stuhl — стул исправлен"
+      }
+    }
+  },
+  {
     "tapOn": ".*Stuhl — стул исправлен"
   },
   {
@@ -167,7 +183,23 @@ name: assistant.model-absent-corrupt
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Помоги запомнить"
+      }
+    }
+  },
+  {
     "tapOn": "Помоги запомнить"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать подсказку"
+      }
+    }
   },
   {
     "tapOn": "Создать подсказку"

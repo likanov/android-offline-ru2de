@@ -84,6 +84,14 @@ name: profiles.profile-isolation
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Дневная цель"
+      }
+    }
+  },
+  {
     "tapOn": "Дневная цель"
   },
   {
@@ -94,6 +102,14 @@ name: profiles.profile-isolation
   },
   {
     "hideKeyboard": {}
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить цель"
+      }
+    }
   },
   {
     "tapOn": "Сохранить цель"

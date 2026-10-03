@@ -84,6 +84,14 @@ name: reminders.reminder-time
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Время напоминания"
+      }
+    }
+  },
+  {
     "tapOn": "Время напоминания"
   },
   {
@@ -94,6 +102,14 @@ name: reminders.reminder-time
   },
   {
     "hideKeyboard": {}
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить напоминание"
+      }
+    }
   },
   {
     "tapOn": "Сохранить напоминание"

@@ -84,6 +84,14 @@ name: learning.six-modes
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: 20 UI"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: 20 UI"
   },
   {
@@ -155,6 +163,14 @@ name: learning.six-modes
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Изучать набор"
+      }
+    }
+  },
+  {
     "tapOn": "Изучать набор"
   },
   {
@@ -167,6 +183,14 @@ name: learning.six-modes
             "env": {
               "WORD_DE": "Stuhl",
               "WORD_RU": "стул"
+            }
+          }
+        },
+        {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
             }
           }
         },

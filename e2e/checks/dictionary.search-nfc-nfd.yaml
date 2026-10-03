@@ -16,6 +16,14 @@ name: dictionary.search-nfc-nfd
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -202,6 +210,14 @@ name: dictionary.search-nfc-nfd
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавить слово"
+      }
+    }
+  },
+  {
     "tapOn": "Добавить слово"
   },
   {
@@ -270,6 +286,14 @@ name: dictionary.search-nfc-nfd
   {
     "assertVisible": {
       "text": "Немецкое слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Немецкое слово"
+      }
     }
   },
   {
@@ -353,6 +377,14 @@ name: dictionary.search-nfc-nfd
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
+    }
+  },
+  {
     "tapOn": "Перевод"
   },
   {
@@ -433,6 +465,14 @@ name: dictionary.search-nfc-nfd
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "der — мужской род"
+      }
+    }
+  },
+  {
     "tapOn": "der — мужской род"
   },
   {
@@ -501,6 +541,14 @@ name: dictionary.search-nfc-nfd
   {
     "assertVisible": {
       "text": "Сохранить слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
     }
   },
   {
@@ -613,6 +661,14 @@ name: dictionary.search-nfc-nfd
   {
     "assertVisible": {
       "text": "Отмена"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Отмена"
+      }
     }
   },
   {

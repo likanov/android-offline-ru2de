@@ -76,6 +76,14 @@ name: import-fixture
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать резервную копию"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать резервную копию"
   },
   {
@@ -193,6 +201,14 @@ name: import-fixture
   {
     "assertVisible": {
       "text": "Восстановить новые профили"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Восстановить новые профили"
+      }
     }
   },
   {

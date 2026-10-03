@@ -21,6 +21,14 @@ name: old-answer
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.german}"
+            }
+          }
+        },
+        {
           "tapOn": "${output.answer.german}"
         }
       ]
@@ -34,6 +42,14 @@ name: old-answer
         }
       },
       "commands": [
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.ru}"
+            }
+          }
+        },
         {
           "tapOn": "${output.answer.ru}"
         }
@@ -49,6 +65,14 @@ name: old-answer
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Ответ на немецком"
+            }
+          }
+        },
+        {
           "tapOn": "Ответ на немецком"
         },
         {
@@ -56,6 +80,14 @@ name: old-answer
         },
         {
           "hideKeyboard": {}
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Проверить"
+            }
+          }
         },
         {
           "tapOn": "Проверить"
@@ -72,6 +104,14 @@ name: old-answer
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.article}"
+            }
+          }
+        },
+        {
           "tapOn": "${output.answer.article}"
         }
       ]
@@ -85,6 +125,14 @@ name: old-answer
         }
       },
       "commands": [
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${output.answer.indefinite}"
+            }
+          }
+        },
         {
           "tapOn": "${output.answer.indefinite}"
         }

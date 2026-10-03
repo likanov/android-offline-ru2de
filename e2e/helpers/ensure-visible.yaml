@@ -1,0 +1,8 @@
+appId: com.personal.germanvocabulary
+name: ensure-visible
+---
+[
+  {"repeat":{"while":{"notVisible":"${TARGET_TEXT}"},"times":18,"commands":[{"swipe":{"from":{"id":"screen-scroll"},"direction":"DOWN","duration":400}}]}},
+  {"repeat":{"while":{"notVisible":"${TARGET_TEXT}"},"times":18,"commands":[{"swipe":{"from":{"id":"screen-scroll"},"direction":"UP","duration":400}}]}},
+  {"assertVisible":"${TARGET_TEXT}"}
+]

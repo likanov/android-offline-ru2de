@@ -16,6 +16,14 @@ name: audio.tts-offline
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -96,6 +104,14 @@ name: audio.tts-offline
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Prüfstuhl — контрольный стул"
+      }
+    }
+  },
+  {
     "tapOn": ".*Prüfstuhl — контрольный стул"
   },
   {
@@ -105,7 +121,23 @@ name: audio.tts-offline
       },
       "commands": [
         {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Прослушать"
+            }
+          }
+        },
+        {
           "tapOn": "Прослушать"
+        },
+        {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Остановить звук"
+            }
+          }
         },
         {
           "tapOn": "Остановить звук"

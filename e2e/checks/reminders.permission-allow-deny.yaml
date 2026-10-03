@@ -16,7 +16,23 @@ name: reminders.permission-allow-deny
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Ежедневное напоминание"
+      }
+    }
+  },
+  {
     "tapOn": "Ежедневное напоминание"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить напоминание"
+      }
+    }
   },
   {
     "tapOn": "Сохранить напоминание"

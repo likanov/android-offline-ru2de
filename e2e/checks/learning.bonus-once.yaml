@@ -84,6 +84,14 @@ name: learning.bonus-once
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -152,6 +160,14 @@ name: learning.bonus-once
   {
     "assertVisible": {
       "text": "Изучать набор"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Изучать набор"
+      }
     }
   },
   {

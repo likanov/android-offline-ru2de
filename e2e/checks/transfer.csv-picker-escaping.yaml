@@ -16,6 +16,14 @@ name: transfer.csv-picker-escaping
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать CSV"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать CSV"
   },
   {
@@ -66,6 +74,14 @@ name: transfer.csv-picker-escaping
   },
   {
     "assertVisible": "Новые: 2 · Дубли: 1 · Ошибки: 1"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Импортировать"
+      }
+    }
   },
   {
     "tapOn": "Импортировать"

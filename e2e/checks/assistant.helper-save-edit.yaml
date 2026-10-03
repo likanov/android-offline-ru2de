@@ -3,6 +3,14 @@ name: assistant.helper-save-edit
 ---
 [
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Результат помощника"
+      }
+    }
+  },
+  {
     "tapOn": "Результат помощника"
   },
   {
@@ -80,6 +88,14 @@ name: assistant.helper-save-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить в карточку"
+      }
+    }
+  },
+  {
     "tapOn": "Сохранить в карточку"
   },
   {
@@ -122,6 +138,14 @@ name: assistant.helper-save-edit
   },
   {
     "assertVisible": "Подсказка сохранена"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "К карточке"
+      }
+    }
   },
   {
     "tapOn": "К карточке"

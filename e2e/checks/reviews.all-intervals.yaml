@@ -84,6 +84,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -155,6 +163,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Повторить набор"
+      }
+    }
+  },
+  {
     "tapOn": "Повторить набор"
   },
   {
@@ -163,6 +179,14 @@ name: reviews.all-intervals
       "env": {
         "WORD_DE": "Prüfstuhl",
         "WORD_RU": "контрольный стул"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
       }
     }
   },
@@ -251,6 +275,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -322,6 +354,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Повторить набор"
+      }
+    }
+  },
+  {
     "tapOn": "Повторить набор"
   },
   {
@@ -330,6 +370,14 @@ name: reviews.all-intervals
       "env": {
         "WORD_DE": "Prüfstuhl",
         "WORD_RU": "контрольный стул"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
       }
     }
   },
@@ -418,6 +466,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -489,6 +545,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Повторить набор"
+      }
+    }
+  },
+  {
     "tapOn": "Повторить набор"
   },
   {
@@ -497,6 +561,14 @@ name: reviews.all-intervals
       "env": {
         "WORD_DE": "Prüfstuhl",
         "WORD_RU": "контрольный стул"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
       }
     }
   },
@@ -585,6 +657,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -656,6 +736,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Повторить набор"
+      }
+    }
+  },
+  {
     "tapOn": "Повторить набор"
   },
   {
@@ -664,6 +752,14 @@ name: reviews.all-intervals
       "env": {
         "WORD_DE": "Prüfstuhl",
         "WORD_RU": "контрольный стул"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
       }
     }
   },
@@ -752,6 +848,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -823,6 +927,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Повторить набор"
+      }
+    }
+  },
+  {
     "tapOn": "Повторить набор"
   },
   {
@@ -831,6 +943,14 @@ name: reviews.all-intervals
       "env": {
         "WORD_DE": "Prüfstuhl",
         "WORD_RU": "контрольный стул"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
       }
     }
   },
@@ -919,6 +1039,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -990,6 +1118,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Повторить набор"
+      }
+    }
+  },
+  {
     "tapOn": "Повторить набор"
   },
   {
@@ -998,6 +1134,14 @@ name: reviews.all-intervals
       "env": {
         "WORD_DE": "Prüfstuhl",
         "WORD_RU": "контрольный стул"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
       }
     }
   },

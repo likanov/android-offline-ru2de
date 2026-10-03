@@ -49,6 +49,14 @@ name: upgrade.resume-no-second-bonus
     "assertVisible": "Верно! \\+60 XP"
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
+      }
+    }
+  },
+  {
     "tapOn": "Продолжить"
   },
   {

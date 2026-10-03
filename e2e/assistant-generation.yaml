@@ -16,6 +16,14 @@ name: assistant-generation
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -96,6 +104,14 @@ name: assistant-generation
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Stuhl — стул"
+      }
+    }
+  },
+  {
     "tapOn": ".*Stuhl — стул"
   },
   {
@@ -167,7 +183,23 @@ name: assistant-generation
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Помоги запомнить"
+      }
+    }
+  },
+  {
     "tapOn": "Помоги запомнить"
+  },
+  {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "${MODE_TITLE}"
+      }
+    }
   },
   {
     "tapOn": "${MODE_TITLE}"
@@ -238,6 +270,14 @@ name: assistant-generation
   {
     "assertVisible": {
       "text": "Создать подсказку"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать подсказку"
+      }
     }
   },
   {

@@ -16,6 +16,14 @@ name: assistant.helper-profile-dependency
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -93,6 +101,14 @@ name: assistant.helper-profile-dependency
   {
     "assertVisible": {
       "text": ".*Stuhl — стул"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Stuhl — стул"
+      }
     }
   },
   {
@@ -167,7 +183,23 @@ name: assistant.helper-profile-dependency
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Помоги запомнить"
+      }
+    }
+  },
+  {
     "tapOn": "Помоги запомнить"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать подсказку"
+      }
+    }
   },
   {
     "tapOn": "Создать подсказку"
@@ -191,6 +223,14 @@ name: assistant.helper-profile-dependency
   {
     "tapOn": {
       "id": "nav-dictionary"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
     }
   },
   {
@@ -274,7 +314,23 @@ name: assistant.helper-profile-dependency
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Stuhl — стул"
+      }
+    }
+  },
+  {
     "tapOn": ".*Stuhl — стул"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Редактировать"
+      }
+    }
   },
   {
     "tapOn": "Редактировать"
@@ -345,6 +401,14 @@ name: assistant.helper-profile-dependency
   {
     "assertVisible": {
       "text": "Перевод"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
     }
   },
   {
@@ -425,6 +489,14 @@ name: assistant.helper-profile-dependency
   {
     "assertVisible": {
       "text": "Сохранить слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
     }
   },
   {

@@ -76,6 +76,14 @@ name: first-launch.clean-40-words
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Имя нового профиля"
+      }
+    }
+  },
+  {
     "tapOn": "Имя нового профиля"
   },
   {
@@ -86,6 +94,14 @@ name: first-launch.clean-40-words
   },
   {
     "hideKeyboard": {}
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать профиль"
+      }
+    }
   },
   {
     "tapOn": "Создать профиль"

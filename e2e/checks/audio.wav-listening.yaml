@@ -16,6 +16,14 @@ name: audio.wav-listening
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -96,10 +104,34 @@ name: audio.wav-listening
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Stuhl — стул"
+      }
+    }
+  },
+  {
     "tapOn": ".*Stuhl — стул"
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Прослушать"
+      }
+    }
+  },
+  {
     "tapOn": "Прослушать"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Остановить звук"
+      }
+    }
   },
   {
     "tapOn": "Остановить звук"

@@ -76,6 +76,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Имя нового профиля"
+      }
+    }
+  },
+  {
     "tapOn": "Имя нового профиля"
   },
   {
@@ -86,6 +94,14 @@ name: learning.umlauts-eszett
   },
   {
     "hideKeyboard": {}
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать профиль"
+      }
+    }
   },
   {
     "tapOn": "Создать профиль"
@@ -164,6 +180,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Название нового набора"
+      }
+    }
+  },
+  {
     "tapOn": "Название нового набора"
   },
   {
@@ -174,6 +198,14 @@ name: learning.umlauts-eszett
   },
   {
     "hideKeyboard": {}
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать набор"
+      }
+    }
   },
   {
     "tapOn": "Создать набор"
@@ -252,6 +284,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавить слово"
+      }
+    }
+  },
+  {
     "tapOn": "Добавить слово"
   },
   {
@@ -320,6 +360,14 @@ name: learning.umlauts-eszett
   {
     "assertVisible": {
       "text": "Немецкое слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Немецкое слово"
+      }
     }
   },
   {
@@ -403,6 +451,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
+    }
+  },
+  {
     "tapOn": "Перевод"
   },
   {
@@ -483,6 +539,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Прилагательное"
+      }
+    }
+  },
+  {
     "tapOn": "Прилагательное"
   },
   {
@@ -554,6 +618,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Unicode UI"
+      }
+    }
+  },
+  {
     "tapOn": "Unicode UI"
   },
   {
@@ -622,6 +694,14 @@ name: learning.umlauts-eszett
   {
     "assertVisible": {
       "text": "Сохранить слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
     }
   },
   {
@@ -701,6 +781,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Unicode UI"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Unicode UI"
   },
   {
@@ -772,6 +860,14 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Изучать набор"
+      }
+    }
+  },
+  {
     "tapOn": "Изучать набор"
   },
   {
@@ -785,6 +881,14 @@ name: learning.umlauts-eszett
               "WORD_DE": "äöüß",
               "WORD_RU": "специальные буквы",
               "ARTICLE": ""
+            }
+          }
+        },
+        {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
             }
           }
         },
@@ -842,16 +946,56 @@ name: learning.umlauts-eszett
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "ä"
+      }
+    }
+  },
+  {
     "tapOn": "ä"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "ö"
+      }
+    }
   },
   {
     "tapOn": "ö"
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "ü"
+      }
+    }
+  },
+  {
     "tapOn": "ü"
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "ß"
+      }
+    }
+  },
+  {
     "tapOn": "ß"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Проверить"
+      }
+    }
   },
   {
     "tapOn": "Проверить"

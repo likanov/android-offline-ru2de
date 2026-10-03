@@ -130,6 +130,14 @@ name: reviews.difficult-recovery
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Регрессия"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Регрессия"
   },
   {
@@ -201,6 +209,14 @@ name: reviews.difficult-recovery
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Изучать набор"
+      }
+    }
+  },
+  {
     "tapOn": "Изучать набор"
   },
   {
@@ -213,6 +229,14 @@ name: reviews.difficult-recovery
             "env": {
               "WORD_DE": "Prüfstuhl",
               "WORD_RU": "контрольный стул"
+            }
+          }
+        },
+        {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
             }
           }
         },

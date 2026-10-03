@@ -84,6 +84,14 @@ name: learning.twenty-ui-answers
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: 20 UI"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: 20 UI"
   },
   {
@@ -155,6 +163,14 @@ name: learning.twenty-ui-answers
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Изучать набор"
+      }
+    }
+  },
+  {
     "tapOn": "Изучать набор"
   },
   {
@@ -167,6 +183,14 @@ name: learning.twenty-ui-answers
             "env": {
               "WORD_DE": "Stuhl",
               "WORD_RU": "стул"
+            }
+          }
+        },
+        {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
             }
           }
         },
@@ -266,6 +290,14 @@ name: learning.twenty-ui-answers
   },
   {
     "assertVisible": "Серия: 20/20"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Продолжить"
+      }
+    }
   },
   {
     "tapOn": "Продолжить"

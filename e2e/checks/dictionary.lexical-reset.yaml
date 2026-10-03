@@ -16,6 +16,14 @@ name: dictionary.lexical-reset
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -96,7 +104,23 @@ name: dictionary.lexical-reset
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Prüfstuhl — контрольный стул"
+      }
+    }
+  },
+  {
     "tapOn": ".*Prüfstuhl — контрольный стул"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Редактировать"
+      }
+    }
   },
   {
     "tapOn": "Редактировать"
@@ -167,6 +191,14 @@ name: dictionary.lexical-reset
   {
     "assertVisible": {
       "text": "Перевод"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
     }
   },
   {
@@ -247,6 +279,14 @@ name: dictionary.lexical-reset
   {
     "assertVisible": {
       "text": "Сохранить слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
     }
   },
   {

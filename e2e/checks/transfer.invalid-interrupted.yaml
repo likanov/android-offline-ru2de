@@ -84,6 +84,14 @@ name: transfer.invalid-interrupted
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать резервную копию"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать резервную копию"
   },
   {
@@ -201,6 +209,14 @@ name: transfer.invalid-interrupted
   {
     "assertVisible": {
       "text": "Выбрать резервную копию"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать резервную копию"
+      }
     }
   },
   {

@@ -171,6 +171,14 @@ name: progress.xp-levels
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать набор: Level UI"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать набор: Level UI"
   },
   {
@@ -239,6 +247,14 @@ name: progress.xp-levels
   {
     "assertVisible": {
       "text": "Изучать набор"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Изучать набор"
+      }
     }
   },
   {

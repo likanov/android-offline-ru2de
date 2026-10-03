@@ -84,6 +84,14 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавить слово"
+      }
+    }
+  },
+  {
     "tapOn": "Добавить слово"
   },
   {
@@ -152,6 +160,14 @@ name: dictionary.noun-adjective-edit
   {
     "assertVisible": {
       "text": "Немецкое слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Немецкое слово"
+      }
     }
   },
   {
@@ -235,6 +251,14 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
+    }
+  },
+  {
     "tapOn": "Перевод"
   },
   {
@@ -315,6 +339,14 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "der — мужской род"
+      }
+    }
+  },
+  {
     "tapOn": "der — мужской род"
   },
   {
@@ -386,6 +418,14 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
     "tapOn": "Сохранить слово"
   },
   {
@@ -428,6 +468,14 @@ name: dictionary.noun-adjective-edit
   },
   {
     "assertVisible": "der Prüfschrank"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Редактировать"
+      }
+    }
   },
   {
     "tapOn": "Редактировать"
@@ -498,6 +546,14 @@ name: dictionary.noun-adjective-edit
   {
     "assertVisible": {
       "text": "Перевод"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
     }
   },
   {
@@ -578,6 +634,14 @@ name: dictionary.noun-adjective-edit
   {
     "assertVisible": {
       "text": "Сохранить слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
     }
   },
   {
@@ -698,6 +762,14 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавить слово"
+      }
+    }
+  },
+  {
     "tapOn": "Добавить слово"
   },
   {
@@ -766,6 +838,14 @@ name: dictionary.noun-adjective-edit
   {
     "assertVisible": {
       "text": "Немецкое слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Немецкое слово"
+      }
     }
   },
   {
@@ -849,6 +929,14 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
+    }
+  },
+  {
     "tapOn": "Перевод"
   },
   {
@@ -929,6 +1017,14 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Прилагательное"
+      }
+    }
+  },
+  {
     "tapOn": "Прилагательное"
   },
   {
@@ -997,6 +1093,14 @@ name: dictionary.noun-adjective-edit
   {
     "assertVisible": {
       "text": "Сохранить слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
     }
   },
   {

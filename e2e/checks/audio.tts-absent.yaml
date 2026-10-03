@@ -16,6 +16,14 @@ name: audio.tts-absent
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -93,6 +101,14 @@ name: audio.tts-absent
   {
     "assertVisible": {
       "text": ".*Prüfstuhl — контрольный стул"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Prüfstuhl — контрольный стул"
+      }
     }
   },
   {

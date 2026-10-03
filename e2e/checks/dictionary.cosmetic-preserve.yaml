@@ -16,6 +16,14 @@ name: dictionary.cosmetic-preserve
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
+    }
+  },
+  {
     "tapOn": "Поиск слов"
   },
   {
@@ -96,7 +104,23 @@ name: dictionary.cosmetic-preserve
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": ".*Prüfstuhl — контрольный стул"
+      }
+    }
+  },
+  {
     "tapOn": ".*Prüfstuhl — контрольный стул"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Редактировать"
+      }
+    }
   },
   {
     "tapOn": "Редактировать"
@@ -167,6 +191,14 @@ name: dictionary.cosmetic-preserve
   {
     "assertVisible": {
       "text": "Заметка"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Заметка"
+      }
     }
   },
   {
@@ -250,6 +282,14 @@ name: dictionary.cosmetic-preserve
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Иконка: звезда"
+      }
+    }
+  },
+  {
     "tapOn": "Иконка: звезда"
   },
   {
@@ -318,6 +358,14 @@ name: dictionary.cosmetic-preserve
   {
     "assertVisible": {
       "text": "Сохранить слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
     }
   },
   {

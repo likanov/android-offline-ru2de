@@ -74,6 +74,14 @@ name: upgrade-before
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Имя нового профиля"
+      }
+    }
+  },
+  {
     "tapOn": "Имя нового профиля"
   },
   {
@@ -86,7 +94,23 @@ name: upgrade-before
     "hideKeyboard": {}
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Создать профиль"
+      }
+    }
+  },
+  {
     "tapOn": "Создать профиль"
+  },
+  {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Словарь"
+      }
+    }
   },
   {
     "tapOn": "Словарь"
@@ -160,6 +184,14 @@ name: upgrade-before
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавить слово"
+      }
+    }
+  },
+  {
     "tapOn": "Добавить слово"
   },
   {
@@ -228,6 +260,14 @@ name: upgrade-before
   {
     "assertVisible": {
       "text": "Немецкое слово"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Немецкое слово"
+      }
     }
   },
   {
@@ -311,6 +351,14 @@ name: upgrade-before
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Перевод"
+      }
+    }
+  },
+  {
     "tapOn": "Перевод"
   },
   {
@@ -391,6 +439,14 @@ name: upgrade-before
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "der — мужской род"
+      }
+    }
+  },
+  {
     "tapOn": "der — мужской род"
   },
   {
@@ -462,7 +518,23 @@ name: upgrade-before
     }
   },
   {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
     "tapOn": "Сохранить слово"
+  },
+  {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Тренировка"
+      }
+    }
   },
   {
     "tapOn": "Тренировка"
@@ -474,6 +546,14 @@ name: upgrade-before
         {
           "runFlow": {
             "file": "helpers/old-answer.yaml"
+          }
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
+            }
           }
         },
         {
@@ -577,6 +657,14 @@ name: upgrade-before
   {
     "tapOn": {
       "id": "nav-dictionary"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Поиск слов"
+      }
     }
   },
   {
