@@ -1,0 +1,10 @@
+appId: com.personal.germanvocabulary
+name: persistence-force-stop
+---
+[
+  {
+    "runFlow": {
+      "file": "persistence-after.yaml"
+    }
+  }
+]

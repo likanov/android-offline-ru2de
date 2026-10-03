@@ -162,5 +162,8 @@ name: audio.tts-offline
         }
       ]
     }
+  },
+  {
+    "assertVisible": "Прослушать|Офлайн-озвучка недоступна"
   }
 ]

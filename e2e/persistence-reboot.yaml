@@ -1,0 +1,10 @@
+appId: com.personal.germanvocabulary
+name: persistence-reboot
+---
+[
+  {
+    "runFlow": {
+      "file": "persistence-after.yaml"
+    }
+  }
+]

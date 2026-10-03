@@ -369,7 +369,7 @@
   },
   {
     "id": "persistence-force-stop",
-    "flow": "persistence-after.yaml",
+    "flow": "persistence-force-stop.yaml",
     "phase": "force-stop",
     "expectation": "XP/word/streak/active profile/session retained after force-stop",
     "coverage": "implemented-unverified",
@@ -385,7 +385,7 @@
   },
   {
     "id": "persistence-reboot",
-    "flow": "persistence-after.yaml",
+    "flow": "persistence-reboot.yaml",
     "phase": "reboot",
     "expectation": "Same database survives reboot and offline relaunch",
     "coverage": "implemented-unverified",
