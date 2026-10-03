@@ -1,3 +1,4 @@
+import { CsvImportService } from '../features/transfer/csvImportService';
 import { ReminderService } from '../features/reminders/reminderService';
 import { createNotificationPort } from '../features/reminders/expoNotificationPort';
 import { createAudioService } from '../features/audio/audioAdapters';
@@ -105,4 +106,9 @@ export function getReminderService(app: AppServices): ReminderService {
   let value = reminders.get(app.db);
   if (!value) { value = new ReminderService(getProgressRepository(app), createNotificationPort()); reminders.set(app.db, value); }
   return value;
+}
+
+const transfers = new WeakMap<SqlStore, CsvImportService>();
+export function getCsvImportService(app: AppServices): CsvImportService {
+ let value=transfers.get(app.db);if(!value){value=new CsvImportService(app.db);transfers.set(app.db,value);}return value;
 }

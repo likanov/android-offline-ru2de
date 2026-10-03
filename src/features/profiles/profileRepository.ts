@@ -6,6 +6,10 @@ import { randomUUID } from "expo-crypto";
 import { starterWords } from "../../data/starterWords";
 import { NotFoundError, ValidationError } from "../../core/errors";
 import { wordKey } from "../dictionary/wordValidation";
+// A preview belongs to one active-profile selection, even after switching back.
+const selections = new WeakMap<SqlStore, number>();
+export function profileSelectionVersion(db: SqlStore): number { return selections.get(db) ?? 0; }
+function selected(db: SqlStore): void { selections.set(db, profileSelectionVersion(db) + 1); }
 function profileName(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) throw new ValidationError("Введите имя профиля");
@@ -57,6 +61,7 @@ export async function createProfile(
       profile.id,
     ]);
   });
+  selected(db);
   notifyProfileChanged(profile.id);
   return profile;
 }
@@ -84,6 +89,7 @@ export async function setActiveProfile(
       throw new NotFoundError("Профиль не найден");
     await tx.run("UPDATE app_settings SET activeProfileId=? WHERE id=1", [id]);
   });
+  selected(db);
   notifyProfileChanged(id);
 }
 export async function getActiveProfile(db: SqlStore): Promise<Profile | null> {

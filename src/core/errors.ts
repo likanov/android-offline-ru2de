@@ -7,7 +7,8 @@ export class AppError extends Error {
       | "CANCELLED"
       | "MODEL"
       | "BUSY"
-      | "VALIDATION",
+      | "VALIDATION"
+      | "WRONG_PROFILE",
     message: string,
     public readonly cause?: unknown,
   ) {

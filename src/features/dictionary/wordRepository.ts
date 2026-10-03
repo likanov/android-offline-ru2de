@@ -77,11 +77,14 @@ export class WordRepository {
             }
             return { word: await this.owned(tx, profileId, wordId), learningReset };
     }
+    async saveWordWithTopicsInTransaction(tx: SqlExecutor, profileId: string, draft: WordDraft, topicIds: string[], wordId?: string): Promise<Word> {
+        const word = wordId ? (await this.updateInTransaction(tx,profileId,wordId,draft)).word : await this.createInTransaction(tx,profileId,draft);
+        await replaceWordTopics(tx,profileId,word.id,topicIds);
+        return word;
+    }
     async saveWordWithTopics(profileId: string, draft: WordDraft, topicIds: string[], wordId?: string): Promise<Word> {
         const result=await this.db.transaction(async tx => {
-            const word = wordId ? (await this.updateInTransaction(tx,profileId,wordId,draft)).word : await this.createInTransaction(tx,profileId,draft);
-            await replaceWordTopics(tx,profileId,word.id,topicIds);
-            return word;
+            return this.saveWordWithTopicsInTransaction(tx,profileId,draft,topicIds,wordId);
         });
         notifyProfileChanged(profileId);return result;
     }

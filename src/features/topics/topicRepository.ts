@@ -45,3 +45,12 @@ export class TopicRepository {
   return this.db.transaction(async tx=>{await ownedWord(tx,profileId,wordId);return tx.all<Topic>('SELECT t.* FROM topics t JOIN word_topics wt ON wt.profileId=t.profileId AND wt.topicId=t.id WHERE wt.profileId=? AND wt.wordId=? ORDER BY t.name,t.id',[profileId,wordId]);});
  }
 }
+
+export async function findOrCreateTopic(tx: SqlExecutor, profileId: string, name: string): Promise<Topic> {
+ const normalized=topicName(name).normalize('NFC');
+ const existing=(await tx.all<Topic>('SELECT * FROM topics WHERE profileId=? ORDER BY id',[profileId])).find(topic=>topic.name.normalize('NFC')===normalized);
+ if(existing)return existing;
+ const topic={id:randomUUID(),profileId,name:normalized};
+ await tx.run('INSERT INTO topics(id,profileId,name) VALUES (?,?,?)',[topic.id,profileId,topic.name]);
+ return topic;
+}

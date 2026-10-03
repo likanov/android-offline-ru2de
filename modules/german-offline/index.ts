@@ -8,6 +8,7 @@ export type CopyProgress = {
 };
 type NativeFiles = Omit<LocalFileAdapter, "subscribeProgress"> & {
   readText(uri: string): Promise<string>;
+  readTextBounded(uri: string, maxBytes: number): Promise<string>;
   addListener(
     event: "copyProgress",
     listener: (progress: CopyProgress) => void,
@@ -16,6 +17,7 @@ type NativeFiles = Omit<LocalFileAdapter, "subscribeProgress"> & {
 // Lazy resolution keeps dictionary/profiles usable if the optional model module fails.
 export function localFiles(): LocalFileAdapter & {
   readText(uri: string): Promise<string>;
+  readTextBounded(uri: string, maxBytes: number): Promise<string>;
 } {
   const native = requireNativeModule<NativeFiles>("GermanOfflineFiles");
   return {
@@ -25,6 +27,7 @@ export function localFiles(): LocalFileAdapter & {
     copyVerified: (...args) => native.copyVerified(...args),
     cancelCopy: (id) => native.cancelCopy(id),
     readText: (uri) => native.readText(uri),
+    readTextBounded: (uri, maxBytes) => native.readTextBounded(uri, maxBytes),
     subscribeProgress: (listener) =>
       native.addListener("copyProgress", listener),
   };

@@ -46,6 +46,18 @@ class LocalFilesModule : Module() {
         bytes.toString(Charsets.UTF_8)
       }
     }
+    AsyncFunction("readTextBounded") { uri: String, maxBytes: Int ->
+      require(maxBytes in 1..(10 * 1024 * 1024)) { "Invalid text size limit" }
+      input(uri).use { source ->
+        // Bound bytes while reading, before allocating the decoded text. No
+        // persisted URI grants or storage-wide permission are needed.
+        val bytes = source.readBytesBounded(maxBytes)
+        Charsets.UTF_8.newDecoder()
+          .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+          .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+          .decode(java.nio.ByteBuffer.wrap(bytes)).toString()
+      }
+    }
     AsyncFunction("cancelCopy") { requestId: String -> cancelled.add(requestId); Unit }
     AsyncFunction("copyVerified") { uri: String, destination: String, expectedBytes: Double, expectedSha256: String, requestId: String, promise: Promise ->
       worker.execute {
@@ -104,7 +116,7 @@ private fun java.io.InputStream.readBytesBounded(limit: Int): ByteArray {
   while (true) {
     val count = read(buffer)
     if (count < 0) return output.toByteArray()
-    require(output.size() + count <= limit) { "Manifest exceeds 64 KiB" }
+    require(output.size() + count <= limit) { "Text file exceeds size limit" }
     output.write(buffer, 0, count)
   }
 }

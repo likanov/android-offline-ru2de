@@ -1,3 +1,4 @@
+import { CsvImportService } from '../src/features/transfer/csvImportService';
 import { ProgressRepository } from '../src/features/progress/progressRepository';
 import { TopicRepository } from '../src/features/topics/topicRepository';
 import { ReviewRepository } from '../src/features/reviews/reviewRepository';
@@ -14,7 +15,7 @@ export async function createWordHarness() {
     const store = openTestDb();
     await migrate(store.db);
     const words = new WordRepository(store.db);
-    return { ...store, words, progress: new ProgressRepository(store.db), topics: new TopicRepository(store.db), reviews: new ReviewRepository(store.db), sessions: new SessionRepository(store.db), answers: new AnswerService(store.db),
+    return { ...store, words, csv: new CsvImportService(store.db), progress: new ProgressRepository(store.db), topics: new TopicRepository(store.db), reviews: new ReviewRepository(store.db), sessions: new SessionRepository(store.db), answers: new AnswerService(store.db),
         attemptCount: async (attemptId: string) => (await store.db.first<{
             n: number;
         }>("SELECT count(*) AS n FROM attempts WHERE attemptId=?", [attemptId]))!.n,
