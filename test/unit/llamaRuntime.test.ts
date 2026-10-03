@@ -251,3 +251,58 @@ test("load_waits_for_releasing_context", async () => {
   expect(factoryCalls).toBe(2);
   await runtime.release();
 });
+
+// Catches losing the native context after stop fails: drain first, always dispose,
+// and keep a replacement from initializing while disposal remains unfinished.
+test("stop_failure_still_releases_context_after_generation_drains", async () => {
+  let finishGeneration!: (result: { text: string }) => void;
+  let finishRelease!: () => void;
+  let releaseStarted = false;
+  let released = false;
+  let factoryCalls = 0;
+  const runtime = new LlamaRuntime(async () => {
+    ++factoryCalls;
+    return {
+      completion: () =>
+        new Promise((resolve) => {
+          finishGeneration = resolve;
+        }),
+      stopCompletion: async () => {
+        throw new Error("Native stop failed");
+      },
+      release: async () => {
+        releaseStarted = true;
+        await new Promise<void>((resolve) => {
+          finishRelease = resolve;
+        });
+        released = true;
+      },
+    };
+  });
+  await runtime.load("/models/old.gguf");
+  const generation = runtime.generate(
+    request,
+    new AbortController().signal,
+    () => {},
+  );
+  const cancelled = expect(generation).rejects.toMatchObject({
+    code: "CANCELLED",
+  });
+  const releasing = runtime.release();
+  const releaseError = expect(releasing).rejects.toThrow("Native stop failed");
+  await Promise.resolve();
+  expect(releaseStarted).toBe(false);
+  finishGeneration({ text: "discard me" });
+  await cancelled;
+  await Promise.resolve();
+  expect(releaseStarted).toBe(true);
+  expect(released).toBe(false);
+  const loading = runtime.load("/models/new.gguf");
+  const loadError = expect(loading).rejects.toMatchObject({ code: "MODEL" });
+  await Promise.resolve();
+  expect(factoryCalls).toBe(1);
+  finishRelease();
+  await releaseError;
+  await loadError;
+  expect(released).toBe(true);
+});

@@ -145,14 +145,17 @@ export class LlamaRuntime implements LanguageRuntime {
     if (!context && !active) return this.draining ?? Promise.resolve();
     if (active) active.cancelled = true;
     const dispose = async () => {
-      if (active) {
-        try {
-          await context?.stopCompletion();
-        } finally {
-          await active.done;
+      try {
+        if (active) {
+          try {
+            await context?.stopCompletion();
+          } finally {
+            await active.done;
+          }
         }
+      } finally {
+        await context?.release();
       }
-      await context?.release();
     };
     const pending = this.draining ? this.draining.then(dispose) : dispose();
     this.draining = pending;
