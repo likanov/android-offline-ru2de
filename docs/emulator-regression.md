@@ -162,3 +162,25 @@ continuation profile and resumes its result again. Final export checks require
 exactly one new correct attempt worth 10 XP, unchanged rewards and old attempts,
 and no changes to any other original/restored profile. Missing intermediate
 preservation or final answer evidence cannot pass.
+
+## Binding regression evidence to a delivery bundle
+
+Task15's [release verifier](../scripts/verify-release.mjs) reuses this matrix's
+report validator and compares the report against the packaged APK/model hashes.
+It also requires report exit0, no blockers, successful setting restoration,
+portable retained evidence, the pinned signing certificate, no INTERNET
+permission and exact embedded WAV bytes. A report file alone is insufficient.
+All 68 mandatory IDs (14 group IDs and 54 detailed checks) must be unique and
+passed with matching nonfailed JUnit artifacts. Physical Pixel9ProXL acceptance
+is a separate mandatory gate; all 14 spec criteria and four sets of model speed/
+memory measurements are required.
+
+The actual retained `fix1-final` run reports failed/exit1 at
+`first-launch.clean-40-words` against APK SHA-256
+`571183851a118a5359db7af5c63eb7eed1ff77c3f0e65fc806d1c684e0b1ad71`.
+It establishes no full-suite pass. Package that report with `--report` only as
+blocked diagnostic evidence. The candidate's `regression/source-report.json`
+preserves original host paths; `regression/report.json` relocates artifact paths
+and references the delivered files. [Release report](release-report.md) records
+identities and limitations; [installation](install-android.md) describes local
+transfer and upgrade. Product changes require a new APK and a full new run.

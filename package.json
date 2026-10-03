@@ -16,7 +16,9 @@
     "test:scripts": "node --test test/scripts/*.test.mjs",
     "fixtures:android": "npm run test:sql -- --runTestsByPath test/integration/regressionFixtures.test.ts",
     "android:prebuild": "expo prebuild --platform android --template expo-template-bare-minimum@56.0.37",
-    "build:android:upgrade": "./scripts/toolchain.sh ./scripts/build-upgrade-candidate.sh"
+    "build:android:upgrade": "./scripts/toolchain.sh ./scripts/build-upgrade-candidate.sh",
+    "package:release": "./scripts/toolchain.sh node --test test/scripts/release.test.mjs && ./scripts/toolchain.sh node scripts/package-release.mjs",
+    "verify:release": "./scripts/toolchain.sh node scripts/verify-release.mjs"
   },
   "dependencies": {
     "expo": "56.0.23",

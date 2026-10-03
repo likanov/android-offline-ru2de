@@ -1,0 +1,111 @@
+{
+  "status": "not-verified",
+  "apkSha256": "571183851a118a5359db7af5c63eb7eed1ff77c3f0e65fc806d1c684e0b1ad71",
+  "modelSha256": "72309900a0aab765e1963ee9ff73aaf5e8c8a754e92c0099d5d55dfca9490f15",
+  "device": null,
+  "checkedAt": null,
+  "blockers": [
+    "PIXEL_NOT_CONNECTED: only emulator-5554 was listed by adb on 2026-10-04"
+  ],
+  "metrics": [],
+  "criteria": [
+    {
+      "id": 1,
+      "name": "Установка и первый запуск без сети",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 2,
+      "name": "Порог 20 и ошибка",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 3,
+      "name": "Перезапуск и атомарность",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 4,
+      "name": "Повторения и календарные даты",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 5,
+      "name": "Трудность и восстановление",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 6,
+      "name": "Изоляция профилей и 40 слов",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 7,
+      "name": "Редактирование и однократный бонус",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 8,
+      "name": "Цвет, артикли и ввод",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 9,
+      "name": "Варианты и отсутствие аудио",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 10,
+      "name": "Цели, серии, уровни и навыки",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 11,
+      "name": "CSV и полная JSON-копия",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 12,
+      "name": "Реальная модель, отмена, качество и память",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 13,
+      "name": "Мобильная компоновка и уведомления",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    },
+    {
+      "id": 14,
+      "name": "Миграции, перезагрузка и обновление итогового APK",
+      "status": "not-verified",
+      "actual": "Не выполнено: физический Pixel 9 Pro XL недоступен.",
+      "evidence": null
+    }
+  ]
+}

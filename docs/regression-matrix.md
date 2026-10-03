@@ -24,3 +24,20 @@ Every detailed ID has an executable `e2e/checks/<id>.yaml` flow. Matrix status *
 `persistence-before.yaml` and `upgrade-before.yaml` are setup phases; their passing output does not satisfy a required outcome ID. `config.yaml` lists only the main group flows so reboot/update phases cannot accidentally run against cleared state. Failed or unexecuted checks remain nonzero and not verified.
 
 State evidence is exported by normal BackupV1 UI operations and read only on the host. No app SQLite file or learning counter is edited. Group flows execute after their detailed checks; setup flows alone never satisfy required IDs.
+
+## Release acceptance gate
+
+`npm run package:release` runs the release rejection tests, stages the supplied
+APK/model and retained regression evidence, then runs the same release verifier
+as `npm run verify:release`. Every group ID plus every detailed check ID in
+`e2e/matrix.json` is mandatory. Missing/duplicate/not-passed IDs, stale APK/model
+hashes, JUnit failures/skips, absent generations/logs/observations and nonzero
+run status block delivery. The report's current hashes must refer to the files
+in the bundle. Physical Pixel9ProXL results additionally cover all 14 spec
+criteria, real model speed/memory and phone restart/upgrade behavior.
+
+The current actual Android result is failed/exit1
+(`first-launch.clean-40-words`), with most rows unverified. Physical Pixel
+results are entirely unverified. See [release report](release-report.md) and
+[device acceptance](device-acceptance.md); no row becomes passed through a host
+unit test or a successful release build.
