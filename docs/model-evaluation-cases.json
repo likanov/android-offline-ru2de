@@ -1,0 +1,1550 @@
+{
+  "format": "german-vocabulary-model-evaluation",
+  "version": 1,
+  "device": "Pixel 9 Pro XL",
+  "status": "не проверено",
+  "candidateManifest": {
+    "id": "Qwen3-1.7B-Q4_K_M",
+    "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "quantization": "Q4_K_M",
+    "fileName": "Qwen3-1.7B-Q4_K_M.gguf",
+    "bytes": 1282438944,
+    "sha256": "72309900a0aab765e1963ee9ff73aaf5e8c8a754e92c0099d5d55dfca9490f15",
+    "runtimeVersion": "0.12.9"
+  },
+  "acceptance": {
+    "casesPerMode": 10,
+    "totalCases": 40,
+    "minimumFormatAndMeaningPassesPerMode": 9,
+    "allowedWrongTargetArticles": 0,
+    "allowedReferenceContradictions": 0
+  },
+  "wordFixtures": [
+    {
+      "id": "evaluation-stuhl",
+      "de": "Stuhl",
+      "ru": "стул",
+      "pos": "noun",
+      "gender": "m",
+      "topic": "дом",
+      "newWord": false,
+      "expectedArticle": "der"
+    },
+    {
+      "id": "evaluation-sonne",
+      "de": "Sonne",
+      "ru": "солнце",
+      "pos": "noun",
+      "gender": "f",
+      "topic": "природа",
+      "newWord": false,
+      "expectedArticle": "die"
+    },
+    {
+      "id": "evaluation-buch",
+      "de": "Buch",
+      "ru": "книга",
+      "pos": "noun",
+      "gender": "n",
+      "topic": "учёба",
+      "newWord": false,
+      "expectedArticle": "das"
+    },
+    {
+      "id": "evaluation-maedchen",
+      "de": "Mädchen",
+      "ru": "девочка",
+      "pos": "noun",
+      "gender": "n",
+      "topic": "люди",
+      "newWord": true,
+      "expectedArticle": "das"
+    },
+    {
+      "id": "evaluation-mond",
+      "de": "Mond",
+      "ru": "луна",
+      "pos": "noun",
+      "gender": "m",
+      "topic": "природа",
+      "newWord": true,
+      "expectedArticle": "der"
+    },
+    {
+      "id": "evaluation-auto",
+      "de": "Auto",
+      "ru": "машина",
+      "pos": "noun",
+      "gender": "n",
+      "topic": "транспорт",
+      "newWord": true,
+      "expectedArticle": "das"
+    },
+    {
+      "id": "evaluation-loeffel",
+      "de": "Löffel",
+      "ru": "ложка",
+      "pos": "noun",
+      "gender": "m",
+      "topic": "кухня",
+      "newWord": true,
+      "expectedArticle": "der"
+    },
+    {
+      "id": "evaluation-gabel",
+      "de": "Gabel",
+      "ru": "вилка",
+      "pos": "noun",
+      "gender": "f",
+      "topic": "кухня",
+      "newWord": true,
+      "expectedArticle": "die"
+    },
+    {
+      "id": "evaluation-wasser",
+      "de": "Wasser",
+      "ru": "вода",
+      "pos": "noun",
+      "gender": "n",
+      "topic": "природа",
+      "newWord": true,
+      "expectedArticle": "das"
+    },
+    {
+      "id": "evaluation-tuer",
+      "de": "Tür",
+      "ru": "дверь",
+      "pos": "noun",
+      "gender": "f",
+      "topic": "дом",
+      "newWord": true,
+      "expectedArticle": "die"
+    },
+    {
+      "id": "evaluation-kalt",
+      "de": "kalt",
+      "ru": "холодный",
+      "pos": "adjective",
+      "gender": null,
+      "topic": "качества",
+      "newWord": false,
+      "expectedArticle": null
+    },
+    {
+      "id": "evaluation-nett",
+      "de": "nett",
+      "ru": "милый",
+      "pos": "adjective",
+      "gender": null,
+      "topic": "качества",
+      "newWord": false,
+      "expectedArticle": null
+    }
+  ],
+  "cases": [
+    {
+      "id": "association-01",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-stuhl",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-02",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-sonne",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-03",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-buch",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-04",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-maedchen",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-05",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-mond",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-06",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-auto",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-07",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-loeffel",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-08",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-gabel",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-09",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-wasser",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "association-10",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-tuer",
+        "mode": "association",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-01",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-stuhl",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-02",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-sonne",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-03",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-buch",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-04",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-maedchen",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-05",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-mond",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-06",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-auto",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-07",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-loeffel",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-08",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-gabel",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-09",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-wasser",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "example-10",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-tuer",
+        "mode": "example",
+        "selectedWordIds": [],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-01",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-stuhl",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-stuhl",
+          "evaluation-sonne",
+          "evaluation-buch"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-02",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-sonne",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-sonne",
+          "evaluation-buch",
+          "evaluation-maedchen",
+          "evaluation-mond"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-03",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-buch",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-buch",
+          "evaluation-maedchen",
+          "evaluation-mond",
+          "evaluation-auto",
+          "evaluation-loeffel"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-04",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-maedchen",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-maedchen",
+          "evaluation-mond",
+          "evaluation-auto",
+          "evaluation-loeffel",
+          "evaluation-gabel",
+          "evaluation-wasser"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-05",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-mond",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-mond",
+          "evaluation-auto",
+          "evaluation-loeffel",
+          "evaluation-gabel",
+          "evaluation-wasser",
+          "evaluation-tuer",
+          "evaluation-kalt"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-06",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-auto",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-auto",
+          "evaluation-loeffel",
+          "evaluation-gabel",
+          "evaluation-wasser",
+          "evaluation-tuer",
+          "evaluation-kalt",
+          "evaluation-nett",
+          "evaluation-stuhl"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-07",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-loeffel",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-loeffel",
+          "evaluation-gabel",
+          "evaluation-wasser",
+          "evaluation-tuer",
+          "evaluation-kalt",
+          "evaluation-nett",
+          "evaluation-stuhl",
+          "evaluation-sonne",
+          "evaluation-buch"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-08",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-gabel",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-gabel",
+          "evaluation-wasser",
+          "evaluation-tuer",
+          "evaluation-kalt",
+          "evaluation-nett",
+          "evaluation-stuhl",
+          "evaluation-sonne",
+          "evaluation-buch",
+          "evaluation-maedchen",
+          "evaluation-mond"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-09",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-wasser",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-wasser",
+          "evaluation-tuer",
+          "evaluation-kalt",
+          "evaluation-nett",
+          "evaluation-stuhl",
+          "evaluation-sonne",
+          "evaluation-buch",
+          "evaluation-maedchen",
+          "evaluation-mond",
+          "evaluation-auto"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "text-10",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-tuer",
+        "mode": "text",
+        "selectedWordIds": [
+          "evaluation-tuer",
+          "evaluation-kalt",
+          "evaluation-nett",
+          "evaluation-stuhl",
+          "evaluation-sonne",
+          "evaluation-buch",
+          "evaluation-maedchen",
+          "evaluation-mond",
+          "evaluation-auto",
+          "evaluation-loeffel"
+        ],
+        "ruleTopic": null
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-01",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-stuhl",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "gender"
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-02",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-sonne",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "gender"
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-03",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-buch",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "gender"
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-04",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-maedchen",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "gender"
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-05",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-mond",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "gender"
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-06",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-auto",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "articles"
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-07",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-loeffel",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "articles"
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-08",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-gabel",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "articles"
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-09",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-wasser",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "articles"
+      },
+      "focus": "несовпадение немецкого и русского рода",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    },
+    {
+      "id": "rule-10",
+      "request": {
+        "profileId": "evaluation-profile",
+        "wordId": "evaluation-tuer",
+        "mode": "rule",
+        "selectedWordIds": [],
+        "ruleTopic": "articles"
+      },
+      "focus": "новое слово / формат",
+      "actualMessages": null,
+      "actualResponse": null,
+      "manualReview": {
+        "grammar": null,
+        "translation": null,
+        "targetWords": null,
+        "targetArticles": null,
+        "reference": null,
+        "format": null,
+        "meaning": null,
+        "accepted": null,
+        "notes": null
+      },
+      "measurements": {
+        "modelLoadMs": null,
+        "firstTextMs": null,
+        "responseMs": null,
+        "peakMemoryMiB": null,
+        "cancelResponseMs": null,
+        "uiResponsive": null
+      },
+      "status": "не проверено"
+    }
+  ],
+  "requiredAirplaneMode": true,
+  "actualAirplaneMode": null
+}

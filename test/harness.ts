@@ -1,3 +1,8 @@
+import { AssistantService } from '../src/features/assistant/assistantService';
+import { AidRepository } from '../src/features/assistant/aidRepository';
+import { LlamaRuntime } from '../src/features/assistant/llamaRuntime';
+import type { LanguageRuntime } from '../src/features/assistant/runtimeTypes';
+import type { ModelFiles } from '../src/features/assistant/modelFiles';
 import { BackupService } from '../src/features/transfer/backupService';
 import { CsvImportService } from '../src/features/transfer/csvImportService';
 import { ProgressRepository } from '../src/features/progress/progressRepository';
@@ -12,8 +17,8 @@ jest.mock("expo-crypto", () => ({
     randomUUID: () => jest.requireActual("crypto").randomUUID(),
 }));
 // Reusable SQL fixture entry point for feature integration tests.
-export async function createWordHarness() {
-    const store = openTestDb();
+export async function createWordHarness(path?: string) {
+    const store = openTestDb(path);
     await migrate(store.db);
     const words = new WordRepository(store.db);
     return { ...store, words, backup: new BackupService(store.db), csv: new CsvImportService(store.db), progress: new ProgressRepository(store.db), topics: new TopicRepository(store.db), reviews: new ReviewRepository(store.db), sessions: new SessionRepository(store.db), answers: new AnswerService(store.db),
@@ -39,4 +44,8 @@ export async function createWordHarness() {
             return { streak: row.streak, mastered: !!row.learned, masteryBonusGranted: !!row.bonusAwarded, reviewStage: row.reviewStage, dueDay: row.dueDate, difficult: !!row.difficult, totalErrors: row.totalErrors, recoveryErrors: row.recoveryErrors, recoveryCorrect: row.recoveryCorrect };
         }
     };
+}
+export async function createAssistantHarness(runtime: LanguageRuntime = new LlamaRuntime(async () => ({ completion: async () => ({ text: 'Das ist ein Stuhl. Это стул.' }), stopCompletion: async () => { }, release: async () => { } })), files: Pick<ModelFiles, 'installedPath'> = { installedPath: async () => '/models/local.gguf' }, path?: string) {
+    const h = await createWordHarness(path);
+    return { ...h, assistant: new AssistantService(h.db, h.words, files, runtime), aids: new AidRepository(h.db) };
 }

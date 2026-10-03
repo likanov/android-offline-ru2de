@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import type { Profile } from "../core/types";
-import { useAppServices } from "./AppServices";
+import { useAppServices, cancelAssistant } from "./AppServices";
 import {
   getActiveProfile,
   setActiveProfile,
@@ -25,18 +25,22 @@ const Context = createContext<ActiveProfile>({
 });
 export const useActiveProfile = () => useContext(Context);
 export function ActiveProfileProvider({ children }: React.PropsWithChildren) {
-  const { db, reminders } = useAppServices();
+  const app = useAppServices();
+  const { db, reminders } = app;
   const [reminderError, setReminderError] = useState('');
   const [profile, setProfile] = useState<Profile | null>(null);
   const reload = useCallback(async () => {
-    setProfile(await getActiveProfile(db));
-  }, [db]);
+    const saved = await getActiveProfile(db);
+    if(saved?.id !== profile?.id) await cancelAssistant(app).catch(() => {});
+    setProfile(saved);
+  }, [db, app, profile?.id]);
   const select = useCallback(
     async (id: string) => {
+      await cancelAssistant(app).catch(() => {});
       await setActiveProfile(db, id);
       await reload();
     },
-    [db, reload],
+    [db, app, reload],
   );
   useEffect(() => {
     let mounted = true;

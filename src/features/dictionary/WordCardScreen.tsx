@@ -1,3 +1,6 @@
+import { subscribeProfileChanges } from '../../app/refreshBus';
+import { AidRepository } from '../assistant/aidRepository';
+import type { HelperDraft } from '../assistant/assistantTypes';
 import { getAudioService } from '../../app/AppServices';
 import type { AudioService } from '../audio/audioService';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -8,7 +11,8 @@ import { WordRepository } from './wordRepository';
 import { GenderCard } from './GenderCard';
 import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
-export function WordCardScreen({ db, profileId, wordId, onEdit, onBack, audio: providedAudio }: {
+export function WordCardScreen({ db, profileId, wordId, onEdit, onBack, onAssistant, audio: providedAudio }: {
+    onAssistant?: () => void;
     audio?: AudioService;
     db: SqlStore;
     profileId: string;
@@ -19,11 +23,13 @@ export function WordCardScreen({ db, profileId, wordId, onEdit, onBack, audio: p
     const audio=useMemo(()=>providedAudio ?? getAudioService({db}),[providedAudio,db]);
     const [available,setAvailable]=useState(false),[playing,setPlaying]=useState(false);
     const words = useMemo(() => new WordRepository(db), [db]), [loadedWord, setWord] = useState<Word | null>(null), [error, setError] = useState('');
+    const [aids,setAids]=useState<HelperDraft[]>([]);
+    useEffect(()=>{let alive=true;const repository=new AidRepository(db);const refresh=()=>{void repository.current(profileId,wordId).then(value=>{if(alive)setAids(value);}).catch(()=>{if(alive)setAids([]);});};refresh();const off=subscribeProfileChanges(profileId,refresh);return()=>{alive=false;off();};},[db,profileId,wordId]);
     const word=loadedWord?.profileId===profileId && loadedWord.id===wordId ? loadedWord : null;
     useEffect(() => { let alive = true; void words.get(profileId, wordId).then(w => { if (alive)
         setWord(w); }).catch(e => { if (alive)
         setError(e.message); }); return () => { alive = false; void audio.stop(); }; }, [words, profileId, wordId, audio]);
     useEffect(()=>{let alive=true;if(word)void audio.available(word).then(value=>{if(alive)setAvailable(value);});return()=>{alive=false;};},[word,audio]);
     async function play(){if(!word)return;setPlaying(true);try{await audio.play(word);}catch(error){if((error as {code?:string})?.code!=='AUDIO_CANCELLED'){setAvailable(false);setError('Офлайн-озвучка недоступна');}}finally{setPlaying(false);}}
-    return <Screen>{error ? <Text>{error}</Text> : word ? <><GenderCard word={word}/>{available ? <><Button title="Прослушать" disabled={playing} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : <Text>Офлайн-озвучка недоступна</Text>}<Text style={{ fontSize: 24 }}>{word.ru}</Text>{word.plural ? <Text>Множественное число: {word.plural}</Text> : null}{word.exampleDe ? <Text>{word.exampleDe}</Text> : null}{word.exampleRu ? <Text>{word.exampleRu}</Text> : null}{word.note ? <Text>{word.note}</Text> : null}<Button title="Редактировать" onPress={onEdit}/></> : <Text>Загрузка…</Text>}<Button title="Назад в словарь" onPress={onBack}/></Screen>;
+    return <Screen>{error ? <Text>{error}</Text> : word ? <><GenderCard word={word}/>{available ? <><Button title="Прослушать" disabled={playing} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : <Text>Офлайн-озвучка недоступна</Text>}<Text style={{ fontSize: 24 }}>{word.ru}</Text>{word.plural ? <Text>Множественное число: {word.plural}</Text> : null}{word.exampleDe ? <Text>{word.exampleDe}</Text> : null}{word.exampleRu ? <Text>{word.exampleRu}</Text> : null}{word.note ? <Text>{word.note}</Text> : null}<Text accessibilityRole="header">Мои подсказки</Text>{aids.filter(a=>a.profileId===profileId&&a.wordId===wordId).map(a=><Text key={a.requestId}>{a.text}</Text>)}{onAssistant?<Button title="Помоги запомнить" onPress={onAssistant}/>:null}<Button title="Редактировать" onPress={onEdit}/></> : <Text>Загрузка…</Text>}<Button title="Назад в словарь" onPress={onBack}/></Screen>;
 }

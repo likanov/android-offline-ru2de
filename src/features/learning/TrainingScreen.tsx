@@ -12,13 +12,14 @@ import { TypedAnswer } from './TypedAnswer';
 import { localDay } from '../../core/calendar';
 import { genderPresentation } from '../dictionary/wordValidation';
 import type { Word } from './learningTypes';
-export function TrainingScreen({ db, profileId, selection, today = localDay(new Date()), onReveal, audio: providedAudio }: {
+export function TrainingScreen({ db, profileId, selection, today = localDay(new Date()), onReveal, onHelper, audio: providedAudio }: {
     audio?: AudioService;
     db: SqlStore;
     profileId: string;
     selection?: TrainingSelection;
     today?: string;
     onReveal?: (wordId: string) => void;
+    onHelper?: (wordId: string) => void;
 }) {
     const audio=useMemo(()=>providedAudio ?? getAudioService({db}),[providedAudio,db]);
     const services = useMemo(() => ({ sessions: new SessionRepository(db,word=>audio.available(word)), answers: new AnswerService(db) }), [db,audio]);
@@ -66,6 +67,10 @@ export function TrainingScreen({ db, profileId, selection, today = localDay(new 
             await services.sessions.cancelQuestion(profileId, session.id);
         if (reveal==='card' && question && onReveal) {
             onReveal(question.wordId);
+            return;
+        }
+        if (reveal==='helper' && question && onHelper) {
+            onHelper(question.wordId);
             return;
         }
         const q = await services.sessions.next(profileId, session.id, today);

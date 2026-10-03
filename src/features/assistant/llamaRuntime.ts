@@ -1,6 +1,7 @@
 import { AppError } from "../../core/errors";
 import type { GenerationRequest, LanguageRuntime } from "./runtimeTypes";
 export interface RuntimeContext {
+  clearCache?(clearData: boolean): Promise<void>;
   completion(
     params: {
       messages: GenerationRequest["messages"];
@@ -102,6 +103,9 @@ export class LlamaRuntime implements LanguageRuntime {
     };
     signal.addEventListener("abort", cancel);
     try {
+      if (context.clearCache) await context.clearCache(true);
+      if (signal.aborted || active.cancelled)
+        throw new AppError("CANCELLED", "Запрос отменён");
       const result = await context.completion(
         {
           messages: request.messages,

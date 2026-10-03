@@ -1,3 +1,4 @@
+import { decodeAidContent } from '../assistant/aidRepository';
 import { randomUUID } from 'expo-crypto';
 import type { BackupV1, ProfileBackup } from './backupTypes';
 import { validateBackup } from './backupValidation';
@@ -18,6 +19,7 @@ export function remapBackup(backup: BackupV1, existingNames: string[]): ProfileB
     }
     const profiles = source.profiles.map(p => rewrite(p) as ProfileBackup);
     for (const p of profiles) {
+        for(const aid of p.aids){const content=decodeAidContent(aid.content);if(content)aid.content=JSON.stringify({...content,wordId:ids.get(content.wordId)});}
         const original = p.profile.name;
         let name = original, n = 2;
         while (names.has(name))

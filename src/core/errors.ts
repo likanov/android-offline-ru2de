@@ -3,6 +3,7 @@ export class NotFoundError extends Error {}
 export class AppError extends Error {
   constructor(
     public readonly code:
+      | "STALE_QUESTION"
       | "STORAGE"
       | "CANCELLED"
       | "MODEL"

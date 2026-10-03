@@ -306,3 +306,14 @@ test("stop_failure_still_releases_context_after_generation_drains", async () => 
   await loadError;
   expect(released).toBe(true);
 });
+
+// Catches native KV/conversation state contaminating a new helper request.
+test('clears_native_conversation_data_before_each_request',async()=>{
+ let prior='';const runtime=new LlamaRuntime(async()=>({
+  clearCache:async(clearData:boolean)=>{if(clearData)prior='';},
+  completion:async()=>{const text=prior?'LEAKED '+prior:'fresh';prior=text;return {text};},stopCompletion:async()=>{},release:async()=>{},
+ }));
+ await runtime.load('/models/local.gguf');
+ expect(await runtime.generate(request,new AbortController().signal,()=>{})).toBe('fresh');
+ expect(await runtime.generate({...request,requestId:'next'},new AbortController().signal,()=>{})).toBe('fresh');await runtime.release();
+});

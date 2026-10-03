@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Text } from "react-native";
+import { ActivityIndicator, AppState, Text } from "react-native";
 import { openAppDb } from "../core/sql";
 import { migrate } from "../core/migrations";
-import { AppServices, AppServicesContext, getReminderService } from "./AppServices";
+import { AppServices, AppServicesContext, getReminderService, cancelAssistant } from "./AppServices";
 import { ActiveProfileProvider } from "./ActiveProfileProvider";
 import { Navigation } from "./navigation";
 import { Screen } from "../ui/Screen";
@@ -27,6 +27,11 @@ export function AppRoot() {
       mounted = false;
     };
   }, []);
+  useEffect(() => {
+    if (!services) return;
+    const subscription=AppState.addEventListener("change",state => { if(state !== "active") void cancelAssistant(services).catch(() => {}); });
+    return () => { subscription.remove(); void cancelAssistant(services).catch(() => {}); };
+  }, [services]);
   if (!services)
     return (
       <Screen>

@@ -1,3 +1,4 @@
+import { AssistantService } from '../features/assistant/assistantService';
 import { BackupService } from '../features/transfer/backupService';
 import { CsvImportService } from '../features/transfer/csvImportService';
 import { ReminderService } from '../features/reminders/reminderService';
@@ -19,6 +20,7 @@ import type { ModelManifest } from "../features/assistant/runtimeTypes";
 import { localFiles } from "../../modules/german-offline";
 export type AppServices = {
     db: SqlStore;
+    assistant?: AssistantService;
     reminders?: ReminderService;
 };
 export const AppServicesContext = createContext<AppServices | null>(null);
@@ -35,7 +37,18 @@ export function getAssistantServices(app: AppServices): SetupServices {
     const existing = assistants.get(app.db);
     if (existing)
         return existing;
-    const adapter = localFiles();
+    // Resolve optional native files only when an operation actually uses them.
+    const adapter = {
+        initialize: async () => localFiles().initialize(),
+        exists: async (path: string) => localFiles().exists(path),
+        remove: async (path: string) => localFiles().remove(path),
+        copyVerified: async (...args: Parameters<ReturnType<typeof localFiles>['copyVerified']>) => localFiles().copyVerified(...args),
+        cancelCopy: async (id: string) => localFiles().cancelCopy(id),
+        readText: async (uri: string) => localFiles().readText(uri),
+        subscribeProgress: (listener: Parameters<NonNullable<ReturnType<typeof localFiles>['subscribeProgress']>>[0]) => {
+            try { return localFiles().subscribeProgress!(listener); } catch { return {remove: () => {}}; }
+        },
+    };
     const choose = async () => {
         const { getDocumentAsync } = await import("expo-document-picker");
         const result = await getDocumentAsync({
@@ -116,3 +129,15 @@ export function getCsvImportService(app: AppServices): CsvImportService {
 
 const backups=new WeakMap<SqlStore,BackupService>();
 export function getBackupService(app:AppServices):BackupService {let value=backups.get(app.db);if(!value){value=new BackupService(app.db);backups.set(app.db,value);}return value;}
+
+const memoryAssistants = new WeakMap<SqlStore, AssistantService>();
+export function getMemoryAssistant(app: AppServices): AssistantService {
+    if (app.assistant) return app.assistant;
+    let value=memoryAssistants.get(app.db);
+    if (!value) { const setup=getAssistantServices(app); value=new AssistantService(app.db,getWordRepository(app),setup.files,setup.runtime); memoryAssistants.set(app.db,value); }
+    return value;
+}
+// Lifecycle cleanup must not instantiate an optional model during dictionary use.
+export async function cancelAssistant(app: AppServices): Promise<void> {
+    await (app.assistant ?? memoryAssistants.get(app.db))?.cancelAndRelease();
+}
