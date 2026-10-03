@@ -58,3 +58,15 @@ test('validates_gender_and_presents_articles', async () => {
 test('noun_case_is_standardized_without_losing_umlauts', async () => {
     expect(await words.create(p1, { de: ' BÄUMCHEN ', ru: 'деревце', pos: 'noun', gender: 'n' })).toMatchObject({ de: 'Bäumchen' });
 });
+
+test.each(['T-Shirt', 'E-Mail', 'USB-Stick', 'CD-ROM'])(
+    'noun_spelling_preserves_compound_and_acronym_capitals: %s',
+    async (de) => {
+        const word = await words.create(p1, { de, ru: 'пример', pos: 'noun', gender: 'n' });
+        expect(word.de).toBe(de);
+        expect((await words.get(p1, word.id)).de).toBe(de);
+        const edited = await words.update(p1, word.id, { ...word, note: 'заметка' });
+        expect(edited.word.de).toBe(de);
+        expect(edited.learningReset).toBe(false);
+    },
+);

@@ -15,7 +15,12 @@ export function validateWord(draft: WordDraft): WordDraft {
         throw new WordError('VALIDATION', 'Выберите часть речи');
     if (draft.pos === 'noun' && !['m', 'f', 'n'].includes(draft.gender ?? ''))
         throw new WordError('VALIDATION', 'Выберите род существительного');
-    return { ...draft, de: draft.pos === 'noun' ? de[0].toLocaleUpperCase('de-DE') + de.slice(1).toLocaleLowerCase('de-DE') : de, ru, gender: draft.pos === 'noun' ? draft.gender : null, plural: draft.plural?.normalize('NFC').trim() || null, exampleDe: draft.exampleDe?.normalize('NFC').trim() || null, exampleRu: draft.exampleRu?.normalize('NFC').trim() || null, note: draft.note?.trim() ?? '', icon: draft.icon ?? null };
+    // Normalize plain all-uppercase input; retain existing interior capitalization.
+    // Preserve interior capitals in mixed-case and hyphenated words (USB-Stick).
+    const plainUppercase = /^[A-ZÄÖÜẞ]+$/u.test(de);
+    const noun = plainUppercase ? de.toLocaleLowerCase('de-DE') : de;
+    const german = draft.pos === 'noun' ? noun[0].toLocaleUpperCase('de-DE') + noun.slice(1) : de;
+    return { ...draft, de: german, ru, gender: draft.pos === 'noun' ? draft.gender : null, plural: draft.plural?.normalize('NFC').trim() || null, exampleDe: draft.exampleDe?.normalize('NFC').trim() || null, exampleRu: draft.exampleRu?.normalize('NFC').trim() || null, note: draft.note?.trim() ?? '', icon: draft.icon ?? null };
 }
 export function wordKey(word: WordDraft): string { return JSON.stringify([normalizeAnswer(word.de), normalizeAnswer(word.ru), word.pos, word.pos === 'noun' ? word.gender : null]); }
 export function genderPresentation(word: Pick<Word, 'pos' | 'gender'>): {
