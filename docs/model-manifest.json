@@ -1,0 +1,9 @@
+{
+  "id": "Qwen3-1.7B-Q4_K_M",
+  "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "quantization": "Q4_K_M",
+  "fileName": "Qwen3-1.7B-Q4_K_M.gguf",
+  "bytes": 1282438944,
+  "sha256": "72309900a0aab765e1963ee9ff73aaf5e8c8a754e92c0099d5d55dfca9490f15",
+  "runtimeVersion": "0.12.9"
+}

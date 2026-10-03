@@ -5,3 +5,11 @@ android/**/build/
 android/local.properties
 dist/
 coverage/
+
+# llama.rn generated optional accelerator assets
+android/app/src/main/assets/ggml-hexagon/
+*.gguf
+
+# Local Expo module build outputs
+modules/**/android/build/
+modules/**/android/.gradle/

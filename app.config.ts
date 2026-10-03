@@ -6,6 +6,8 @@ const config: ExpoConfig = {
   orientation: "portrait",
   android: { package: "com.personal.germanvocabulary" },
   plugins: [
+    ["llama.rn", { enableOpenCLAndHexagon: false }],
+    "expo-document-picker",
     ["expo-sqlite", { customBuildFlags: "-DSQLITE_DEFAULT_FOREIGN_KEYS=1" }],
   ],
 };

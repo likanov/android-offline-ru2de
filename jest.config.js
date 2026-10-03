@@ -6,6 +6,11 @@ module.exports = {
   projects: [
     {
       ...common,
+      displayName: "unit",
+      testMatch: ["<rootDir>/test/unit/**/*.test.ts"],
+    },
+    {
+      ...common,
       displayName: "sql",
       testMatch: ["<rootDir>/test/integration/**/*.test.ts"],
     },

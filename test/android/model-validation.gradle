@@ -1,0 +1,17 @@
+// Embedded test entry; regular release builds retain the product entry and flags.
+gradle.projectsEvaluated {
+  def app = gradle.rootProject.findProject(':app')
+  if (app != null) {
+    app.extensions.getByName('react').entryFile = new File(app.rootProject.projectDir.parentFile, 'test/android/modelSmoke.tsx')
+  }
+}
+
+gradle.beforeProject { project ->
+  if (project.path == ':app') {
+    project.plugins.withId('com.android.application') {
+      project.extensions.getByName('androidComponents').finalizeDsl { android ->
+        android.buildTypes.release.debuggable = true
+      }
+    }
+  }
+}
