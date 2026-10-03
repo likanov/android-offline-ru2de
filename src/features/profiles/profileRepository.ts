@@ -1,3 +1,4 @@
+import { notifyProfileChanged } from '../../app/refreshBus';
 import { seedProfileTopics } from '../../core/migrations/004_topics';
 import type { SqlStore } from "../../core/sql";
 import type { Profile } from "../../core/types";
@@ -56,6 +57,7 @@ export async function createProfile(
       profile.id,
     ]);
   });
+  notifyProfileChanged(profile.id);
   return profile;
 }
 export async function listProfiles(db: SqlStore): Promise<Profile[]> {
@@ -71,6 +73,7 @@ export async function renameProfile(
     id,
   ]);
   if (!result.changes) throw new NotFoundError("Профиль не найден");
+  notifyProfileChanged(id);
 }
 export async function setActiveProfile(
   db: SqlStore,
@@ -81,6 +84,7 @@ export async function setActiveProfile(
       throw new NotFoundError("Профиль не найден");
     await tx.run("UPDATE app_settings SET activeProfileId=? WHERE id=1", [id]);
   });
+  notifyProfileChanged(id);
 }
 export async function getActiveProfile(db: SqlStore): Promise<Profile | null> {
   return db.first<Profile>(

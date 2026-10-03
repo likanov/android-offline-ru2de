@@ -1,3 +1,4 @@
+import { notifyProfileChanged } from '../../app/refreshBus';
 import { randomUUID } from 'expo-crypto';
 import type { SqlStore, SqlExecutor } from '../../core/sql';
 import { WordError } from '../dictionary/wordValidation';
@@ -32,13 +33,14 @@ export class TopicRepository {
  async create(profileId: string, name: string): Promise<Topic> {
   const topic={id:randomUUID(),profileId,name:topicName(name)};
   await this.db.run('INSERT INTO topics(id,profileId,name) VALUES (?,?,?)',[topic.id,profileId,topic.name]);
-  return topic;
+  notifyProfileChanged(profileId);return topic;
  }
  async rename(profileId: string, topicId: string, name: string): Promise<void> {
   const value=topicName(name);
   await this.db.transaction(async tx=>{await ownedTopic(tx,profileId,topicId);await tx.run('UPDATE topics SET name=? WHERE id=? AND profileId=?',[value,topicId,profileId]);});
+  notifyProfileChanged(profileId);
  }
- setWordTopics(profileId: string, wordId: string, topicIds: string[]): Promise<void> {return this.db.transaction(tx=>replaceWordTopics(tx,profileId,wordId,topicIds));}
+ async setWordTopics(profileId: string, wordId: string, topicIds: string[]): Promise<void> {await this.db.transaction(tx=>replaceWordTopics(tx,profileId,wordId,topicIds));notifyProfileChanged(profileId);}
  wordTopics(profileId: string, wordId: string): Promise<Topic[]> {
   return this.db.transaction(async tx=>{await ownedWord(tx,profileId,wordId);return tx.all<Topic>('SELECT t.* FROM topics t JOIN word_topics wt ON wt.profileId=t.profileId AND wt.topicId=t.id WHERE wt.profileId=? AND wt.wordId=? ORDER BY t.name,t.id',[profileId,wordId]);});
  }

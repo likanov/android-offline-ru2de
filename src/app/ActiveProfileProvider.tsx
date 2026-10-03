@@ -1,3 +1,4 @@
+import { subscribeProfileChanges } from './refreshBus';
 import React, {
   createContext,
   useContext,
@@ -44,6 +45,15 @@ export function ActiveProfileProvider({ children }: React.PropsWithChildren) {
       mounted = false;
     };
   }, [db]);
+  const profileId = profile?.id;
+  useEffect(() => {
+    if (!profileId) return;
+    let alive = true;
+    const off = subscribeProfileChanges(profileId, () => {
+      void getActiveProfile(db).then(saved => { if (alive) setProfile(saved); });
+    });
+    return () => { alive = false; off(); };
+  }, [db, profileId]);
   return (
     <Context.Provider value={{ profile, select, reload }}>
       {children}

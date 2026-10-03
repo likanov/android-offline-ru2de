@@ -1,3 +1,4 @@
+import { notifyProfileChanged } from '../../app/refreshBus';
 import { replaceWordTopics } from '../topics/topicRepository';
 import { randomUUID } from 'expo-crypto';
 import type { SqlStore, SqlExecutor } from '../../core/sql';
@@ -37,7 +38,8 @@ export class WordRepository {
             throw new WordError('DUPLICATE', 'Такое слово уже есть в словаре');
     }
     async create(profileId: string, input: WordDraft): Promise<Word> {
-        return this.db.transaction(tx => this.createInTransaction(tx,profileId,input));
+        const word=await this.db.transaction(tx => this.createInTransaction(tx,profileId,input));
+        notifyProfileChanged(profileId);return word;
     }
     private async createInTransaction(tx: SqlExecutor, profileId: string, input: WordDraft): Promise<Word> {
             const draft = validateWord(input);
@@ -47,11 +49,12 @@ export class WordRepository {
             await tx.run('INSERT INTO word_progress(profileId,wordId) VALUES (?,?)', [profileId, id]);
             return this.owned(tx, profileId, id);
     }
-    update(profileId: string, wordId: string, input: WordDraft): Promise<{
+    async update(profileId: string, wordId: string, input: WordDraft): Promise<{
         word: Word;
         learningReset: boolean;
     }> {
-        return this.db.transaction(tx => this.updateInTransaction(tx,profileId,wordId,input));
+        const result=await this.db.transaction(tx => this.updateInTransaction(tx,profileId,wordId,input));
+        notifyProfileChanged(profileId);return result;
     }
     private async updateInTransaction(tx: SqlExecutor, profileId: string, wordId: string, input: WordDraft): Promise<{word:Word;learningReset:boolean}> {
             const old = await this.owned(tx, profileId, wordId), draft = validateWord(input);
@@ -74,11 +77,12 @@ export class WordRepository {
             }
             return { word: await this.owned(tx, profileId, wordId), learningReset };
     }
-    saveWordWithTopics(profileId: string, draft: WordDraft, topicIds: string[], wordId?: string): Promise<Word> {
-        return this.db.transaction(async tx => {
+    async saveWordWithTopics(profileId: string, draft: WordDraft, topicIds: string[], wordId?: string): Promise<Word> {
+        const result=await this.db.transaction(async tx => {
             const word = wordId ? (await this.updateInTransaction(tx,profileId,wordId,draft)).word : await this.createInTransaction(tx,profileId,draft);
             await replaceWordTopics(tx,profileId,word.id,topicIds);
             return word;
         });
+        notifyProfileChanged(profileId);return result;
     }
 }

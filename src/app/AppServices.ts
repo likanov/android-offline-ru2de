@@ -1,3 +1,4 @@
+import { ProgressRepository } from '../features/progress/progressRepository';
 import { TopicRepository } from '../features/topics/topicRepository';
 import { ReviewRepository } from '../features/reviews/reviewRepository';
 import { SessionRepository } from '../features/learning/sessionRepository';
@@ -82,4 +83,9 @@ export function getTopicRepository(app: AppServices): TopicRepository {
  let value=topics.get(app.db);
  if(!value){value=new TopicRepository(app.db);topics.set(app.db,value);}
  return value;
+}
+
+const progress = new WeakMap<SqlStore, ProgressRepository>();
+export function getProgressRepository(app: AppServices): ProgressRepository {
+ let value=progress.get(app.db);if(!value){value=new ProgressRepository(app.db);progress.set(app.db,value);}return value;
 }

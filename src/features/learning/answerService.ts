@@ -1,3 +1,4 @@
+import { notifyProfileChanged } from '../../app/refreshBus';
 import type { SqlStore } from '../../core/sql';
 import type { DayKey, Word, Skill } from './learningTypes';
 import type { AttemptResult } from './questionTypes';
@@ -6,8 +7,8 @@ import { applyAnswer } from './learningRules';
 import { checkAnswer } from './normalizeAnswer';
 export class AnswerService {
     constructor(private db: SqlStore) { }
-    submit(profileId: string, sessionId: string, attemptId: string, answer: string, today: DayKey): Promise<AttemptResult> {
-        return this.db.transaction(async (tx) => {
+    async submit(profileId: string, sessionId: string, attemptId: string, answer: string, today: DayKey): Promise<AttemptResult> {
+        const result = await this.db.transaction(async (tx) => {
             const s = await ownedSession(tx, profileId, sessionId);
             const old = await tx.first<{
                 profileId: string;
@@ -46,5 +47,7 @@ export class AnswerService {
             await tx.run('UPDATE sessions SET result=? WHERE id=?', [JSON.stringify(result), sessionId]);
             return result;
         });
+        notifyProfileChanged(profileId);
+        return result;
     }
 }
