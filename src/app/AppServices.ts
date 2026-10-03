@@ -1,3 +1,5 @@
+import { ReminderService } from '../features/reminders/reminderService';
+import { createNotificationPort } from '../features/reminders/expoNotificationPort';
 import { createAudioService } from '../features/audio/audioAdapters';
 import type { AudioService } from '../features/audio/audioService';
 import { ProgressRepository } from '../features/progress/progressRepository';
@@ -15,6 +17,7 @@ import type { ModelManifest } from "../features/assistant/runtimeTypes";
 import { localFiles } from "../../modules/german-offline";
 export type AppServices = {
     db: SqlStore;
+    reminders?: ReminderService;
 };
 export const AppServicesContext = createContext<AppServices | null>(null);
 export function useAppServices(): AppServices {
@@ -95,4 +98,11 @@ export function getProgressRepository(app: AppServices): ProgressRepository {
 const audio = new WeakMap<SqlStore, AudioService>();
 export function getAudioService(app: AppServices): AudioService {
  let value=audio.get(app.db);if(!value){value=createAudioService();audio.set(app.db,value);}return value;
+}
+
+const reminders = new WeakMap<SqlStore, ReminderService>();
+export function getReminderService(app: AppServices): ReminderService {
+  let value = reminders.get(app.db);
+  if (!value) { value = new ReminderService(getProgressRepository(app), createNotificationPort()); reminders.set(app.db, value); }
+  return value;
 }

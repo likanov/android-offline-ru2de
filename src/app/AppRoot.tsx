@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text } from "react-native";
 import { openAppDb } from "../core/sql";
 import { migrate } from "../core/migrations";
-import { AppServices, AppServicesContext } from "./AppServices";
+import { AppServices, AppServicesContext, getReminderService } from "./AppServices";
 import { ActiveProfileProvider } from "./ActiveProfileProvider";
 import { Navigation } from "./navigation";
 import { Screen } from "../ui/Screen";
@@ -15,7 +15,7 @@ export function AppRoot() {
       try {
         const db = await openAppDb();
         await migrate(db);
-        if (mounted) setServices({ db });
+        if (mounted) setServices({ db, reminders: getReminderService({ db }) });
       } catch {
         if (mounted)
           setError(

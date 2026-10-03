@@ -8,4 +8,15 @@ android {
   namespace 'expo.modules.germanoffline'
   defaultConfig { versionCode 1; versionName '0.1.0' }
 }
-dependencies { testImplementation 'junit:junit:4.13.2' }
+dependencies {
+  // SDK 56 autolinks shipped AAR publications instead of Gradle projects.
+  def notificationsProject = rootProject.findProject(':expo-notifications')
+  if (notificationsProject != null) {
+    implementation notificationsProject
+  } else {
+    def notificationsPackage = new groovy.json.JsonSlurper().parse(
+      new File(rootProject.projectDir, '../node_modules/expo-notifications/package.json'))
+    implementation "host.exp.exponent:expo.modules.notifications:${notificationsPackage.version}"
+  }
+  testImplementation 'junit:junit:4.13.2'
+}

@@ -11,7 +11,7 @@ export async function migrate(db: SqlStore): Promise<void> {
     const version = await tx.first<{ user_version: number }>(
       "PRAGMA user_version",
     );
-    if ((version?.user_version ?? 0) > 4)
+    if ((version?.user_version ?? 0) > 5)
       throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 1) {
       await tx.exec(profilesSchema);
@@ -33,6 +33,12 @@ export async function migrate(db: SqlStore): Promise<void> {
       await tx.exec(topicsSchema);
       for (const profile of await tx.all<{id:string}>('SELECT id FROM profiles')) await seedProfileTopics(tx,profile.id);
       await tx.exec('PRAGMA user_version=4;');
+    }
+    if ((version?.user_version ?? 0) < 5) {
+      await tx.exec(`ALTER TABLE settings ADD COLUMN reminderEnabled INTEGER NOT NULL DEFAULT 0 CHECK(reminderEnabled IN (0,1));
+        ALTER TABLE settings ADD COLUMN reminderHour INTEGER NOT NULL DEFAULT 19 CHECK(reminderHour BETWEEN 0 AND 23);
+        ALTER TABLE settings ADD COLUMN reminderMinute INTEGER NOT NULL DEFAULT 0 CHECK(reminderMinute BETWEEN 0 AND 59);
+        PRAGMA user_version=5;`);
     }
   });
 }

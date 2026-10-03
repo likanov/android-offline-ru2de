@@ -36,6 +36,19 @@ export class ProgressRepository {
             throw new NotFoundError('Профиль не найден');
         return settings;
     }
+    async reminderSettings(profileId: string): Promise<{ enabled: boolean; hour: number; minute: number }> {
+        const row = await this.db.first<{ reminderEnabled: number; reminderHour: number; reminderMinute: number }>(
+            'SELECT reminderEnabled,reminderHour,reminderMinute FROM settings WHERE profileId=?', [profileId]);
+        if (!row) throw new NotFoundError('Профиль не найден');
+        return { enabled: !!row.reminderEnabled, hour: row.reminderHour, minute: row.reminderMinute };
+    }
+    async setReminder(profileId: string, enabled: boolean, hour: number, minute: number): Promise<void> {
+        if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)
+            throw new AppError('VALIDATION', 'Введите время от 00:00 до 23:59');
+        const result = await this.db.run('UPDATE settings SET reminderEnabled=?,reminderHour=?,reminderMinute=? WHERE profileId=?', [enabled ? 1 : 0, hour, minute, profileId]);
+        if (!result.changes) throw new NotFoundError('Профиль не найден');
+        notifyProfileChanged(profileId);
+    }
     async setGoal(profileId: string, count: number): Promise<void> {
         if (!Number.isInteger(count) || count < 1 || count > 200)
             throw new AppError('VALIDATION', 'Цель должна быть от 1 до 200');

@@ -1,3 +1,4 @@
+import { ReminderSettings } from '../features/reminders/ReminderSettings';
 import { TodayScreen } from '../features/progress/TodayScreen';
 import { ProgressScreen } from '../features/progress/ProgressScreen';
 import { TopicsScreen } from '../features/topics/TopicsScreen';
@@ -9,14 +10,14 @@ import { DictionaryScreen } from '../features/dictionary/DictionaryScreen';
 import { WordCardScreen } from '../features/dictionary/WordCardScreen';
 import { WordEditorScreen } from '../features/dictionary/WordEditorScreen';
 import { useActiveProfile } from './ActiveProfileProvider';
-import { useAppServices, getTrainingServices } from './AppServices';
+import { useAppServices, getTrainingServices, getProgressRepository, getReminderService } from './AppServices';
 import { Button } from '../ui/Button';
 import { ReviewsScreen } from '../features/reviews/ReviewsScreen';
 import { DifficultWordsScreen } from '../features/reviews/DifficultWordsScreen';
 import type { TrainingSelection } from '../features/learning/questionTypes';
 import { TrainingScreen } from '../features/learning/TrainingScreen';
 type Route = {
-    screen: 'profiles' | 'model' | 'dictionary' | 'card' | 'editor' | 'training' | 'reviews' | 'difficult' | 'topics' | 'today' | 'progress';
+    screen: 'profiles' | 'model' | 'dictionary' | 'card' | 'editor' | 'training' | 'reviews' | 'difficult' | 'topics' | 'today' | 'progress' | 'reminders';
     wordId?: string;
     mode?: 'study' | 'review';
     fromTraining?: boolean;
@@ -72,6 +73,8 @@ function NavigationRoutes() {
         content = <Text>Сначала выберите профиль</Text>;
     else if (route.screen === 'today')
         content = <TodayScreen db={db} profileId={profile.id} onStart={startQueue} onProgress={() => setRoute({screen:'progress'})}/>;
+    else if (route.screen === 'reminders')
+        content = <ReminderSettings key={profile.id} profileId={profile.id} progress={getProgressRepository(app)} service={app.reminders ?? getReminderService(app)}/>;
     else if (route.screen === 'progress')
         content = <ProgressScreen db={db} profileId={profile.id}/>;
     else if (route.screen === 'topics')
@@ -88,5 +91,5 @@ function NavigationRoutes() {
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
         content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
-    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<View style={{ paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button title="Профили" onPress={() => void navigate({ screen: 'profiles' })}/><Button title="Сегодня" disabled={!profile} onPress={() => void navigate({ screen: 'today' })}/><Button title="Прогресс" disabled={!profile} onPress={() => void navigate({ screen: 'progress' })}/><Button title="Словарь" disabled={!profile} onPress={() => void navigate({ screen: 'dictionary' })}/><Button title="Тренировка" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'study' })}/><Button title="Повторение" disabled={!profile} onPress={() => void navigate({ screen: 'reviews' })}/><Button title="Наборы" disabled={!profile} onPress={() => void navigate({ screen: 'topics' })}/><Button title="Трудные" disabled={!profile} onPress={() => void navigate({ screen: 'difficult' })}/><Button title="Локальная модель" onPress={() => void navigate({ screen: 'model' })}/></View></View>;
+    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<View style={{ paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button title="Профили" onPress={() => void navigate({ screen: 'profiles' })}/><Button title="Сегодня" disabled={!profile} onPress={() => void navigate({ screen: 'today' })}/><Button title="Прогресс" disabled={!profile} onPress={() => void navigate({ screen: 'progress' })}/><Button title="Словарь" disabled={!profile} onPress={() => void navigate({ screen: 'dictionary' })}/><Button title="Тренировка" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'study' })}/><Button title="Повторение" disabled={!profile} onPress={() => void navigate({ screen: 'reviews' })}/><Button title="Наборы" disabled={!profile} onPress={() => void navigate({ screen: 'topics' })}/><Button title="Трудные" disabled={!profile} onPress={() => void navigate({ screen: 'difficult' })}/><Button title="Напоминания" disabled={!profile} onPress={() => void navigate({ screen: 'reminders' })}/><Button title="Локальная модель" onPress={() => void navigate({ screen: 'model' })}/></View></View>;
 }

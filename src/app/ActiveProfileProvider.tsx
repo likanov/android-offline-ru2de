@@ -1,3 +1,4 @@
+import { AppState, Text } from 'react-native';
 import { subscribeProfileChanges } from './refreshBus';
 import React, {
   createContext,
@@ -24,7 +25,8 @@ const Context = createContext<ActiveProfile>({
 });
 export const useActiveProfile = () => useContext(Context);
 export function ActiveProfileProvider({ children }: React.PropsWithChildren) {
-  const { db } = useAppServices();
+  const { db, reminders } = useAppServices();
+  const [reminderError, setReminderError] = useState('');
   const [profile, setProfile] = useState<Profile | null>(null);
   const reload = useCallback(async () => {
     setProfile(await getActiveProfile(db));
@@ -54,9 +56,19 @@ export function ActiveProfileProvider({ children }: React.PropsWithChildren) {
     });
     return () => { alive = false; off(); };
   }, [db, profileId]);
+  useEffect(() => {
+    if (!reminders) return;
+    const reconcile = () => {
+      void reminders.reconcile(profileId ?? null).then(() => setReminderError('')).catch(() => setReminderError('Не удалось обновить напоминание. Откройте настройки напоминаний.'));
+    };
+    reconcile();
+    const subscription = AppState.addEventListener('change', state => { if (state === 'active') reconcile(); });
+    return () => subscription.remove();
+  }, [reminders, profileId]);
   return (
     <Context.Provider value={{ profile, select, reload }}>
       {children}
+      {reminderError ? <Text accessibilityRole="alert">{reminderError}</Text> : null}
     </Context.Provider>
   );
 }
