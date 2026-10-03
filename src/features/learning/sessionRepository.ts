@@ -58,8 +58,11 @@ export class SessionRepository {
             'SELECT payload FROM questions WHERE profileId=? AND sessionId=? AND wordId=? ORDER BY rowid DESC LIMIT 1',
             [profileId, sessionId, w.id],
         );
-        const previousKind: QuizKind | undefined = previous ? (JSON.parse(previous.payload) as Question).kind : undefined;
-        let k = previousKind ? kinds.indexOf(previousKind) + 1 : s.kindIndex;
+        const previousQuestion = previous ? JSON.parse(previous.payload) as Question & { nextKindIndex?: number } : null;
+        // Keep the requested-kind cursor separate from the displayed kind: a
+        // ru-de question can render as typing without consuming de-ru next.
+        // Older stored questions lack the cursor and resume from their kind once.
+        let k = previousQuestion?.nextKindIndex ?? (previousQuestion ? kinds.indexOf(previousQuestion.kind) + 1 : s.kindIndex);
         while (!q) {
             const kind = kinds[k % kinds.length];
             k++;
@@ -69,7 +72,7 @@ export class SessionRepository {
         }
         q.reviewStage = s.mode === 'review' ? state.reviewStage : null;
         q.dueDay = s.mode === 'review' ? state.dueDay : null;
-        await tx.run("INSERT INTO questions(attemptId,profileId,sessionId,wordId,revision,payload,status) VALUES (?,?,?,?,?,?,'active')", [q.attemptId, profileId, sessionId, w.id, q.revision, JSON.stringify(q)]);
+        await tx.run("INSERT INTO questions(attemptId,profileId,sessionId,wordId,revision,payload,status) VALUES (?,?,?,?,?,?,'active')", [q.attemptId, profileId, sessionId, w.id, q.revision, JSON.stringify({ ...q, nextKindIndex: k })]);
         await tx.run('UPDATE sessions SET cursor=?,kindIndex=?,currentQuestion=?,result=NULL WHERE id=?', [(index + 1) % s.wordIds.length, k, JSON.stringify(q), sessionId]);
         return q;
     } await tx.run("UPDATE sessions SET status='completed',currentQuestion=NULL,result=NULL WHERE id=?", [sessionId]); return null; }); }

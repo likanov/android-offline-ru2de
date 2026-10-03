@@ -1,6 +1,7 @@
 import { createWordHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import { SessionRepository } from '../../src/features/learning/sessionRepository';
+import { buildQuestion } from '../../src/features/learning/questionFactory';
 import { AnswerService } from '../../src/features/learning/answerService';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -69,4 +70,24 @@ test('five_noun_pool_rotates_each_word_across_types_after_repository_restart', a
         expect(new Set(kinds).size).toBe(5);
         expect([...kinds].sort()).toEqual(['de-ru', 'definite-article', 'indefinite-article', 'ru-de', 'typing']);
     }
+});
+
+test('typing_fallback_preserves_requested_rotation_and_available_translation', async () => {
+    const profileId = 'one-adjective';
+    await h.db.run('INSERT INTO profiles(id,name,createdAt) VALUES (?,?,?)', [profileId, 'One adjective', '2026-10-03']);
+    const noun = await h.words.create(profileId, { de: 'Stuhl', ru: 'стул', pos: 'noun', gender: 'm' });
+    const adjective = await h.words.create(profileId, { de: 'gut', ru: 'хороший', pos: 'adjective', gender: null });
+    expect(buildQuestion(adjective, [adjective, noun], 'ru-de', 'fallback')).toMatchObject({ kind: 'typing' });
+    expect(buildQuestion(adjective, [adjective, noun], 'de-ru', 'available')).toMatchObject({ kind: 'de-ru', options: expect.arrayContaining(['хороший', 'стул']) });
+    const session = await s.start(profileId, { mode: 'study', wordIds: [adjective.id] }, day);
+    const kinds: string[] = [];
+    for (let i = 0; i < 6; i++) {
+        // A new repository must recover the requested kind position from SQLite,
+        // even though the displayed question can fall back to another kind.
+        s = new SessionRepository(h.db);
+        const q = await s.next(profileId, session.id, day);
+        kinds.push(q.kind);
+        await a.submit(profileId, session.id, q.attemptId, q.expected[0], day);
+    }
+    expect(kinds).toEqual(['typing', 'de-ru', 'typing', 'typing', 'de-ru', 'typing']);
 });
