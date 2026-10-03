@@ -1,0 +1,10 @@
+export const learningSchema = `
+CREATE TABLE sessions(id TEXT PRIMARY KEY,profileId TEXT NOT NULL REFERENCES profiles(id),mode TEXT NOT NULL CHECK(mode IN ('study','review')),wordIds TEXT NOT NULL,cursor INTEGER NOT NULL DEFAULT 0,kindIndex INTEGER NOT NULL DEFAULT 0,currentQuestion TEXT,result TEXT,status TEXT NOT NULL CHECK(status IN ('active','completed','cancelled')),UNIQUE(profileId,id));
+CREATE UNIQUE INDEX sessions_active ON sessions(profileId) WHERE status='active';
+CREATE TABLE questions(attemptId TEXT PRIMARY KEY,profileId TEXT NOT NULL,sessionId TEXT NOT NULL,wordId TEXT NOT NULL,revision INTEGER NOT NULL,payload TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('active','answered','cancelled')),FOREIGN KEY(profileId,sessionId) REFERENCES sessions(profileId,id),FOREIGN KEY(profileId,wordId) REFERENCES words(profileId,id));
+CREATE TABLE attempts(attemptId TEXT PRIMARY KEY REFERENCES questions(attemptId),profileId TEXT NOT NULL,sessionId TEXT NOT NULL,wordId TEXT NOT NULL,right INTEGER NOT NULL,xpDelta INTEGER NOT NULL,result TEXT NOT NULL,day TEXT NOT NULL,FOREIGN KEY(profileId,sessionId) REFERENCES sessions(profileId,id),FOREIGN KEY(profileId,wordId) REFERENCES words(profileId,id));
+CREATE TABLE rewards(profileId TEXT NOT NULL,wordId TEXT NOT NULL,attemptId TEXT NOT NULL REFERENCES attempts(attemptId),amount INTEGER NOT NULL CHECK(amount=50),PRIMARY KEY(profileId,wordId),FOREIGN KEY(profileId,wordId) REFERENCES words(profileId,id));
+CREATE TABLE daily_activity(profileId TEXT NOT NULL REFERENCES profiles(id),day TEXT NOT NULL,correct INTEGER NOT NULL DEFAULT 0,errors INTEGER NOT NULL DEFAULT 0,xp INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(profileId,day));
+CREATE TABLE skill_history(attemptId TEXT PRIMARY KEY REFERENCES attempts(attemptId),profileId TEXT NOT NULL,wordId TEXT NOT NULL,revision INTEGER NOT NULL,skill TEXT NOT NULL,right INTEGER NOT NULL,day TEXT NOT NULL,FOREIGN KEY(profileId,wordId) REFERENCES words(profileId,id));
+ALTER TABLE skill_stats ADD COLUMN revision INTEGER NOT NULL DEFAULT 1;
+`;

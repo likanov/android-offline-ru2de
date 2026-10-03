@@ -4,12 +4,13 @@ import { wordDetailsSchema } from "./migrations/002_word_details";
 import { wordKey } from "../features/dictionary/wordValidation";
 import type { Word } from "../features/learning/learningTypes";
 import { starterWords } from "../data/starterWords";
+import { learningSchema } from "./migrations/003_learning";
 export async function migrate(db: SqlStore): Promise<void> {
   await db.transaction(async (tx) => {
     const version = await tx.first<{ user_version: number }>(
       "PRAGMA user_version",
     );
-    if ((version?.user_version ?? 0) > 2)
+    if ((version?.user_version ?? 0) > 3)
       throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 1) {
       await tx.exec(profilesSchema);
@@ -22,6 +23,10 @@ export async function migrate(db: SqlStore): Promise<void> {
         await tx.run("UPDATE words SET canonicalKey=?,plural=COALESCE(plural,?),exampleDe=COALESCE(exampleDe,?),exampleRu=COALESCE(exampleRu,?),note=CASE WHEN note='' THEN ? ELSE note END WHERE id=?",[wordKey(word),seed?.plural??null,seed?.exampleDe??null,seed?.exampleRu??null,seed?.note??'',word.id]);
       }
       await tx.exec("PRAGMA user_version=2;");
+    }
+    if ((version?.user_version ?? 0) < 3) {
+      await tx.exec(learningSchema);
+      await tx.exec("PRAGMA user_version=3;");
     }
   });
 }
