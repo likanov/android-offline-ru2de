@@ -1,0 +1,190 @@
+appId: com.personal.germanvocabulary
+name: select-profile
+---
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Активный профиль:.*"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Активный профиль:.*"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Активный профиль:.*"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Активный профиль:.*"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать ${PROFILE}"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать ${PROFILE}"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать ${PROFILE}"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Выбрать ${PROFILE}"
+    }
+  },
+  {
+    "tapOn": "Выбрать ${PROFILE}"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: ${PROFILE}"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: ${PROFILE}"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Активный профиль: ${PROFILE}"
+  }
+]

@@ -1,0 +1,104 @@
+appId: com.personal.germanvocabulary
+name: audio.audible
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": "Поиск слов"
+  },
+  {
+    "eraseText": 100
+  },
+  {
+    "inputText": "Stuhl"
+  },
+  {
+    "hideKeyboard": {}
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": ".*Stuhl — стул"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": ".*Stuhl — стул"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": ".*Stuhl — стул"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": ".*Stuhl — стул"
+    }
+  },
+  {
+    "tapOn": ".*Stuhl — стул"
+  },
+  {
+    "tapOn": "Прослушать"
+  }
+]

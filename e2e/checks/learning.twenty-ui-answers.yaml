@@ -1,0 +1,360 @@
+appId: com.personal.germanvocabulary
+name: learning.twenty-ui-answers
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия — 20 UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-topics"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать набор: 20 UI"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать набор: 20 UI"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать набор: 20 UI"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Выбрать набор: 20 UI"
+    }
+  },
+  {
+    "tapOn": "Выбрать набор: 20 UI"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Изучать набор"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Изучать набор"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Изучать набор"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Изучать набор"
+    }
+  },
+  {
+    "tapOn": "Изучать набор"
+  },
+  {
+    "repeat": {
+      "times": 10,
+      "commands": [
+        {
+          "runFlow": {
+            "file": "../helpers/answer-correct.yaml",
+            "env": {
+              "WORD_DE": "Stuhl",
+              "WORD_RU": "стул"
+            }
+          }
+        },
+        {
+          "tapOn": "Продолжить"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/answer-correct.yaml",
+      "env": {
+        "WORD_DE": "Stuhl",
+        "WORD_RU": "стул"
+      }
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно! \\+60 XP"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно! \\+60 XP"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+60 XP"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Серия: 20/20"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Серия: 20/20"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Серия: 20/20"
+  },
+  {
+    "tapOn": "Продолжить"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Занятие завершено"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Занятие завершено"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Занятие завершено"
+  },
+  {
+    "tapOn": {
+      "id": "nav-progress"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "XP: 250"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "XP: 250"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "XP: 250"
+  }
+]

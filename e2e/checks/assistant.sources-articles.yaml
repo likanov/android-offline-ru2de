@@ -1,0 +1,51 @@
+appId: com.personal.germanvocabulary
+name: assistant.sources-articles
+---
+[
+  {
+    "tapOn": {
+      "id": "nav-model"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Модель установлена.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Модель установлена.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Модель установлена.*"
+  }
+]

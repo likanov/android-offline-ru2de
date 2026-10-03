@@ -1,7 +1,64 @@
 appId: com.personal.germanvocabulary
 name: persistence-before
 ---
-- tapOn: "Профили"
-- assertVisible: "Активный профиль: Регрессия UI"
-- assertVisible: "0 XP · Стартовый словарь: 40 слов"
-- takeScreenshot: "${REPORT_DIR}/persistence-before"
+[
+  {
+    "runFlow": {
+      "file": "helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия — 20 UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/answer-correct.yaml"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно! \\+10 XP"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно! \\+10 XP"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+10 XP"
+  }
+]

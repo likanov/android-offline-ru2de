@@ -1,0 +1,51 @@
+appId: com.personal.germanvocabulary
+name: upgrade.old-ui-word-xp
+---
+[
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно!.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно!.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Верно!.*"
+  }
+]

@@ -1,20 +1,51 @@
 appId: com.personal.germanvocabulary
 name: assistant
 ---
-- tapOn: "Словарь"
-- tapOn: "Поиск слов"
-- eraseText
-- inputText: "Stuhl"
-- hideKeyboard
-- scrollUntilVisible:
-    element: "der Stuhl — стул"
-- tapOn: "der Stuhl — стул"
-- tapOn: "Помоги запомнить"
-- assertVisible: "Ассоциация"
-- tapOn: "Создать подсказку"
-- extendedWaitUntil:
-    visible: "Установить локальную модель"
-    timeout: 60000
-- tapOn: "Установить локальную модель"
-- assertVisible: "Выбрать описание модели"
-# Model install and four real generations are still pending; runner cannot pass.
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Профили"
+  }
+]

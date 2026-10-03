@@ -1,0 +1,209 @@
+appId: com.personal.germanvocabulary
+name: transfer.json-roundtrip
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/export-state.yaml"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Выбрать резервную копию"
+    }
+  },
+  {
+    "tapOn": "Выбрать резервную копию"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "${EXPORT_NAME}"
+      }
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Восстановить новые профили"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Восстановить новые профили"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Восстановить новые профили"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Восстановить новые профили"
+    }
+  },
+  {
+    "tapOn": "Восстановить новые профили"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Восстановлено профилей:.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Восстановлено профилей:.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Восстановлено профилей:.*"
+  }
+]

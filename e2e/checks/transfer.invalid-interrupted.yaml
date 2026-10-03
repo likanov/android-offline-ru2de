@@ -1,0 +1,263 @@
+appId: com.personal.germanvocabulary
+name: transfer.invalid-interrupted
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Выбрать резервную копию"
+    }
+  },
+  {
+    "tapOn": "Выбрать резервную копию"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "invalid-backup.json"
+      }
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": ".*Не удалось прочитать JSON.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": ".*Не удалось прочитать JSON.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": ".*Не удалось прочитать JSON.*"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Выбрать резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Выбрать резервную копию"
+    }
+  },
+  {
+    "tapOn": "Выбрать резервную копию"
+  },
+  {
+    "stopApp": {}
+  },
+  {
+    "launchApp": {
+      "clearState": false
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Выбрать резервную копию"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Выбрать резервную копию"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Выбрать резервную копию"
+  }
+]

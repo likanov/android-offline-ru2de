@@ -1,9 +1,51 @@
 appId: com.personal.germanvocabulary
 name: upgrade
 ---
-# Only after adb install -r FINAL.apk, preserving Task5 database.
-- launchApp
-- assertVisible: "Активный профиль: Миграция UI"
-- tapOn: "Наборы"
-- assertVisible: "Наборы"
-- takeScreenshot: "${REPORT_DIR}/upgrade-topics"
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Профили"
+  }
+]

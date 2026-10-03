@@ -1,0 +1,135 @@
+appId: com.personal.germanvocabulary
+name: old-answer
+---
+[
+  {
+    "copyTextFrom": {
+      "id": "training-prompt-.*"
+    }
+  },
+  {
+    "runScript": {
+      "file": "answer-label.js"
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-ru-de"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "${output.answer.german}"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-de-ru"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "${output.answer.ru}"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-typing"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "Ответ на немецком"
+        },
+        {
+          "inputText": "${output.answer.german}"
+        },
+        {
+          "hideKeyboard": {}
+        },
+        {
+          "tapOn": "Проверить"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-definite-article"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "${output.answer.article}"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-indefinite-article"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "${output.answer.indefinite}"
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно!.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Верно!.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Верно!.*"
+  }
+]

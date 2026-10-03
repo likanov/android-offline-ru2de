@@ -1,15 +1,51 @@
 appId: com.personal.germanvocabulary
 name: transfer
 ---
-- tapOn: "Перенос данных"
-- scrollUntilVisible:
-    element: "Выбрать CSV"
-- tapOn: "Выбрать CSV"
-# Verify the actual Android picker can be cancelled without mutating the app.
-- back
-- assertVisible: "Выбрать CSV"
-- scrollUntilVisible:
-    element: "Выбрать резервную копию"
-- tapOn: "Выбрать резервную копию"
-- back
-- assertVisible: "Выбрать резервную копию"
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Профили"
+  }
+]

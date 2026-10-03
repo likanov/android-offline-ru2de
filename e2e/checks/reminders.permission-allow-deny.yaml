@@ -1,0 +1,71 @@
+appId: com.personal.germanvocabulary
+name: reminders.permission-allow-deny
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reminders"
+    }
+  },
+  {
+    "tapOn": "Ежедневное напоминание"
+  },
+  {
+    "tapOn": "Сохранить напоминание"
+  },
+  {
+    "tapOn": {
+      "text": "Don’t allow|Don't allow",
+      "optional": true
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Разрешите уведомления в настройках Android. Время сохранено."
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Разрешите уведомления в настройках Android. Время сохранено."
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Разрешите уведомления в настройках Android. Время сохранено."
+  }
+]

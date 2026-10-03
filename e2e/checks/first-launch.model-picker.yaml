@@ -1,0 +1,79 @@
+appId: com.personal.germanvocabulary
+name: first-launch.model-picker
+---
+[
+  {
+    "tapOn": {
+      "id": "nav-model"
+    }
+  },
+  {
+    "tapOn": "Выбрать описание модели"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "model-manifest.json"
+      }
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Описание:.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Описание:.*"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Описание:.*"
+  },
+  {
+    "tapOn": "Выбрать файл GGUF"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "${MODEL_FILENAME}"
+      }
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": "Модель готова. Интернет не требуется.",
+      "timeout": 600000
+    }
+  }
+]

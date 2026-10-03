@@ -104,9 +104,9 @@ function Workspace({ db, profileId, wordId, assistant, onModelSetup, onBack }: A
   {mode === 'rule' ? <><Button title="Род" disabled={busy} onPress={() => { reset(); setTopic('gender'); }}/><Button title="Артикли" disabled={busy} onPress={() => { reset(); setTopic('articles'); }}/><Text accessibilityRole="header">{reference[topic].title}</Text><Text>{reference[topic].text}</Text></> : null}
   <Button title="Создать подсказку" disabled={busy || !word} onPress={() => void generate()}/>
   {busy ? <><ActivityIndicator accessibilityLabel="Помощник работает"/><Button title="Отменить" onPress={cancel}/></> : null}
-  <Text accessibilityLiveRegion="polite">{status}</Text>
+  <Text testID="assistant-status" accessibilityLiveRegion="polite">{status}</Text>
   {modelError ? <Button title="Установить локальную модель" onPress={onModelSetup}/> : null}
-  <TextInput accessibilityLabel="Результат помощника" multiline value={text} editable={!!draft && !busy && !saved} onChangeText={setText} style={{ minHeight: 140, borderWidth: 1, borderColor: '#667085', borderRadius: 12, padding: 16, fontSize: 18, color: '#182230' }}/>
+  <TextInput testID="assistant-result" accessibilityLabel="Результат помощника" multiline value={text} editable={!!draft && !busy && !saved} onChangeText={setText} style={{ minHeight: 140, borderWidth: 1, borderColor: '#667085', borderRadius: 12, padding: 16, fontSize: 18, color: '#182230' }}/>
   <Button title="Сохранить в карточку" disabled={busy || !draft || !text.trim() || saved} onPress={() => void save()}/>
   <Button title="К карточке" onPress={onBack}/>
  </Screen>;

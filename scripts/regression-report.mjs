@@ -37,11 +37,25 @@ export function validateRegressionReport(report) {
   }
   require(report?.network?.wifi===false && report?.network?.mobile===false,'OFFLINE_NOT_VERIFIED');
   require(report?.crashCount===0 && report?.anrCount===0 && artifact(report?.logcat),'CRASH_ANR_NOT_VERIFIED');
+  const logs=Array.isArray(report?.deviceLogs)?report.deviceLogs:[];
+  for(const phase of ['primary','upgrade'])require(logs.some(log=>log.phase?.startsWith(phase)&&artifact(log.path)),`DEVICE_LOG_MISSING:${phase}`);
+  let crashes=0,anrs=0;
+  for(const log of logs) {
+    require(artifact(log.path),'DEVICE_LOG_ARTIFACT_MISSING');
+    if(artifact(log.path)){const text=readFileSync(log.path,'utf8'),crashCount=(text.match(/FATAL EXCEPTION|Fatal signal/g)||[]).length,anrCount=(text.match(/ANR in |am_anr/g)||[]).length;crashes+=crashCount;anrs+=anrCount;require(crashCount===log.crashCount&&anrCount===log.anrCount,'DEVICE_LOG_COUNTS_MISMATCH');}
+  }
+  require(crashes===0&&anrs===0&&crashes===report?.crashCount&&anrs===report?.anrCount,'DEVICE_LOG_CRASH_ANR_DETECTED');
   require(typeof report?.observations?.audioAudible==='boolean' && report?.observations?.audioAudible===true,'AUDIO_OBSERVATION_MISSING');
   require(report?.observations?.languageQuality==='reviewed' && typeof report?.observations?.languageNotes==='string' && report.observations.languageNotes.trim(),'LANGUAGE_OBSERVATION_MISSING');
   require(['absent-tested','offline-tested'].includes(report?.observations?.tts),'TTS_NOT_VERIFIED');
   require(report?.upgrade?.previousCommit==='19b2e0c1cf36eda73159aff9bb2d94b757d24144','UPGRADE_COMMIT_MISSING');
   require(report?.upgrade?.previousCommit!==report?.commit && report?.upgrade?.apkSha256!==report?.apk?.sha256 && artifact(report?.upgrade?.apk),'UPGRADE_NOT_DISTINCT');
+  if(artifact(report?.upgrade?.apk))require(sha256File(report.upgrade.apk)===report.upgrade.apkSha256,'PREVIOUS_APK_SHA256_MISMATCH');
+  require(artifact(report?.upgrade?.provenancePath),'UPGRADE_PROVENANCE_MISSING');
+  if(artifact(report?.upgrade?.provenancePath)) {
+    let provenance;try{provenance=JSON.parse(readFileSync(report.upgrade.provenancePath,'utf8'));}catch{}
+    require(provenance?.commit===report.upgrade.previousCommit && provenance.sha256===report.upgrade.apkSha256 && provenance.sourceMapVerified===true,'UPGRADE_PROVENANCE_INVALID');
+  }
   return {ok:errors.length===0,errors};
 }
 if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {

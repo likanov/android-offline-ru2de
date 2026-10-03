@@ -1,0 +1,94 @@
+appId: com.personal.germanvocabulary
+name: picker
+---
+[
+  {
+    "tapOn": {
+      "text": "Show roots",
+      "optional": true
+    }
+  },
+  {
+    "tapOn": {
+      "text": "Downloads",
+      "optional": true
+    }
+  },
+  {
+    "tapOn": {
+      "text": "GermanVocabulary",
+      "optional": true
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "${FILE}"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "${FILE}"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "${FILE}"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "${FILE}"
+    }
+  },
+  {
+    "tapOn": "${FILE}"
+  }
+]

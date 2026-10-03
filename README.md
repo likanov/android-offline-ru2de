@@ -29,5 +29,7 @@ See [Android emulator regression](docs/emulator-regression.md),
 [build environment](docs/build-environment.md).
 
 **Task 14 is incomplete.** The runner fails closed when prerequisites,
-coverage or evidence are missing. Draft Maestro smoke flows are not a complete
-Android regression and cannot produce a passing full report.
+evidence or observations are missing. All 54 detailed checks have executable
+Maestro flows and normal backup assertions; a passing report requires a
+completed device run, real model generations, retained logs from both devices
+and actual audio/language observations.

@@ -13,7 +13,7 @@ else
   git -C "$APP_ROOT" worktree add --detach "$CANDIDATE_ROOT" "$COMMIT"
 fi
 # Original product source and schema remain from Task5. Only build/signing
-# configuration is patched; dependencies use the already installed local set.
+# configuration and stable UI IDs are patched; dependencies use the installed local set.
 if [ ! -e "$CANDIDATE_ROOT/node_modules" ]; then ln -s "$APP_ROOT/node_modules" "$CANDIDATE_ROOT/node_modules"; fi
 printf 'sdk.dir=%s\n' "$ANDROID_HOME" > "$CANDIDATE_ROOT/android/local.properties"
 python3 - "$CANDIDATE_ROOT" <<'PY'
@@ -33,6 +33,18 @@ start=s.index('    entryFile = ');end=s.index('\n',start)
 s=s[:start]+'    entryFile = file("$projectRoot/upgrade-entry.js")'+s[end:]
 p.write_text(s)
 (root/'upgrade-entry.js').write_text("import registerRootComponent from 'expo/src/launch/registerRootComponent';\nimport App from './App';\nregisterRootComponent(App);\n")
+# Stable IDs only; old product behavior and migrations are untouched.
+p=root/'src/ui/Screen.tsx';text=p.read_text().replace('<ScrollView\n','<ScrollView\n      testID="screen-scroll"\n');p.write_text(text)
+p=root/'src/features/learning/TrainingScreen.tsx';text=p.read_text()
+text=text.replace('<Text style={{ fontSize: 24, color: marker?.color', '<Text testID={`training-prompt-${question.kind}`} style={{ fontSize: 24, color: marker?.color')
+p.write_text(text)
+p=root/'src/ui/Button.tsx';text=p.read_text()
+if 'testID?: string' not in text:
+ text=text.replace('  title,\n','  title,\n  testID,\n',1).replace('  title: string;','  title: string;\n  testID?: string;').replace('<Pressable\n','<Pressable\n      testID={testID}\n')
+ p.write_text(text)
+p=root/'src/app/navigation.tsx';text=p.read_text()
+for title,key in [('Профили','profiles'),('Словарь','dictionary'),('Тренировка','training')]:text=text.replace(f'<Button title="{title}"',f'<Button testID="nav-{key}" title="{title}"')
+p.write_text(text)
 p=root/'android/app/src/release';p.mkdir(exist_ok=True);(p/'AndroidManifest.xml').write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"><uses-permission android:name="android.permission.INTERNET" tools:node="remove"/></manifest>\n')
 PY
 . "$SIGNING_DIR/signing.env"
@@ -52,6 +64,6 @@ from pathlib import Path
 p=Path(sys.argv[1]);h=hashlib.sha256()
 with p.open('rb') as f:
  for data in iter(lambda:f.read(1024*1024),b''):h.update(data)
-Path(str(p)+'.provenance.json').write_text(json.dumps({'commit':sys.argv[2],'sha256':h.hexdigest(),'source':'original detached Task5 worktree','sourceMapVerified':True,'buildPatches':['release signing','remove INTERNET','checkout-owned Expo entry'],'dependencies':'shared locally installed node_modules; not npm-ci at Task5 lock'},indent=2)+'\n')
+Path(str(p)+'.provenance.json').write_text(json.dumps({'commit':sys.argv[2],'sha256':h.hexdigest(),'source':'original detached Task5 worktree','sourceMapVerified':True,'buildPatches':['release signing','remove INTERNET','checkout-owned Expo entry','stable UI test identifiers'],'dependencies':'shared locally installed node_modules; not npm-ci at Task5 lock'},indent=2)+'\n')
 print(p)
 PY

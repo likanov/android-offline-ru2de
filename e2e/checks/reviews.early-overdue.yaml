@@ -1,0 +1,113 @@
+appId: com.personal.germanvocabulary
+name: reviews.early-overdue
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия — 20 UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reviews"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "На сегодня повторений нет"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "На сегодня повторений нет"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "На сегодня повторений нет"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия — повторение 0"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reviews"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "На сегодня повторений нет"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "На сегодня повторений нет"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "На сегодня повторений нет"
+  }
+]

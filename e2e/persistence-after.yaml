@@ -1,11 +1,51 @@
 appId: com.personal.germanvocabulary
-name: ${PHASE_ID}
+name: ${GROUP_ID}
 ---
-# Invoked after runner force-stop/reboot. launchApp preserves SQLite.
-- launchApp
-- assertVisible: "Активный профиль: Регрессия UI"
-- assertVisible: "Регрессия UI"
-- assertVisible: "Второй переименован"
-- tapOn: "Прогресс"
-- assertVisible: "XP: 0"
-- takeScreenshot: "${REPORT_DIR}/${PHASE_ID}"
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Профили"
+  }
+]

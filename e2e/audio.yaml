@@ -1,16 +1,51 @@
 appId: com.personal.germanvocabulary
 name: audio
 ---
-- tapOn: "Словарь"
-- tapOn: "Поиск слов"
-- eraseText
-- inputText: "Stuhl"
-- hideKeyboard
-- scrollUntilVisible:
-    element: "der Stuhl — стул"
-- tapOn: "der Stuhl — стул"
-- assertVisible: "Прослушать"
-- tapOn: "Прослушать"
-- tapOn: "Остановить звук"
-- takeScreenshot: "${REPORT_DIR}/audio-stuhl"
-# Hearing must be observed in the visible emulator and recorded separately.
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Профили"
+  }
+]

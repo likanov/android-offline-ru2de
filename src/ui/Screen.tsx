@@ -4,6 +4,7 @@ import { theme } from "./theme";
 export function Screen({ children }: React.PropsWithChildren) {
   return (
     <ScrollView
+      testID="screen-scroll"
       contentContainerStyle={styles.content}
       style={styles.screen}
       keyboardShouldPersistTaps="handled"

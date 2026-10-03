@@ -1,0 +1,60 @@
+appId: com.personal.germanvocabulary
+name: profiles.active-profile
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "stopApp": {}
+  },
+  {
+    "launchApp": {}
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: Регрессия UI"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: Регрессия UI"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Активный профиль: Регрессия UI"
+  }
+]

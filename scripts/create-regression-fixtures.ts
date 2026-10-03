@@ -34,6 +34,14 @@ export async function createRegressionBackup(today: DayKey): Promise<BackupV1> {
         await answers.submit(profileId,session.id,q.attemptId,right ? q.expected[0] : 'заведомо неверно',day);
       }
     }
+    const ui=await createProfile(db,'Регрессия — 20 UI');
+    const seed=(await words.list(ui.id)).find(w=>w.de==='Stuhl')!;
+    const uiTopic=await topics.create(ui.id,'20 UI');
+    await topics.setWordTopics(ui.id,seed.id,[uiTopic.id]);
+    const relearn=await profile('Регрессия — переучивание');
+    await respond(relearn.p.id,relearn.word.id,20,today);
+    await words.update(relearn.p.id,relearn.word.id,{...relearn.word,ru:'переучиваемый стул'});
+    await respond(relearn.p.id,relearn.word.id,19,today);
     const mastered = await profile('Регрессия — изучено');
     await respond(mastered.p.id,mastered.word.id,20,today);
     const nineteen = await profile('Регрессия — серия 19');
@@ -42,6 +50,8 @@ export async function createRegressionBackup(today: DayKey): Promise<BackupV1> {
     await respond(difficult.p.id,difficult.word.id,3,today,false);
     const level = await profile('Регрессия — 490 XP');
     const targets = [level.word, ...(await words.list(level.p.id)).filter(w=>w.id!==level.word.id).slice(0,2)];
+    const levelTopic=await topics.create(level.p.id,'Level UI');
+    await topics.setWordTopics(level.p.id,targets[2].id,[levelTopic.id]);
     for (const [i,w] of targets.entries()) await respond(level.p.id,w.id,i===2 ? 11 : 19,today);
     for (let stage=0;stage<=5;stage++) {
       const item = await profile(`Регрессия — повторение ${stage}`);

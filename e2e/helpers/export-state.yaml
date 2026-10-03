@@ -1,0 +1,157 @@
+appId: com.personal.germanvocabulary
+name: export-state
+---
+[
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Сохранить резервную копию"
+        }
+      },
+      "times": 35,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Сохранить резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "text": "Сохранить резервную копию"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "text": "Сохранить резервную копию"
+    }
+  },
+  {
+    "tapOn": "Сохранить резервную копию"
+  },
+  {
+    "tapOn": {
+      "text": "Show roots",
+      "optional": true
+    }
+  },
+  {
+    "tapOn": {
+      "text": "Downloads",
+      "optional": true
+    }
+  },
+  {
+    "tapOn": {
+      "text": "GermanVocabulary",
+      "optional": true
+    }
+  },
+  {
+    "tapOn": {
+      "id": "android:id/title", "text": "german-vocabulary-.*\\.json"
+    }
+  },
+  {
+    "eraseText": 100
+  },
+  {
+    "inputText": "${EXPORT_NAME}"
+  },
+  {
+    "hideKeyboard": {}
+  },
+  {
+    "tapOn": "SAVE"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Резервная копия сохранена"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Резервная копия сохранена"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Резервная копия сохранена"
+  }
+]

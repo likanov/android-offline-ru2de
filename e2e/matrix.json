@@ -4,24 +4,31 @@
     "flow": "first-launch.yaml",
     "phase": "clean",
     "expectation": "Clean offline first launch; 40 starter words; profile; model through file picker; every screen",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "first-launch.offline-network",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/first-launch.offline-network.yaml",
+        "device": "offline"
       },
       {
         "id": "first-launch.clean-40-words",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/first-launch.clean-40-words.yaml",
+        "state": true
       },
       {
         "id": "first-launch.model-picker",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/first-launch.model-picker.yaml",
+        "device": "model"
       },
       {
         "id": "first-launch.all-screens",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/first-launch.all-screens.yaml"
       }
     ]
   },
@@ -30,20 +37,25 @@
     "flow": "profiles.yaml",
     "phase": "main",
     "expectation": "Create, rename, select; profile-owned words/topics/settings/aids/XP",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "profiles.profile-create-rename",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/profiles.profile-create-rename.yaml",
+        "state": true
       },
       {
         "id": "profiles.profile-isolation",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/profiles.profile-isolation.yaml",
+        "state": true
       },
       {
         "id": "profiles.active-profile",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/profiles.active-profile.yaml"
       }
     ]
   },
@@ -52,24 +64,32 @@
     "flow": "dictionary.yaml",
     "phase": "main",
     "expectation": "Noun/adjective create/edit/search; NFC/NFD duplicates; lexical reset; cosmetic edits preserve progress",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "dictionary.noun-adjective-edit",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.noun-adjective-edit.yaml",
+        "state": true
       },
       {
         "id": "dictionary.search-nfc-nfd",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.search-nfc-nfd.yaml",
+        "state": true
       },
       {
         "id": "dictionary.lexical-reset",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.lexical-reset.yaml",
+        "state": true
       },
       {
         "id": "dictionary.cosmetic-preserve",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.cosmetic-preserve.yaml",
+        "state": true
       }
     ]
   },
@@ -78,32 +98,44 @@
     "flow": "learning.yaml",
     "phase": "main",
     "expectation": "All six modes; hidden hints; unique choices; umlauts/ß; 20 UI answers; error at 19; no second bonus",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "learning.six-modes",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/learning.six-modes.yaml",
+        "state": true
       },
       {
         "id": "learning.hidden-unique-choices",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/learning.hidden-unique-choices.yaml",
+        "state": true
       },
       {
         "id": "learning.umlauts-eszett",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/learning.umlauts-eszett.yaml",
+        "state": true
       },
       {
         "id": "learning.twenty-ui-answers",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/learning.twenty-ui-answers.yaml",
+        "state": true
       },
       {
         "id": "learning.nineteen-error",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/learning.nineteen-error.yaml",
+        "state": true
       },
       {
         "id": "learning.bonus-once",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/learning.bonus-once.yaml",
+        "state": true
       }
     ]
   },
@@ -112,28 +144,40 @@
     "flow": "reviews.yaml",
     "phase": "main",
     "expectation": "1/3/7/14/30/60/60 scheduling; early/late; errors; difficult recovery; timezone/DST",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "reviews.all-intervals",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reviews.all-intervals.yaml",
+        "state": true
       },
       {
         "id": "reviews.early-overdue",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reviews.early-overdue.yaml",
+        "state": true
       },
       {
         "id": "reviews.learned-error",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reviews.learned-error.yaml",
+        "state": true,
+        "clock": "tomorrow"
       },
       {
         "id": "reviews.difficult-recovery",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reviews.difficult-recovery.yaml",
+        "state": true
       },
       {
         "id": "reviews.timezone-dst",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reviews.timezone-dst.yaml",
+        "device": "dst",
+        "state": true
       }
     ]
   },
@@ -142,24 +186,33 @@
     "flow": "progress.yaml",
     "phase": "main",
     "expectation": "10 XP/one 50 reward; 499/500; goal1–200; calendar/streak/skills; no XP from card/audio/help",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "progress.xp-levels",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/progress.xp-levels.yaml",
+        "state": true,
+        "clock": "today"
       },
       {
         "id": "progress.goal-bounds",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/progress.goal-bounds.yaml",
+        "state": true
       },
       {
         "id": "progress.calendar-streak-skills",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/progress.calendar-streak-skills.yaml",
+        "state": true
       },
       {
         "id": "progress.no-passive-xp",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/progress.no-passive-xp.yaml",
+        "state": true
       }
     ]
   },
@@ -168,24 +221,33 @@
     "flow": "audio.yaml",
     "phase": "main",
     "expectation": "40 local WAVs; listening; absent German offline TTS; real offline TTS if installed; audible recording",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "audio.wav-listening",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/audio.wav-listening.yaml",
+        "device": "wav",
+        "state": true
       },
       {
         "id": "audio.tts-absent",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/audio.tts-absent.yaml",
+        "device": "tts-disabled"
       },
       {
         "id": "audio.tts-offline",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/audio.tts-offline.yaml",
+        "device": "tts-restored"
       },
       {
         "id": "audio.audible",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/audio.audible.yaml",
+        "observation": "audioAudible"
       }
     ]
   },
@@ -194,50 +256,32 @@
     "flow": "reminders.yaml",
     "phase": "main",
     "expectation": "Permission allowed/denied; time; profile switch; boot; timezone",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "reminders.permission-allow-deny",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reminders.permission-allow-deny.yaml",
+        "device": "permission-denied"
       },
       {
         "id": "reminders.reminder-time",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reminders.reminder-time.yaml",
+        "device": "permission-granted"
       },
       {
         "id": "reminders.reminder-profile",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reminders.reminder-profile.yaml",
+        "device": "reminder-alarm"
       },
       {
         "id": "reminders.reminder-boot-zone",
-        "status": "not-implemented"
-      }
-    ]
-  },
-  {
-    "id": "transfer",
-    "flow": "transfer.yaml",
-    "phase": "main",
-    "expectation": "Real picker CSV escaping/errors/duplicates/cancel/profile switch; JSON export/restore; bad/interrupted atomicity",
-    "coverage": "draft",
-    "required": true,
-    "checks": [
-      {
-        "id": "transfer.csv-picker-escaping",
-        "status": "not-implemented"
-      },
-      {
-        "id": "transfer.csv-preview-cancel-profile",
-        "status": "not-implemented"
-      },
-      {
-        "id": "transfer.json-roundtrip",
-        "status": "not-implemented"
-      },
-      {
-        "id": "transfer.invalid-interrupted",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/reminders.reminder-boot-zone.yaml",
+        "device": "reminder-reboot-zone"
       }
     ]
   },
@@ -246,32 +290,80 @@
     "flow": "assistant.yaml",
     "phase": "main",
     "expectation": "Real llama.rn GGUF four modes; save/edit; cancel/background/profile/dependency; absent/corrupt model",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "assistant.four-real-modes",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/assistant.four-real-modes.yaml",
+        "device": "four-generations"
       },
       {
         "id": "assistant.helper-save-edit",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/assistant.helper-save-edit.yaml",
+        "state": true
       },
       {
         "id": "assistant.helper-cancel-background",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/assistant.helper-cancel-background.yaml",
+        "state": true
       },
       {
         "id": "assistant.helper-profile-dependency",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/assistant.helper-profile-dependency.yaml",
+        "state": true
       },
       {
         "id": "assistant.model-absent-corrupt",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/assistant.model-absent-corrupt.yaml",
+        "device": "model-unavailable",
+        "state": true
       },
       {
         "id": "assistant.sources-articles",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/assistant.sources-articles.yaml",
+        "observation": "languageQuality"
+      }
+    ]
+  },
+  {
+    "id": "transfer",
+    "flow": "transfer.yaml",
+    "phase": "main",
+    "expectation": "Real picker CSV escaping/errors/duplicates/cancel/profile switch; JSON export/restore; bad/interrupted atomicity",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {
+        "id": "transfer.csv-picker-escaping",
+        "status": "implemented-unverified",
+        "flow": "checks/transfer.csv-picker-escaping.yaml",
+        "state": true
+      },
+      {
+        "id": "transfer.csv-preview-cancel-profile",
+        "status": "implemented-unverified",
+        "flow": "checks/transfer.csv-preview-cancel-profile.yaml",
+        "state": true
+      },
+      {
+        "id": "transfer.json-roundtrip",
+        "status": "implemented-unverified",
+        "flow": "checks/transfer.json-roundtrip.yaml",
+        "state": true
+      },
+      {
+        "id": "transfer.invalid-interrupted",
+        "status": "implemented-unverified",
+        "flow": "checks/transfer.invalid-interrupted.yaml",
+        "state": true,
+        "device": "interrupted-picker"
       }
     ]
   },
@@ -280,12 +372,14 @@
     "flow": "persistence-after.yaml",
     "phase": "force-stop",
     "expectation": "XP/word/streak/active profile/session retained after force-stop",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "persistence-force-stop.saved-session-xp",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/persistence-force-stop.saved-session-xp.yaml",
+        "state": true
       }
     ]
   },
@@ -294,12 +388,14 @@
     "flow": "persistence-after.yaml",
     "phase": "reboot",
     "expectation": "Same database survives reboot and offline relaunch",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "persistence-reboot.saved-session-xp",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/persistence-reboot.saved-session-xp.yaml",
+        "state": true
       }
     ]
   },
@@ -308,24 +404,32 @@
     "flow": "upgrade.yaml",
     "phase": "upgrade",
     "expectation": "Task5 release candidate from original commit; create data/XP through UI; upgrade to final APK; topic migration; no second reward",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "upgrade.original-task5-apk",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/upgrade.original-task5-apk.yaml",
+        "device": "upgrade-provenance"
       },
       {
         "id": "upgrade.old-ui-word-xp",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/upgrade.old-ui-word-xp.yaml",
+        "state": true
       },
       {
         "id": "upgrade.topic-migration",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/upgrade.topic-migration.yaml",
+        "state": true
       },
       {
         "id": "upgrade.resume-no-second-bonus",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/upgrade.resume-no-second-bonus.yaml",
+        "state": true
       }
     ]
   },
@@ -334,24 +438,31 @@
     "flow": "resilience.yaml",
     "phase": "main",
     "expectation": "Keyboard/large font/320dp/background/picker cancel/double answer; no crash/ANR",
-    "coverage": "draft",
+    "coverage": "implemented-unverified",
     "required": true,
     "checks": [
       {
         "id": "resilience.320dp-large-font",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/resilience.320dp-large-font.yaml",
+        "device": "display"
       },
       {
         "id": "resilience.keyboard-background",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/resilience.keyboard-background.yaml"
       },
       {
         "id": "resilience.picker-double-answer",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/resilience.picker-double-answer.yaml",
+        "state": true
       },
       {
         "id": "resilience.crash-anr",
-        "status": "not-implemented"
+        "status": "implemented-unverified",
+        "flow": "checks/resilience.crash-anr.yaml",
+        "device": "logs"
       }
     ]
   }

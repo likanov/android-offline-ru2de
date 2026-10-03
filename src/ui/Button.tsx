@@ -3,15 +3,18 @@ import { Pressable, Text, StyleSheet } from "react-native";
 import { theme } from "./theme";
 export function Button({
   title,
+  testID,
   onPress,
   disabled = false,
 }: {
   title: string;
+  testID?: string;
   onPress(): void;
   disabled?: boolean;
 }) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={title}
       disabled={disabled}

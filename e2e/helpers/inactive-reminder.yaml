@@ -1,0 +1,11 @@
+appId: com.personal.germanvocabulary
+name: inactive-reminder
+---
+- runFlow:
+    file: select-profile.yaml
+    env:
+      PROFILE: Второй переименован
+- tapOn:
+    id: nav-reminders
+- tapOn: Сохранить напоминание
+- assertVisible: Напоминание выключено

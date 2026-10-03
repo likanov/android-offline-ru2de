@@ -1,0 +1,81 @@
+appId: com.personal.germanvocabulary
+name: resilience.keyboard-background
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": "Поиск слов"
+  },
+  {
+    "inputText": "ü"
+  },
+  {
+    "pressKey": "HOME"
+  },
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Поиск слов"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Поиск слов"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Поиск слов"
+  },
+  {
+    "hideKeyboard": {}
+  }
+]

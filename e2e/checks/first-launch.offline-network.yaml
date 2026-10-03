@@ -1,0 +1,49 @@
+appId: com.personal.germanvocabulary
+name: first-launch.offline-network
+---
+[
+  {
+    "launchApp": {}
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: не выбран"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: не выбран"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Активный профиль: не выбран"
+  }
+]

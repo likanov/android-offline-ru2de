@@ -1,0 +1,49 @@
+appId: com.personal.germanvocabulary
+name: upgrade.original-task5-apk
+---
+[
+  {
+    "launchApp": {}
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: Миграция UI"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Активный профиль: Миграция UI"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Активный профиль: Миграция UI"
+  }
+]

@@ -1,0 +1,101 @@
+appId: com.personal.germanvocabulary
+name: first-launch.all-screens
+---
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-today"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-progress"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reviews"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-topics"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-difficult"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reminders"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-model"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Локальная модель"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Локальная модель"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Локальная модель"
+  }
+]

@@ -2,7 +2,7 @@
 
 Source of mandatory IDs: `e2e/matrix.json`. Every check below is required; none is silently optional.
 
-The current flows are draft smoke coverage. All detailed check IDs remain **not implemented / not verified**. Full regression cannot pass until each has executable assertions and matching JUnit evidence. TTS availability chooses the documented branch; it is not an unexplained skip.
+Every detailed ID has an executable `e2e/checks/<id>.yaml` flow. Matrix status **implemented-unverified** describes source coverage; a device report must contain successful per-ID JUnit evidence and state assertions before the run can pass. TTS availability chooses the documented branch; it is not an unexplained skip.
 
 | Group ID | Flow / phase | Required expectation | Detailed check IDs |
 | --- | --- | --- | --- |
@@ -21,4 +21,6 @@ The current flows are draft smoke coverage. All detailed check IDs remain **not 
 | `upgrade` | `upgrade.yaml` / upgrade | Task5 release candidate from original commit; create data/XP through UI; upgrade to final APK; topic migration; no second reward | `upgrade.original-task5-apk`<br>`upgrade.old-ui-word-xp`<br>`upgrade.topic-migration`<br>`upgrade.resume-no-second-bonus` |
 | `resilience` | `resilience.yaml` / main | Keyboard/large font/320dp/background/picker cancel/double answer; no crash/ANR | `resilience.320dp-large-font`<br>`resilience.keyboard-background`<br>`resilience.picker-double-answer`<br>`resilience.crash-anr` |
 
-`persistence-before.yaml` and `upgrade-before.yaml` are setup phases; their passing output does not satisfy a required outcome ID. `config.yaml` lists only the main draft flows so reboot/update phases cannot accidentally run against cleared state. Failed or unexecuted checks remain nonzero and not verified.
+`persistence-before.yaml` and `upgrade-before.yaml` are setup phases; their passing output does not satisfy a required outcome ID. `config.yaml` lists only the main group flows so reboot/update phases cannot accidentally run against cleared state. Failed or unexecuted checks remain nonzero and not verified.
+
+State evidence is exported by normal BackupV1 UI operations and read only on the host. No app SQLite file or learning counter is edited. Group flows execute after their detailed checks; setup flows alone never satisfy required IDs.

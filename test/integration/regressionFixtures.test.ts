@@ -33,3 +33,15 @@ test('write_requested_regression_fixture', async () => {
   await mkdir(dirname(process.env.REGRESSION_FIXTURE_OUTPUT),{recursive:true});
   await writeFile(process.env.REGRESSION_FIXTURE_OUTPUT,JSON.stringify(backup,null,2)+'\n');
 });
+test('ui_regression_fixtures_include_audio_seed_topic_and_previously_rewarded_reset',async()=>{
+  const backup=await createRegressionBackup('2026-10-03');
+  const ui=backup.profiles.find(p=>p.profile.name==='Регрессия — 20 UI');
+  expect(ui).toBeTruthy();
+  const target=ui!.words.find(w=>w.de==='Stuhl')!;
+  const topic=ui!.topics.find(t=>t.name==='20 UI')!;
+  expect(ui!.wordTopics.filter(t=>t.topicId===topic.id).map(t=>t.wordId)).toEqual([target.id]);
+  expect(ui!.attempts).toHaveLength(0);
+  const relearn=backup.profiles.find(p=>p.profile.name==='Регрессия — переучивание')!;
+  expect(relearn.rewards).toHaveLength(1);
+  expect(relearn.progress.find(r=>r.wordId===relearn.rewards[0].wordId)).toMatchObject({streak:19,learned:0,bonusAwarded:1});
+});

@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import {completeRegressionReport} from '../../scripts/regression-evidence.mjs';
 import { REQUIRED_SCENARIOS, sha256File, validateRegressionReport } from '../../scripts/regression-report.mjs';
 function inputs() {
   const root = mkdtempSync(join(tmpdir(), 'vocabulary-regression-'));
@@ -29,7 +30,10 @@ test('regression_preflight_rejects_missing_adb', () => {
 function completeReport(f) {
   const artifact=join(f.root,'evidence.txt'), previousApk=join(f.root,'old.apk');
   writeFileSync(artifact,'Observed UI artifacts and logcat fixture');
+  const primaryLog=artifact+'.primary.log',upgradeLog=artifact+'.upgrade.log';writeFileSync(primaryLog,'Primary device clean log\n');writeFileSync(upgradeLog,'Upgrade device clean log\n');
   writeFileSync(previousApk,'original candidate fixture');
+  const provenancePath=previousApk+'.provenance.json';
+  writeFileSync(provenancePath,JSON.stringify({commit:'19b2e0c1cf36eda73159aff9bb2d94b757d24144',sha256:sha256File(previousApk),sourceMapVerified:true}));
   const scenarios=REQUIRED_SCENARIOS.map(id=>{
     const junit=join(f.root,id+'.xml');
     writeFileSync(junit,`<testsuite tests="1" failures="0"><testcase name="${id}"/></testsuite>`);
@@ -38,9 +42,9 @@ function completeReport(f) {
   return {status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
     model:{path:join(f.modelDir,'model.gguf'),sha256:f.hash},scenarios,
     generations:['association','example','text','rule'].map(mode=>({mode,runtime:'llama.rn',modelSha256:f.hash,text:'Der Stuhl. Стул.',screenshot:artifact,hierarchy:artifact})),
-    network:{wifi:false,mobile:false},crashCount:0,anrCount:0,logcat:artifact,
+    network:{wifi:false,mobile:false},crashCount:0,anrCount:0,logcat:artifact,deviceLogs:[{phase:'primary-final',path:primaryLog,crashCount:0,anrCount:0},{phase:'upgrade-final',path:upgradeLog,crashCount:0,anrCount:0}],
     observations:{audioAudible:true,languageQuality:'reviewed',languageNotes:'Observed articles and DE/RU content.',tts:'absent-tested'},
-    upgrade:{previousCommit:'19b2e0c1cf36eda73159aff9bb2d94b757d24144',apk:previousApk,apkSha256:sha256File(previousApk)}};
+    upgrade:{previousCommit:'19b2e0c1cf36eda73159aff9bb2d94b757d24144',apk:previousApk,apkSha256:sha256File(previousApk),provenancePath}};
 }
 test('regression_report_accepts_complete_evidence_manifest',()=>{
   const f=inputs();
@@ -87,4 +91,29 @@ test('upgrade_provenance_rejects_current_app_resolved_through_shared_dependencie
 test('upgrade_provenance_accepts_checkout_owned_task5_app_and_schema',async()=>{
   const {validateUpgradeSourceMap}=await import('../../scripts/upgrade-provenance.mjs');
   assert.deepEqual(validateUpgradeSourceMap({sources:['/App.tsx','/src/app/navigation.tsx','/src/core/migrations/003_learning.ts','/../../../outputs/german-vocabulary/node_modules/react/index.js']}),{ok:true,errors:[]});
+});
+
+test('report_rejects_stale_previous_apk_and_wrong_provenance',()=>{
+  const f=inputs();try {
+    const report=completeReport(f);writeFileSync(report.upgrade.apk,'changed candidate');
+    assert.ok(validateRegressionReport(report).errors.includes('PREVIOUS_APK_SHA256_MISMATCH'));
+    report.upgrade.apkSha256=sha256File(report.upgrade.apk);
+    assert.ok(validateRegressionReport(report).errors.includes('UPGRADE_PROVENANCE_INVALID'));
+  }finally{rmSync(f.root,{recursive:true,force:true});}
+});
+test('report_rejects_stale_model_and_incomplete_actual_observations',()=>{
+  const f=inputs();try {
+    const report=completeReport(f);writeFileSync(report.model.path,'changed GGUF');
+    assert.ok(validateRegressionReport(report).errors.includes('MODEL_SHA256_MISMATCH'));
+    for(const [field,value,error] of [['audioAudible',null,'AUDIO_OBSERVATION_MISSING'],['languageQuality','not-verified','LANGUAGE_OBSERVATION_MISSING'],['languageNotes','','LANGUAGE_OBSERVATION_MISSING'],['tts','not-verified','TTS_NOT_VERIFIED']]){
+      assert.ok(validateRegressionReport({...report,observations:{...report.observations,[field]:value}}).errors.includes(error));
+    }
+  }finally{rmSync(f.root,{recursive:true,force:true});}
+});
+
+test('runner_completion_uses_complete_real_report_validation',()=>{
+ const f=inputs();try {const report=completeReport(f);assert.equal(completeRegressionReport(report).exitCode,0);report.generations=[];assert.equal(completeRegressionReport(report).exitCode,2);}finally{rmSync(f.root,{recursive:true,force:true});}
+});
+test('report_rejects_primary_crash_even_if_declared_aggregate_is_zero',()=>{
+ const f=inputs();try {const report=completeReport(f);writeFileSync(report.deviceLogs[0].path,'FATAL EXCEPTION: main\nProcess: com.personal.germanvocabulary\n');assert.equal(validateRegressionReport(report).ok,false);}finally{rmSync(f.root,{recursive:true,force:true});}
 });

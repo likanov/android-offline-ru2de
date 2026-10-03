@@ -1,11 +1,51 @@
 appId: com.personal.germanvocabulary
 name: reminders
 ---
-- tapOn: "Напоминания"
-- assertVisible: "Ежедневное напоминание"
-- tapOn: "Время напоминания"
-- eraseText
-- inputText: "08:30"
-- hideKeyboard
-- tapOn: "Сохранить напоминание"
-- assertVisible: "Напоминание выключено"
+[
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Профили"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Профили"
+  }
+]

@@ -1,0 +1,114 @@
+appId: com.personal.germanvocabulary
+name: transfer.csv-picker-escaping
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "tapOn": "Выбрать CSV"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "vocabulary.csv"
+      }
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Новые: 2 · Дубли: 1 · Ошибки: 1"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Новые: 2 · Дубли: 1 · Ошибки: 1"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Новые: 2 · Дубли: 1 · Ошибки: 1"
+  },
+  {
+    "tapOn": "Импортировать"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Добавлено: 2 · Дубли: 1 · Ошибки: 1"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Добавлено: 2 · Дубли: 1 · Ошибки: 1"
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Добавлено: 2 · Дубли: 1 · Ошибки: 1"
+  }
+]

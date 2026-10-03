@@ -1,0 +1,199 @@
+appId: com.personal.germanvocabulary
+name: answer-double
+---
+[
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-result"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "Продолжить"
+        }
+      ]
+    }
+  },
+  {
+    "copyTextFrom": {
+      "id": "training-prompt-.*"
+    }
+  },
+  {
+    "runScript": {
+      "file": "answer-label.js"
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-ru-de"
+        }
+      },
+      "commands": [
+        {
+          "doubleTapOn": "${output.answer.german}"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-de-ru"
+        }
+      },
+      "commands": [
+        {
+          "doubleTapOn": "${output.answer.ru}"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-typing"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": "Ответ на немецком"
+        },
+        {
+          "inputText": "${output.answer.german}"
+        },
+        {
+          "hideKeyboard": {}
+        },
+        {
+          "doubleTapOn": "Проверить"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-definite-article"
+        }
+      },
+      "commands": [
+        {
+          "assertNotVisible": {
+            "id": "training-gender-hint"
+          }
+        },
+        {
+          "doubleTapOn": "${output.answer.article}"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-indefinite-article"
+        }
+      },
+      "commands": [
+        {
+          "assertNotVisible": {
+            "id": "training-gender-hint"
+          }
+        },
+        {
+          "doubleTapOn": "${output.answer.indefinite}"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "training-prompt-listening"
+        }
+      },
+      "commands": [
+        {
+          "assertNotVisible": {
+            "id": "training-gender-hint"
+          }
+        },
+        {
+          "tapOn": "Прослушать"
+        },
+        {
+          "tapOn": "Ответ на немецком"
+        },
+        {
+          "inputText": "${output.answer.german}"
+        },
+        {
+          "hideKeyboard": {}
+        },
+        {
+          "doubleTapOn": "Проверить"
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-result",
+          "text": "Верно!.*"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-result",
+          "text": "Верно!.*"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "training-result",
+      "text": "Верно!.*"
+    }
+  }
+]

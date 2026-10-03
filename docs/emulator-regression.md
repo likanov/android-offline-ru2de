@@ -7,14 +7,14 @@ INTERNET permission. GGUF and its manifest are supplied through local files.
 
 ## Current status
 
-Task 14 is **not complete**. Host unit/SQL tests validate the preflight, report
-rejection rules and service-generated backup. Maestro is not installed here.
-The checked-in flows are **draft smoke coverage**; detailed assertions in the
-matrix, fixture import, four real model generations, calendar/DST control,
-reminder delivery/permission branches, 20 UI answers and migration data setup
-still require implementation and an actual device run. The runner deliberately
-returns 2 for incomplete coverage and does not promote a smoke result to a pass.
-No audio audibility or language-quality observation has been made for Task 14.
+The suite contains executable flows for all 54 detailed checks. Each check has
+its own JUnit ID; learning, review, transfer, persistence and migration assertions
+also inspect a BackupV1 exported through the normal system file picker. The
+runner captures real assistant text from the UI hierarchy, evaluates retained
+logcat from both devices, and can return 0 only after full report validation.
+Checked-in implementation status is **implemented, device verification pending**;
+only a completed run and actual audio/language observations establish a pass.
+Maestro 2.11.0 is prepared under the task's local `work/toolchains/maestro/`.
 
 ## Toolchain and isolated AVD
 
@@ -58,7 +58,7 @@ The generator creates real repositories in host SQLite and submits every
 attempt through AnswerService. It never edits learning counters or inserts
 attempt/reward rows directly. Generated profiles include mastery after20
 answers (250XP, one50 reward), streak19, three wrong answers,490XP, six review
-stages and a session with an active question. Data passes `validateBackup`
+stages, a session with an active question, a dedicated seeded Stuhl UI topic and a previously rewarded word reset through normal lexical editing. Data passes `validateBackup`
 and restore into new profiles. Import via the normal Android file picker;
 never copy a host database into app storage. No test API exists in the APK.
 
@@ -105,17 +105,16 @@ language review and TTS condition. It rejects incomplete or stale evidence.
 Actual observation JSON fields: `audioAudible` (boolean), `languageQuality`
 (`reviewed` only after review), `languageNotes` (specific observations), `tts`
 (`absent-tested` or `offline-tested`). A blank template is not evidence. Current
-runner does not yet capture generation evidence and cannot return a full pass.
+runner captures generation text, hierarchy and screenshots. Missing observations produce exit2 after producing the artifacts for review.
 
 ## Persistence and upgrade
 
 `persistence-before.yaml` and `persistence-after.yaml` are separate flows.
 Runner performs force-stop, relaunch, then adb reboot and relaunch without
-uninstall, clearState or wipe between those boundaries. Full XP/streak/session
-assertions remain pending; current draft checks profile retention only.
+uninstall, clearState or wipe between those boundaries. Backup assertions compare nonzero XP, mastered Stuhl, its 20-answer streak, active profile and the saved answered session against the pre-boundary export.
 
 `npm run build:android:upgrade` creates the original detached worktree, applies
-signing/INTERNET build configuration and a checkout-owned Expo entry, verifies
+signing/INTERNET build configuration, stable UI selectors and a checkout-owned Expo entry, verifies
 the bundle source map contains the Task5 app and no topic migration, writes APK
 provenance and uses the
 already installed local dependencies (this differs from a fresh install at the
@@ -130,8 +129,7 @@ and build log and verify before allowing the upgrade phase. The infrastructure
 requires a distinct previous APK and uses a second isolated clean AVD
 `GermanVocabulary_API36_Upgrade` to avoid opening a new-schema DB with old code.
 Create words and earn XP through UI before `adb install -r FINAL.apk`, then
-verify migration, session continuation and reward idempotency. Draft setup does
-not yet create those data and is explicitly incomplete.
+verify migration, session continuation and reward idempotency. The old-version setup creates a custom Upgradeprobe word and submits 100 real UI answers, earning 1250 XP with five first-mastery rewards. The current version must preserve that data, create topic memberships, resume the answered session and avoid a duplicate reward.
 
 System font/time/timezone/display changes apply only to runner's dedicated
 serial. The runner snapshots settings and restores them in finally, recording
@@ -139,3 +137,20 @@ restoration failures as exit2. Calendar scenarios must verify the accepted
 device date, timezone and DST; no host clock changes or direct SQLite edits.
 After any product fix, first reproduce it with a failing test, rebuild and rerun
 all unit/SQL checks and the full Android regression against the new APK hash.
+
+The two candidates share local native dependency build directories. Build them
+sequentially. Device-state hooks change only the dedicated serial: notification
+permissions, TTS package availability, clock/timezone (including both Berlin DST
+02:30 occurrences), display width/font and a temporarily missing/corrupt private
+GGUF. Every temporary model and system setting is restored in `finally`.
+Device logs are saved before reboot and before each AVD shutdown and independently
+recomputed during report validation; a primary-device crash cannot be hidden by
+a clean upgrade-device log. Previous APK bytes and original Task5 source-map
+provenance are also verified again by the standalone validator.
+
+Flows use content-scoped swipes for the fixed navigation layout. Maestro 2.11.0 has native Unicode input handling (verified in the installed AndroidDriver); older versions with ASCII-only Android input are insufficient for Cyrillic profile names and umlaut fixtures. Foreground-return flows use `launchApp: { stopApp: false }`.
+
+Assistant checks run before JSON roundtrip so the exported backup contains an
+actual generated, edited aid with dependency links. Roundtrip state assertions
+compare learning state, XP and all history/link collection counts in the new
+profiles, including aid dependencies, topic memberships and saved sessions.

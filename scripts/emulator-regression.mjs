@@ -4,6 +4,8 @@ import { resolve, dirname, join, basename } from 'node:path';
 import { arch, totalmem } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
+import {appendDeviceLog,generationFromHierarchy,completeRegressionReport,offlineRadioState,rootVerified,applicationAlarmEpochs,alarmMatchesLocalTime,maestroOutcome} from './regression-evidence.mjs';
+import {verifyScenarioState} from './regression-state.mjs';
 import { MATRIX, REQUIRED_SCENARIOS, sha256File, validateRegressionReport } from './regression-report.mjs';
 const appRoot=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const taskRoot=resolve(appRoot,'../..');
@@ -15,7 +17,7 @@ class Unavailable extends Error { constructor(message) { super(message); this.ex
 const options={};
 const report={version:1,status:'not-verified',startedAt:new Date().toISOString(),scenarios:REQUIRED_SCENARIOS.map(id=>({id,status:'not-verified',reason:'NOT_RUN'})),generations:[],blockers:[],commands:[]};
 let reportDir, adb, emulator, maestro, processHandle, serial='emulator-5580', settingsSnapshot;
-const env={...process.env,ANDROID_AVD_HOME:avdRoot,ANDROID_USER_HOME:join(workRoot,'android-user'),EXPO_NO_TELEMETRY:'1'};
+const env={...process.env,ANDROID_AVD_HOME:avdRoot,ANDROID_USER_HOME:join(workRoot,'android-user'),EXPO_NO_TELEMETRY:'1',MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED:'true',JAVA_OPTS:`${process.env.JAVA_OPTS??''} -Duser.home=${join(workRoot,'maestro-user')}`};
 const execute=(command,args=[],{allowFailure=false,timeout=60000,binary=false}={})=>{
   const r=spawnSync(command,args,{cwd:appRoot,env,encoding:binary?undefined:'utf8',timeout,maxBuffer:32*1024*1024});
   const number=report.commands.length;
@@ -51,7 +53,7 @@ async function preflight() {
   report.model={path:modelPath,sha256:hash,manifestPath,manifest};
   const blockers=[];
   if (options.avd!=='GermanVocabulary_API36') blockers.push('DEDICATED_AVD_REQUIRED:GermanVocabulary_API36');
-  maestro=options.maestro ?? commandPath('maestro');
+  maestro=options.maestro ?? commandPath('maestro') ?? (artifact(join(taskRoot,'work/toolchains/maestro/maestro/bin/maestro'))?join(taskRoot,'work/toolchains/maestro/maestro/bin/maestro'):null);
   if (!maestro) blockers.push('MAESTRO_MISSING');
   const adbVersion=execute(adb,['version'],{allowFailure:true}); report.environment.adb=adbVersion.stdout?.trim();
   if (adbVersion.status!==0) blockers.push('ADB_UNAVAILABLE');
@@ -94,7 +96,8 @@ async function preflight() {
       else { const provenance=JSON.parse(readFileSync(provenancePath,'utf8'));if(provenance.commit!==previousCommit||provenance.sha256!==previousHash||provenance.sourceMapVerified!==true)blockers.push('UPGRADE_PROVENANCE_MISMATCH');else report.upgrade={previousCommit,apk:resolve(options['previous-apk']),apkSha256:previousHash,provenancePath}; }
     }
     if (!artifact(options.fixture)) blockers.push('REGRESSION_FIXTURE_MISSING');
-    if (!artifact(options.observations)) blockers.push('OBSERVATIONS_MISSING');
+    // Audibility/language observations are collected against this run's artifacts.
+    // Missing observations must not prevent generating the evidence to review.
   }
   report.blockers=blockers;
   if(blockers.length) throw new Unavailable(blockers.join('\n'));
@@ -116,25 +119,25 @@ async function boot(name,wipe) {
   throw new Unavailable('EMULATOR_BOOT_TIMEOUT');
 }
 function offline() {
-  shell('svc','wifi','disable');shell('svc','data','disable');execute(adb,['-s',serial,'reverse','--remove-all']);
+  shell('cmd','connectivity','airplane-mode','enable');shell('svc','wifi','disable');shell('svc','data','disable');execute(adb,['-s',serial,'reverse','--remove-all']);
   const wifi=shell('settings','get','global','wifi_on').stdout.trim(),mobile=shell('settings','get','global','mobile_data').stdout.trim();
-  report.network={wifi:wifi==='0'?false:null,mobile:mobile==='0'?false:null};
+  const airplane=shell('settings','get','global','airplane_mode_on').stdout.trim();report.network={...offlineRadioState({wifi,mobile,airplane}),deviceSettings:{wifi,mobile,airplane}};
   if(report.network.wifi!==false||report.network.mobile!==false) throw new Unavailable('NETWORK_DISABLE_UNVERIFIED');
 }
 function snapshotSettings() {
-  settingsSnapshot={font:shell('settings','get','system','font_scale').stdout.trim(),autoTime:shell('settings','get','global','auto_time').stdout.trim(),autoZone:shell('settings','get','global','auto_time_zone').stdout.trim(),zone:shell('getprop','persist.sys.timezone').stdout.trim(),epoch:shell('date','+%s').stdout.trim(),hostTime:Date.now()};
+  settingsSnapshot={airplane:shell('settings','get','global','airplane_mode_on').stdout.trim(),font:shell('settings','get','system','font_scale').stdout.trim(),autoTime:shell('settings','get','global','auto_time').stdout.trim(),autoZone:shell('settings','get','global','auto_time_zone').stdout.trim(),zone:shell('getprop','persist.sys.timezone').stdout.trim(),epoch:shell('date','+%s').stdout.trim(),hostTime:Date.now()};
   writeFileSync(join(reportDir,'system-settings-before.json'),JSON.stringify(settingsSnapshot,null,2));
 }
 function restoreSettings() {
   if(!settingsSnapshot)return;
   const failures=[];
   const restore=args=>{ const r=execute(adb,['-s',serial,'shell',...args],{allowFailure:true});if(r.status!==0)failures.push(args.join(' ')); };
-  restore(['wm','size','reset']);restore(['wm','density','reset']);
+  restore(['cmd','connectivity','airplane-mode',settingsSnapshot.airplane==='1'?'enable':'disable']);restore(['wm','size','reset']);restore(['wm','density','reset']);
   for(const [namespace,key,value] of [['system','font_scale',settingsSnapshot.font],['global','auto_time',settingsSnapshot.autoTime],['global','auto_time_zone',settingsSnapshot.autoZone]]) restore(value==='null'?['settings','delete',namespace,key]:['settings','put',namespace,key,value]);
   restore(['setprop','persist.sys.timezone',settingsSnapshot.zone]);
   // Calendar scenarios may change device clock. Restore elapsed wall time too.
   restore(['date','-s',`@${Number(settingsSnapshot.epoch)+Math.floor((Date.now()-settingsSnapshot.hostTime)/1000)}`]);
-  restore(['am','broadcast','-a','android.intent.action.TIME_SET']);
+  restore(['am','broadcast','--async','-a','android.intent.action.TIME_SET']);
   report.restoration={status:failures.length?'failed':'passed',failures};
   settingsSnapshot=undefined;
   if(failures.length)throw new Unavailable('SYSTEM_SETTINGS_RESTORE_FAILED');
@@ -146,38 +149,142 @@ function flow(id,file,extra={}) {
   const junit=join(reportDir,`${id}.xml`);
   const args=['--device',serial,'test','--format','junit','--output',junit,'--test-output-dir',join(reportDir,`${id}-artifacts`),'-e',`REPORT_DIR=${reportDir}`,...Object.entries(extra).flatMap(([k,v])=>['-e',`${k}=${v}`]),join(appRoot,'e2e',file)];
   const r=execute(maestro,args,{allowFailure:true,timeout:20*60*1000});
+  const outcome=maestroOutcome(r.status,artifact(junit)?readFileSync(junit,'utf8'):'');
   const row=report.scenarios.find(s=>s.id===id);
-  if(row) Object.assign(row,{junit,screenshot:screenshot(id),status:r.status===0?'not-verified':'failed',reason:r.status===0?'FLOW_COVERAGE_DRAFT:see matrix; full requirement assertions not implemented':'MAESTRO_FAILED'});
-  if(r.status!==0)throw Error(`SCENARIO_FAILED:${id}`);
+  if(row) Object.assign(row,{junit,screenshot:screenshot(id),status:outcome.status,reason:outcome.reason});
+  if(outcome.exitCode===2)throw new Unavailable(`MAESTRO_DEVICE_UNAVAILABLE:${id}`);
+  if(outcome.exitCode===1)throw Error(`SCENARIO_FAILED:${id}`);
+}
+let latestBackup,persistenceBaseline,devicePhase='primary',modelOriginal,modelPath,disabledTts=[];
+let fixtureDay;
+function captureDeviceLog(phase) {
+ const r=execute(adb,['-s',serial,'logcat','-d','-v','threadtime'],{allowFailure:true});
+ if(r.status!==0)throw new Unavailable('LOGCAT_UNAVAILABLE:'+phase);
+ const path=join(reportDir,`logcat-${phase}-${report.deviceLogs?.length??0}.txt`);writeFileSync(path,r.stdout);
+ appendDeviceLog(report,{phase,path,text:r.stdout});shell('logcat','-c');
+ report.logcat=join(reportDir,'logcat.txt');writeFileSync(report.logcat,(report.deviceLogs??[]).map(row=>readFileSync(row.path,'utf8')).join('\n'));
+ if(report.crashCount||report.anrCount)throw Error('CRASH_ANR_DETECTED:'+phase);
+}
+function hierarchy(name) {
+ shell('uiautomator','dump','/sdcard/regression-hierarchy.xml');
+ const path=join(reportDir,name+'.xml');execute(adb,['-s',serial,'pull','/sdcard/regression-hierarchy.xml',path]);return path;
+}
+function captureState(name) {
+ const filename=name+'.json';flow('export-'+name,'helpers/export-state.yaml',{EXPORT_NAME:filename});
+ const path=join(reportDir,filename);execute(adb,['-s',serial,'pull','/sdcard/Download/GermanVocabulary/'+filename,path]);
+ const backup=JSON.parse(readFileSync(path,'utf8'));if(backup.format!=='german-vocabulary-backup')throw Error('EXPORTED_BACKUP_INVALID');
+ latestBackup=backup;return backup;
+}
+async function deviceRoot() {
+ const r=execute(adb,['-s',serial,'root'],{allowFailure:true});if(r.stdout?.includes('cannot run as root'))throw new Unavailable('DEDICATED_AVD_ROOT_UNAVAILABLE');
+ execute(adb,['-s',serial,'wait-for-device']);
+ for(let i=0;i<10;i++){const observed=execute(adb,['-s',serial,'shell','id','-u'],{allowFailure:true});if(observed.status===0&&rootVerified({uid:observed.stdout}))return;await delay(1000);}
+ throw new Unavailable('DEDICATED_AVD_ROOT_UNAVAILABLE');
+}
+function setClock(instant,zone='Europe/Berlin') {
+ shell('settings','put','global','auto_time','0');shell('settings','put','global','auto_time_zone','0');shell('setprop','persist.sys.timezone',zone);
+ const epoch=Math.floor(Date.parse(instant)/1000);if(!Number.isFinite(epoch))throw Error('CLOCK_INPUT_INVALID');shell('date','-s','@'+epoch);
+ const actual=shell('date','+%s').stdout.trim();if(Math.abs(Number(actual)-epoch)>5)throw new Unavailable('DEVICE_CLOCK_NOT_ACCEPTED');
+ shell('am','broadcast','--async','-a','android.intent.action.TIMEZONE_CHANGED','--es','time-zone',zone);shell('am','broadcast','--async','-a','android.intent.action.TIME_SET');
+ report.clockChanges??=[];report.clockChanges.push({instant,zone,actual:shell('date','+%Y-%m-%dT%H:%M:%S%z').stdout.trim()});
+ shell('am','force-stop',applicationId);shell('am','start','-n',applicationId+'/.MainActivity');
+}
+function alarmEvidence(name,enabled=true) {
+ const dump=shell('dumpsys','alarm').stdout;const path=join(reportDir,'alarm-'+name+'.txt');writeFileSync(path,dump);
+ const now=Number(shell('date','+%s').stdout.trim())*1000,zone=shell('getprop','persist.sys.timezone').stdout.trim();
+ const alarms=applicationAlarmEpochs(dump,now);
+ if(enabled&&!alarms.length)throw new Unavailable('REMINDER_ALARM_NOT_OBSERVABLE:'+name);
+ if(!enabled&&alarms.length)throw Error('INACTIVE_PROFILE_REMINDER_REMAINS');
+ if(enabled&&!alarms.some(epoch=>alarmMatchesLocalTime(epoch,zone,'08:30')))throw Error('REMINDER_LOCAL_TIME_MISMATCH:'+name);
+ report.reminderEvidence??=[];report.reminderEvidence.push({name,path,enabled,alarms,zone});
+}
+async function rebootDevice() {
+ captureDeviceLog(devicePhase+'-before-reboot');execute(adb,['-s',serial,'reboot']);
+ let booted=false;for(let i=0;i<90;i++){await delay(2000);const r=execute(adb,['-s',serial,'shell','getprop','sys.boot_completed'],{allowFailure:true,timeout:5000});if(r.status===0&&r.stdout.trim()==='1'){booted=true;break;}}
+ if(!booted)throw new Unavailable('REBOOT_TIMEOUT');await deviceRoot();offline();shell('input','keyevent','82');
+}
+async function beforeCheck(check) {
+ if(check.clock)setClock(`${check.clock==='tomorrow'?new Date(Date.parse(fixtureDay+'T12:00:00Z')+86400000).toISOString():fixtureDay+'T12:00:00Z'}`);
+ if(check.device==='permission-denied') {shell('pm','revoke',applicationId,'android.permission.POST_NOTIFICATIONS');shell('pm','clear-permission-flags',applicationId,'android.permission.POST_NOTIFICATIONS','user-set','user-fixed');}
+ if(check.device==='permission-granted')shell('pm','grant',applicationId,'android.permission.POST_NOTIFICATIONS');
+ if(check.device==='tts-disabled') {const names=shell('pm','list','packages').stdout.split('\n').filter(x=>/tts|texttospeech/.test(x)).map(x=>x.replace('package:','').trim());for(const p of names){shell('pm','disable-user','--user','0',p);disabledTts.push(p);}}
+ if(check.device==='tts-restored') {for(const p of disabledTts)shell('pm','enable',p);disabledTts=[];const path=join(reportDir,'tts-engine.txt');writeFileSync(path,shell('dumpsys','texttospeech').stdout);report.ttsEngine=path;}
+ if(check.device==='display') {shell('wm','size','960x1920');shell('wm','density','480');shell('settings','put','system','font_scale','1.5');const size=shell('wm','size').stdout;if(!size.includes('960x1920'))throw new Unavailable('DISPLAY_SIZE_NOT_ACCEPTED');}
+ if(check.device==='reminder-reboot-zone') {await rebootDevice();setClock(fixtureDay+'T12:00:00Z','America/New_York');}
+ if(check.device==='dst') {
+  setClock('2026-10-25T00:30:00Z');const before=shell('date','+%Y-%m-%d %H:%M %z').stdout.trim();
+  setClock('2026-10-25T01:30:00Z');const after=shell('date','+%Y-%m-%d %H:%M %z').stdout.trim();
+  if(!before.includes('02:30 +0200')||!after.includes('02:30 +0100'))throw new Unavailable('DST_NOT_ACCEPTED');report.dst={before,after};
+ }
+ if(check.id==='reminders.reminder-profile'){flow('inactive-reminder','helpers/inactive-reminder.yaml');alarmEvidence('inactive-profile',false);}
+ if(check.device==='four-generations') {
+  for(const [mode,title]of [['association','Ассоциация'],['example','Пример'],['text','Короткий текст'],['rule','Правило']]) {
+   flow('generation-'+mode,'assistant-generation.yaml',{MODE_TITLE:title});
+   const xml=hierarchy('generation-'+mode),text=generationFromHierarchy(readFileSync(xml,'utf8'));
+   if(!text)throw Error('REAL_GENERATION_EMPTY_OR_UNFINISHED:'+mode);
+   report.generations.push({mode,runtime:'llama.rn',modelSha256:report.model.sha256,text,hierarchy:xml,screenshot:screenshot('generation-'+mode)});
+  }
+ }
+ if(check.device==='model-unavailable') {
+  const found=shell('find','/data/user/0/'+applicationId+'/files','-name','*.gguf').stdout.trim().split('\n').filter(Boolean);
+  if(found.length!==1)throw new Unavailable('INSTALLED_MODEL_PATH_AMBIGUOUS');modelPath=found[0];modelOriginal=modelPath+'.regression-original';shell('mv',modelPath,modelOriginal);
+ }
+}
+async function afterCheck(check) {
+ if(check.device==='display'){shell('wm','size','reset');shell('wm','density','reset');shell('settings','put','system','font_scale',settingsSnapshot.font);}
+ if(check.device==='model-unavailable') {
+  const corrupt=join(reportDir,'corrupt.gguf');writeFileSync(corrupt,'corrupted GGUF input');execute(adb,['-s',serial,'push',corrupt,modelPath]);
+  flow('corrupt-model',check.flow);shell('rm',modelPath);shell('mv',modelOriginal,modelPath);modelOriginal=undefined;
+ }
+ if(check.id.startsWith('reminders.')&&check.device!=='permission-denied')alarmEvidence(check.id);
+ if(check.device==='logs')captureDeviceLog(devicePhase+'-resilience');
+ if(check.observation&&artifact(options.observations)) {
+  const observed=JSON.parse(readFileSync(options.observations,'utf8'));
+  if(check.observation==='audioAudible'&&observed.audioAudible!==true)throw new Unavailable('AUDIO_NOT_OBSERVED');
+  if(check.observation==='languageQuality'&&observed.languageQuality!=='reviewed')throw new Unavailable('LANGUAGE_NOT_REVIEWED');
+ }
+}
+async function group(row,baseline) {
+ for(const check of row.checks) {
+  let before=baseline??latestBackup;
+  if(check.state&&check.id!=='assistant.helper-save-edit'&&!baseline)before=captureState(check.id+'-before');
+  await beforeCheck(check);
+  const extra={FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:check.id+'-operation.json'};
+  flow(check.id,check.flow,extra);
+  await afterCheck(check);
+  if(check.state) {
+   const after=captureState(check.id+'-after'),today=shell('date','+%Y-%m-%d').stdout.trim();
+   const result=verifyScenarioState(check.id,after,{before,today,fixtureDay});
+   const scenario=report.scenarios.find(s=>s.id===check.id);scenario.stateEvidence=join(reportDir,check.id+'-after.json');scenario.stateValidation=result;
+   if(!result.ok){scenario.status='failed';scenario.reason=result.errors.join(';');throw Error('STATE_ASSERTION_FAILED:'+check.id+':'+scenario.reason);}
+  }
+ }
+ flow(row.id,row.flow,{FIXTURE_DAY:fixtureDay,GROUP_ID:row.id});
 }
 async function run() {
-  await boot(options.avd,true);
-  snapshotSettings();offline();
-  shell('logcat','-c');
-  execute(adb,['-s',serial,'install',options.apk]);
-  shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
-  for(const path of [report.model.path,report.model.manifestPath,options.fixture,join(appRoot,'e2e/fixtures/vocabulary.csv')]) execute(adb,['-s',serial,'push',path,'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
-  for(const row of MATRIX.filter(row=>['clean','main'].includes(row.phase))) flow(row.id,row.flow);
-  // Preserve DB through both boundaries. No clearState, uninstall or wipe here.
-  flow('persistence-before','persistence-before.yaml');
-  shell('am','force-stop',applicationId);flow('persistence-force-stop','persistence-after.yaml',{PHASE_ID:'persistence-force-stop'});
-  execute(adb,['-s',serial,'reboot']);
-  let booted=false;for(let i=0;i<90;i++){await delay(2000);const r=execute(adb,['-s',serial,'shell','getprop','sys.boot_completed'],{allowFailure:true,timeout:5000});if(r.status===0&&r.stdout.trim()==='1'){booted=true;break;}}
-  if(!booted)throw new Unavailable('REBOOT_TIMEOUT');offline();flow('persistence-reboot','persistence-after.yaml',{PHASE_ID:'persistence-reboot'});
-  restoreSettings();execute(adb,['-s',serial,'emu','kill'],{allowFailure:true}); await delay(3000);
-  // A second clean, isolated AVD is necessary: installing an old APK on a new DB
-  // is not a migration test. No resets occur between old install and update.
-  const prepare=execute(join(appRoot,'scripts/prepare-avd.sh'),['--upgrade'],{allowFailure:true});if(prepare.status!==0)throw new Unavailable('UPGRADE_AVD_PREPARE_FAILED');
-  await boot('GermanVocabulary_API36_Upgrade',true);snapshotSettings();offline();
-  execute(adb,['-s',serial,'install',options['previous-apk']]);flow('upgrade-before','upgrade-before.yaml');
-  execute(adb,['-s',serial,'install','-r',options.apk]);
-  report.upgrade={...report.upgrade,previousCommit,apk:resolve(options['previous-apk']),apkSha256:sha256File(options['previous-apk'])};
-  flow('upgrade','upgrade.yaml');
-  report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
-  // Generation is intentionally not fabricated from SQL fixture data. Draft
-  // assistant flow artifacts must be inspected and the capture driver completed.
-  report.blockers.push('REAL_GENERATION_CAPTURE_INCOMPLETE','FULL_SCENARIO_ASSERTIONS_INCOMPLETE');
-  throw new Unavailable(report.blockers.join('\n'));
+ await boot(options.avd,true);snapshotSettings();await deviceRoot();offline();
+ execute(adb,['-s',serial,'install',options.apk]);setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
+ shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
+ for(const path of [report.model.path,report.model.manifestPath,options.fixture,join(appRoot,'e2e/fixtures/vocabulary.csv')])execute(adb,['-s',serial,'push',path,'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
+ execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/invalid-backup.json'),'/sdcard/Download/GermanVocabulary/']);
+ await group(MATRIX.find(row=>row.id==='first-launch'));
+ flow('import-fixture','import-fixture.yaml');latestBackup=captureState('imported-fixture');
+ for(const row of MATRIX.filter(row=>row.phase==='main'))await group(row);
+ flow('persistence-before','persistence-before.yaml');persistenceBaseline=captureState('persistence-baseline');
+ shell('am','force-stop',applicationId);await group(MATRIX.find(row=>row.phase==='force-stop'),persistenceBaseline);
+ await rebootDevice();await group(MATRIX.find(row=>row.phase==='reboot'),persistenceBaseline);
+ captureDeviceLog('primary-final');restoreSettings();execute(adb,['-s',serial,'emu','kill']);await delay(3000);
+ devicePhase='upgrade';
+ const prepare=execute(join(appRoot,'scripts/prepare-avd.sh'),['--upgrade'],{allowFailure:true});if(prepare.status!==0)throw new Unavailable('UPGRADE_AVD_PREPARE_FAILED');
+ await boot('GermanVocabulary_API36_Upgrade',true);snapshotSettings();await deviceRoot();offline();
+ execute(adb,['-s',serial,'install',options['previous-apk']]);setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
+ flow('upgrade-before','upgrade-before.yaml');hierarchy('upgrade-before');screenshot('upgrade-before');
+ captureDeviceLog('upgrade-before-install');shell('logcat','-c');
+ execute(adb,['-s',serial,'install','-r',options.apk]);shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
+ latestBackup=captureState('upgrade-baseline');await group(MATRIX.find(row=>row.phase==='upgrade'),latestBackup);
+ captureDeviceLog('upgrade-final');
+ if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
+ else report.blockers.push('OBSERVATIONS_MISSING:review generated text and audible playback');
 }
 let exitCode=2;
 try {
@@ -188,14 +295,17 @@ try {
   mkdirSync(reportDir,{recursive:true});mkdirSync(workRoot,{recursive:true});
   await preflight();
   if(options.preflight)throw new Unavailable('PREFLIGHT_ONLY:full regression not run');
+  try{fixtureDay=JSON.parse(readFileSync(options.fixture,'utf8')).profiles.find(p=>p.profile.name==='Регрессия — изучено').attempts[0].day;}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
   await run();
-  report.status='passed';const validation=validateRegressionReport(report);report.validation=validation;if(!validation.ok)throw new Unavailable(validation.errors.join('\n'));exitCode=0;
+  const completion=completeRegressionReport(report);exitCode=completion.exitCode;report.status=completion.status;report.blockers.push(...completion.errors);
 } catch(error) {
   exitCode=error.exitCode ?? 1;report.status=exitCode===2?'not-verified':'failed';report.blockers.push(error.message);console.error(error.message);
 } finally {
   if(reportDir) {
     if(processHandle) {
-      try { const r=execute(adb,['-s',serial,'logcat','-d','-v','threadtime'],{allowFailure:true});report.logcat=join(reportDir,'logcat.txt');writeFileSync(report.logcat,r.stdout ?? '');const text=r.stdout ?? '';report.crashCount=(text.match(/FATAL EXCEPTION|Fatal signal/g)||[]).length;report.anrCount=(text.match(/ANR in |am_anr/g)||[]).length;if(report.crashCount||report.anrCount) {exitCode=1;report.status='failed';} } catch(error){report.blockers.push(`LOGCAT_FAILED:${error.message}`);exitCode=exitCode||2;}
+      try{captureDeviceLog(devicePhase+'-finally');}catch(error){report.blockers.push(error.message);exitCode=error.message.startsWith('CRASH_ANR')?1:(exitCode||2);report.status=exitCode===1?'failed':'not-verified';}
+      if(modelOriginal){try{shell('mv',modelOriginal,modelPath);}catch(error){report.blockers.push('MODEL_RESTORE_FAILED:'+error.message);exitCode=2;report.status='not-verified';}}
+      for(const p of disabledTts)execute(adb,['-s',serial,'shell','pm','enable',p],{allowFailure:true});
       try{restoreSettings();}catch(error){report.blockers.push(error.message);exitCode=exitCode||2;report.status='not-verified';}
       execute(adb,['-s',serial,'emu','kill'],{allowFailure:true});processHandle.kill('SIGTERM');
     }
