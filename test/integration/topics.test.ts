@@ -68,6 +68,6 @@ const topics=h.topics;const p=await createProfile(h.db,'A');const t=await topics
  await h.db.run("UPDATE word_progress SET learned=1,streak=20,bonusAwarded=1,dueDate='2026-10-03' WHERE wordId=?",[due.id]);await h.db.run("UPDATE word_progress SET learned=1,streak=20,bonusAwarded=1,dueDate='2026-10-08' WHERE wordId=?",[future.id]);
  const wordIds=(await h.words.list(p.id,{topicId:t.id})).map(w=>w.id);
  expect(await h.sessions.start(p.id,{mode:'study',wordIds},'2026-10-03')).toMatchObject({mode:'study',wordIds:[study.id]});expect(await h.sessions.start(p.id,{mode:'review',wordIds},'2026-10-03')).toMatchObject({mode:'review',wordIds:[due.id]});
- await topics.setWordTopics(p.id,study.id,[]);await topics.setWordTopics(p.id,due.id,[]);const onlyFuture=(await h.words.list(p.id,{topicId:t.id})).map(w=>w.id);const empty=await h.sessions.start(p.id,{mode:'study',wordIds:onlyFuture},'2026-10-03');expect(empty.wordIds).toEqual([]);expect(await h.sessions.next(p.id,empty.id,'2026-10-03')).toBeNull();
+ await topics.setWordTopics(p.id,study.id,[]);await topics.setWordTopics(p.id,due.id,[]);const onlyFuture=(await h.words.list(p.id,{topicId:t.id})).map(w=>w.id);const before=await h.sessions.resume(p.id);await expect(h.sessions.start(p.id,{mode:'study',wordIds:onlyFuture},'2026-10-03')).rejects.toMatchObject({code:'EMPTY_QUEUE'});expect(await h.sessions.resume(p.id)).toEqual(before);
  }finally{h.close();}
 });

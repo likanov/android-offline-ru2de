@@ -1,3 +1,4 @@
+import { TrainingError } from '../learning/sessionRepository';
 import React, { useEffect, useState } from 'react';
 import { Text } from 'react-native';
 import type { SqlStore } from '../../core/sql';
@@ -22,6 +23,8 @@ export function TodayScreen({ db, profileId, today: override, onStart, onProgres
     async function start(mode: 'study' | 'review') { if (!summary || busy || (mode === 'study' ? summary.totalWords === summary.mastered : !summary.dueCount))
         return; setBusy(true); setActionError(''); try {
         const selection: TrainingSelection = mode === 'review' ? { mode, wordIds: (await getReviewRepository({ db }).dueWords(profileId, today)).slice(0, 5).map(w => w.id) } : { mode };
+        if (mode === 'review' && !selection.wordIds?.length)
+            throw new TrainingError('EMPTY_QUEUE', 'Нет доступных слов для занятия');
         const session = await getTrainingServices({ db }).sessions.start(profileId, selection, today);
         if (session)
             onStart(selection);

@@ -77,3 +77,18 @@ test('wrong_answers_are_historical_attempts_but_do_not_extend_day_streak', async
         h.close();
     }
 });
+
+test.each(['study','review'] as const)('empty %s queue does not replace an existing active session', async mode => {
+ const h=await createWordHarness();try {
+  const p=await createProfile(h.db,'A');
+  const active=await h.sessions.start(p.id,{mode:'study'},'2026-10-03');
+  const question=await h.sessions.next(p.id,active.id,'2026-10-03');
+  const word=(await h.words.list(p.id))[10];
+  await h.db.run("UPDATE word_progress SET learned=1,streak=20,dueDate='2026-10-05' WHERE wordId=?",[word.id]);
+  await expect(h.sessions.start(p.id,{mode,wordIds:[word.id]},'2026-10-03')).rejects.toMatchObject({code:'EMPTY_QUEUE'});
+  expect(await h.sessions.resume(p.id)).toMatchObject({id:active.id,currentQuestion:question,status:'active'});
+  expect(await h.db.first('SELECT COUNT(*) AS n FROM sessions WHERE profileId=?',[p.id])).toEqual({n:1});
+  expect(await h.db.first('SELECT status FROM questions WHERE attemptId=?',[question!.attemptId])).toEqual({status:'active'});
+  await expect(h.sessions.start(p.id,{mode,wordIds:[]},'2026-10-03')).rejects.toMatchObject({code:'EMPTY_QUEUE'});
+ }finally{h.close();}
+});

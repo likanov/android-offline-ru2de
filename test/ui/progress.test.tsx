@@ -84,12 +84,14 @@ test('future_reviews_show_next_date_and_cannot_start', async () => {
         h.close();
     }
 });
+
 test('local_day_updates_at_midnight_and_when_returning_to_app_and_unsubscribes', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(2026, 9, 3, 23, 59, 59));
     let listener: (state: AppStateStatus) => void = () => { };
     let removed = false;
-    const spy = jest.spyOn(AppState, 'addEventListener').mockImplementation((_type, callback) => { listener = callback; return { remove: () => { removed = true; } }; });
+    const originalListener = AppState.addEventListener;
+    AppState.addEventListener = (_type, callback) => { listener = callback; return { remove: () => { removed = true; } }; };
     try {
         const view = renderHook(() => useCurrentDay());
         expect(view.result.current).toBe('2026-10-03');
@@ -103,7 +105,26 @@ test('local_day_updates_at_midnight_and_when_returning_to_app_and_unsubscribes',
         expect(jest.getTimerCount()).toBe(0);
     }
     finally {
-        spy.mockRestore();
+        AppState.addEventListener = originalListener;
         jest.useRealTimers();
     }
+});
+
+test('review_queue_exhausted_after_summary_load_does_not_navigate_or_replace_session',async()=>{
+ const h=await createWordHarness();try{
+  const p=await createProfile(h.db,'A'),word=(await h.words.list(p.id))[10];
+  const active=await h.sessions.start(p.id,{mode:'study'},'2026-10-03');
+  const question=await h.sessions.next(p.id,active.id,'2026-10-03');
+  await h.db.run("UPDATE word_progress SET learned=1,streak=20,dueDate='2026-10-03' WHERE wordId=?",[word.id]);
+  let started=false;
+  render(<TodayScreen db={h.db} profileId={p.id} today="2026-10-03" onStart={()=>{started=true;}} onProgress={()=>{}}/>);
+  await screen.findByText('К повторению: 1');
+  // Represents a committed review moving the due day while dashboard refresh is still pending.
+  await h.db.run("UPDATE word_progress SET dueDate='2026-10-05' WHERE wordId=?",[word.id]);
+  fireEvent.press(screen.getByRole('button',{name:'Повторить сегодня'}));
+  await screen.findByText('Error: Нет доступных слов для занятия');
+  expect(started).toBe(false);
+  expect(await h.sessions.resume(p.id)).toMatchObject({id:active.id,currentQuestion:question,status:'active'});
+  expect(await h.db.first('SELECT COUNT(*) AS n FROM sessions WHERE profileId=?',[p.id])).toEqual({n:1});
+ }finally{h.close();}
 });

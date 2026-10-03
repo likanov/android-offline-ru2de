@@ -38,7 +38,10 @@ export class SessionRepository {
             ids.push(w.id);
         if (ids.length === 5)
             break;
-    } await tx.run("UPDATE questions SET status='cancelled' WHERE profileId=? AND status='active'", [profileId]); await tx.run("UPDATE sessions SET status='cancelled' WHERE profileId=? AND status='active'", [profileId]); const id = randomUUID(); await tx.run("INSERT INTO sessions(id,profileId,mode,wordIds,status) VALUES (?,?,?,?,'active')", [id, profileId, selection.mode, JSON.stringify(ids)]); return ownedSession(tx, profileId, id); }); }
+    }
+    // Eligibility is checked inside the transaction, before replacing any session.
+    if (!ids.length) throw new TrainingError('EMPTY_QUEUE', 'Нет доступных слов для занятия');
+    await tx.run("UPDATE questions SET status='cancelled' WHERE profileId=? AND status='active'", [profileId]); await tx.run("UPDATE sessions SET status='cancelled' WHERE profileId=? AND status='active'", [profileId]); const id = randomUUID(); await tx.run("INSERT INTO sessions(id,profileId,mode,wordIds,status) VALUES (?,?,?,?,'active')", [id, profileId, selection.mode, JSON.stringify(ids)]); return ownedSession(tx, profileId, id); }); }
     async resume(profileId: string): Promise<Session | null> { const r = await this.db.first<Row>("SELECT * FROM sessions WHERE profileId=? AND status='active'", [profileId]); return r ? decodeSession(r) : null; }
     async next(profileId: string, sessionId: string, today: DayKey): Promise<Question | null> { addDays(today, 0); return this.db.transaction(async (tx) => { const s = await ownedSession(tx, profileId, sessionId); if (s.status !== 'active')
         return null; if (s.currentQuestion && !s.result)
