@@ -19,3 +19,23 @@ test('invalid fields and uneven columns reject individual rows',()=>{
 test('empty data records keep their line errors; physical blank lines are ignored',()=>{
  const parsed=parseCsv('de,ru,pos,gender\n\n,,,\n');expect(parsed.rows).toHaveLength(1);expect(parsed.rows[0].line).toBe(3);expect(()=>csvRowToWord(parsed.rows[0])).toThrow(expect.objectContaining({code:'VALIDATION'}));
 });
+test('documented CSV accepts snake_case example headers and preserves examples',()=>{
+ const parsed=parseCsv('de,ru,pos,gender,plural,example_de,example_ru,note,topic\nStuhl,стул,noun,m,die Stühle,Der Stuhl ist klein.,Стул маленький.,Синий стул,Комната\nklein,маленький,adjective,,,,,,Признаки');
+ expect(parsed.rows.map(csvRowToWord)).toEqual([
+  expect.objectContaining({line:2,topicName:'Комната',draft:expect.objectContaining({de:'Stuhl',ru:'стул',pos:'noun',gender:'m',exampleDe:'Der Stuhl ist klein.',exampleRu:'Стул маленький.'})}),
+  expect.objectContaining({line:3,topicName:'Признаки',draft:expect.objectContaining({de:'klein',pos:'adjective',gender:null})}),
+ ]);
+});
+test.each(['de,ru,gender\nKissen,подушка,n','de,ru,pos,gender\nKissen,подушка,,n'])('omitted or empty pos defaults to noun: %s',text=>{
+ expect(csvRowToWord(parseCsv(text).rows[0]).draft).toMatchObject({pos:'noun',gender:'n'});
+});
+test('duplicate example aliases cannot overwrite each other',()=>{
+ expect(()=>parseCsv('de,ru,example_de,exampleDe\nx,y,a,b')).toThrow(expect.objectContaining({code:'VALIDATION'}));
+});
+test('quoted-empty records remain rows at newline and EOF',()=>{
+ const rows=parseCsv('de,ru,pos\n""\n"\n"\n""').rows;
+ expect(rows.map(row=>({line:row.line,fieldCount:row.fieldCount,de:row.values.de}))).toEqual([
+  {line:2,fieldCount:1,de:''},{line:3,fieldCount:1,de:'\n'},{line:5,fieldCount:1,de:''},
+ ]);
+ for(const row of rows)expect(()=>csvRowToWord(row)).toThrow(expect.objectContaining({code:'VALIDATION'}));
+});

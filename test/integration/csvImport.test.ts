@@ -35,3 +35,14 @@ test('switching away and back requires a fresh preview',async()=>{
  expect(await csv.commit(await csv.preview(p1.id,preview.sourceText))).toMatchObject({added:1});
  }finally{h.close();}
 });
+test('documented CSV previews and quoted-empty records report physical line errors',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A'),csv=new CsvImportService(h.db);
+ const fixture='de,ru,pos,gender,plural,example_de,example_ru,note,topic\nStuhl,стул,noun,m,die Stühle,Der Stuhl ist klein.,Стул маленький.,Синий стул,Комната\nklein,маленький,adjective,,,,,,Признаки';
+ expect(await csv.preview(p.id,fixture)).toMatchObject({valid:[],duplicates:[2,3],errors:[]});
+ const preview=await csv.preview(p.id,'de,ru,gender,example_de,example_ru\nKissen,подушка,n,Das Kissen ist weich.,Подушка мягкая.\n""\n"\n"\n""');
+ expect(preview.errors.map(error=>error.line)).toEqual([3,4,6]);expect(preview.valid).toHaveLength(1);
+ expect(await csv.commit(preview)).toEqual({added:1,duplicates:0,invalid:3});
+ expect((await h.words.list(p.id,{query:'Kissen'}))[0]).toMatchObject({pos:'noun',gender:'n',exampleDe:'Das Kissen ist weich.',exampleRu:'Подушка мягкая.'});
+ }finally{h.close();}
+});
