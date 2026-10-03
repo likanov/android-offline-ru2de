@@ -1,3 +1,4 @@
+import { ReviewRepository } from '../features/reviews/reviewRepository';
 import { SessionRepository } from '../features/learning/sessionRepository';
 import { AnswerService } from '../features/learning/answerService';
 import { WordRepository } from "../features/dictionary/wordRepository";
@@ -67,3 +68,10 @@ export function getTrainingServices(app: AppServices) { let value = training.get
     value = { sessions: new SessionRepository(app.db), answers: new AnswerService(app.db) };
     training.set(app.db, value);
 } return value; }
+
+const reviews = new WeakMap<SqlStore, ReviewRepository>();
+export function getReviewRepository(app: AppServices): ReviewRepository {
+    let value = reviews.get(app.db);
+    if (!value) { value = new ReviewRepository(app.db); reviews.set(app.db, value); }
+    return value;
+}

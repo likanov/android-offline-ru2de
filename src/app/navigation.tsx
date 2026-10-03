@@ -8,12 +8,16 @@ import { WordEditorScreen } from '../features/dictionary/WordEditorScreen';
 import { useActiveProfile } from './ActiveProfileProvider';
 import { useAppServices, getTrainingServices } from './AppServices';
 import { Button } from '../ui/Button';
+import { ReviewsScreen } from '../features/reviews/ReviewsScreen';
+import { DifficultWordsScreen } from '../features/reviews/DifficultWordsScreen';
+import type { TrainingSelection } from '../features/learning/questionTypes';
 import { TrainingScreen } from '../features/learning/TrainingScreen';
 type Route = {
-    screen: 'profiles' | 'model' | 'dictionary' | 'card' | 'editor' | 'training';
+    screen: 'profiles' | 'model' | 'dictionary' | 'card' | 'editor' | 'training' | 'reviews' | 'difficult';
     wordId?: string;
     mode?: 'study' | 'review';
     fromTraining?: boolean;
+    wordIds?: string[];
 };
 export function Navigation() {
     const { profile } = useActiveProfile();
@@ -40,14 +44,14 @@ function NavigationRoutes() {
         if (route.screen === 'editor' && route.wordId) {
             void navigate({ ...route, screen: 'card' });
         } else if (route.screen === 'card' && route.fromTraining) {
-            void navigate({ screen: 'training', mode: route.mode });
+            void navigate({ screen: 'training', mode: route.mode, wordIds: route.wordIds });
         } else {
             void navigate({ screen: 'dictionary' });
         }
     }
     useEffect(() => {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-            if (['card', 'editor', 'training'].includes(route.screen)) {
+            if (['card', 'editor', 'training', 'reviews', 'difficult'].includes(route.screen)) {
                 back();
                 return true;
             }
@@ -55,6 +59,7 @@ function NavigationRoutes() {
         });
         return () => subscription.remove();
     });
+    const startQueue = (selection: TrainingSelection) => setRoute({ screen: 'training', mode: selection.mode, wordIds: selection.wordIds });
     let content: React.ReactNode;
     if (route.screen === 'profiles')
         content = <ProfilesScreen />;
@@ -62,13 +67,17 @@ function NavigationRoutes() {
         content = <ModelSetupScreen />;
     else if (!profile)
         content = <Text>Сначала выберите профиль</Text>;
+    else if (route.screen === 'reviews')
+        content = <ReviewsScreen db={db} profileId={profile.id} onStart={startQueue}/>;
+    else if (route.screen === 'difficult')
+        content = <DifficultWordsScreen db={db} profileId={profile.id} onStart={startQueue}/>;
     else if (route.screen === 'training')
-        content = <TrainingScreen key={`${profile.id}:${route.mode ?? 'study'}`} db={db} profileId={profile.id} selection={{ mode: route.mode ?? 'study' }} onReveal={wordId => setRoute({ screen: 'card', wordId, fromTraining: true, mode: route.mode })}/>;
+        content = <TrainingScreen key={`${profile.id}:${route.mode ?? 'study'}`} db={db} profileId={profile.id} selection={{ mode: route.mode ?? 'study', wordIds: route.wordIds }} onReveal={wordId => setRoute({ screen: 'card', wordId, fromTraining: true, mode: route.mode, wordIds: route.wordIds })}/>;
     else if (route.screen === 'dictionary')
         content = <DictionaryScreen db={db} profileId={profile.id} onOpen={wordId => setRoute({ screen: 'card', wordId })} onCreate={() => setRoute({ screen: 'editor' })}/>;
     else if (route.screen === 'editor')
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
         content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
-    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<View style={{ paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button title="Профили" onPress={() => void navigate({ screen: 'profiles' })}/><Button title="Словарь" disabled={!profile} onPress={() => void navigate({ screen: 'dictionary' })}/><Button title="Тренировка" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'study' })}/><Button title="Повторение" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'review' })}/><Button title="Локальная модель" onPress={() => void navigate({ screen: 'model' })}/></View></View>;
+    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<View style={{ paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button title="Профили" onPress={() => void navigate({ screen: 'profiles' })}/><Button title="Словарь" disabled={!profile} onPress={() => void navigate({ screen: 'dictionary' })}/><Button title="Тренировка" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'study' })}/><Button title="Повторение" disabled={!profile} onPress={() => void navigate({ screen: 'reviews' })}/><Button title="Трудные" disabled={!profile} onPress={() => void navigate({ screen: 'difficult' })}/><Button title="Локальная модель" onPress={() => void navigate({ screen: 'model' })}/></View></View>;
 }
