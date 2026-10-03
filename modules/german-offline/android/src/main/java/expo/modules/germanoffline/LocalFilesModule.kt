@@ -1,6 +1,10 @@
 package expo.modules.germanoffline
 
+import android.app.Activity
+import android.content.Intent
 import android.net.Uri
+import android.provider.DocumentsContract
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -12,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 class LocalFilesModule : Module() {
+  private var savePromise: Promise? = null
+  private var saveContent: String? = null
+  private val saveRequestCode = 61942
   private val worker = Executors.newSingleThreadExecutor()
   private val cancelled = ConcurrentHashMap.newKeySet<String>()
   private val root: File get() = File(requireNotNull(appContext.reactContext).filesDir, "models")
@@ -47,7 +54,7 @@ class LocalFilesModule : Module() {
       }
     }
     AsyncFunction("readTextBounded") { uri: String, maxBytes: Int ->
-      require(maxBytes in 1..(10 * 1024 * 1024)) { "Invalid text size limit" }
+      require(maxBytes in 1..(50 * 1024 * 1024)) { "Invalid text size limit" }
       input(uri).use { source ->
         // Bound bytes while reading, before allocating the decoded text. No
         // persisted URI grants or storage-wide permission are needed.
@@ -56,6 +63,54 @@ class LocalFilesModule : Module() {
           .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
           .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
           .decode(java.nio.ByteBuffer.wrap(bytes)).toString()
+      }
+    }
+    AsyncFunction("saveText") { name: String, text: String, promise: Promise ->
+      require(savePromise == null) { "A save dialog is already open" }
+      require(name.isNotBlank() && !name.contains('/') && !name.contains('\\')) { "Invalid file name" }
+      require(text.toByteArray(Charsets.UTF_8).size <= 50 * 1024 * 1024) { "Backup exceeds 50 MiB" }
+      savePromise = promise
+      saveContent = text
+      try {
+        appContext.throwingActivity.startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+          addCategory(Intent.CATEGORY_OPENABLE)
+          type = "application/json"
+          putExtra(Intent.EXTRA_TITLE, name)
+        }, saveRequestCode)
+      } catch (error: Exception) {
+        savePromise = null
+        saveContent = null
+        promise.reject("STORAGE", error.message, error)
+      }
+    }.runOnQueue(Queues.MAIN)
+    OnActivityResult { _, (requestCode, resultCode, intent) ->
+      if (requestCode != saveRequestCode || savePromise == null) return@OnActivityResult
+      val promise = savePromise!!
+      val content = saveContent!!
+      savePromise = null
+      saveContent = null
+      if (resultCode != Activity.RESULT_OK) {
+        promise.resolve(false)
+      } else {
+        val uri = intent?.data
+        if (uri == null) {
+          promise.reject("STORAGE", "No destination selected", null)
+        } else {
+          val resolver = requireNotNull(appContext.reactContext).contentResolver
+          worker.execute {
+            try {
+              requireNotNull(resolver.openOutputStream(uri, "wt")).use { output ->
+                output.write(content.toByteArray(Charsets.UTF_8))
+                output.flush()
+              }
+              promise.resolve(true)
+            } catch (error: Exception) {
+              // The system just created this document; remove an incomplete backup.
+              try { DocumentsContract.deleteDocument(resolver, uri) } catch (_: Exception) { }
+              promise.reject("STORAGE", error.message, error)
+            }
+          }
+        }
       }
     }
     AsyncFunction("cancelCopy") { requestId: String -> cancelled.add(requestId); Unit }

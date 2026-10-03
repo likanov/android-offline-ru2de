@@ -7,7 +7,7 @@ import { TransferScreen } from '../../src/features/transfer/TransferScreen';
 test('pick preview counts errors and confirm exact preview; cancel is quiet',async()=>{
  const h=await createWordHarness();try{
  const p=await createProfile(h.db,'A');let canceled=true;
- const picker={readText:async()=>canceled?null:{name:'words.csv',text:'de,ru,pos\nweich,мягкий,adjective\nx,,adjective'}};
+ const picker={saveText:async()=>false,readText:async()=>canceled?null:{name:'words.csv',text:'de,ru,pos\nweich,мягкий,adjective\nx,,adjective'}};
  render(<TransferScreen profileId={p.id} csv={new CsvImportService(h.db)} picker={picker}/>);
  fireEvent.press(screen.getByRole('button',{name:'Выбрать CSV'}));await waitFor(()=>expect(screen.getByRole('button',{name:'Выбрать CSV'})).not.toBeDisabled());expect(screen.queryByRole('alert')).toBeNull();
  canceled=false;fireEvent.press(screen.getByRole('button',{name:'Выбрать CSV'}));await screen.findByText('Новые: 1 · Дубли: 0 · Ошибки: 1');expect(screen.getByText(/Строка 3:/)).toBeTruthy();

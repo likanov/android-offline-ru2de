@@ -9,6 +9,7 @@ export type CopyProgress = {
 type NativeFiles = Omit<LocalFileAdapter, "subscribeProgress"> & {
   readText(uri: string): Promise<string>;
   readTextBounded(uri: string, maxBytes: number): Promise<string>;
+  saveText(name: string, text: string): Promise<boolean>;
   addListener(
     event: "copyProgress",
     listener: (progress: CopyProgress) => void,
@@ -18,6 +19,7 @@ type NativeFiles = Omit<LocalFileAdapter, "subscribeProgress"> & {
 export function localFiles(): LocalFileAdapter & {
   readText(uri: string): Promise<string>;
   readTextBounded(uri: string, maxBytes: number): Promise<string>;
+  saveText(name: string, text: string): Promise<boolean>;
 } {
   const native = requireNativeModule<NativeFiles>("GermanOfflineFiles");
   return {
@@ -28,6 +30,7 @@ export function localFiles(): LocalFileAdapter & {
     cancelCopy: (id) => native.cancelCopy(id),
     readText: (uri) => native.readText(uri),
     readTextBounded: (uri, maxBytes) => native.readTextBounded(uri, maxBytes),
+    saveText: (name, text) => native.saveText(name, text),
     subscribeProgress: (listener) =>
       native.addListener("copyProgress", listener),
   };

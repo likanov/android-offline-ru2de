@@ -11,7 +11,7 @@ import { DictionaryScreen } from '../features/dictionary/DictionaryScreen';
 import { WordCardScreen } from '../features/dictionary/WordCardScreen';
 import { WordEditorScreen } from '../features/dictionary/WordEditorScreen';
 import { useActiveProfile } from './ActiveProfileProvider';
-import { useAppServices, getTrainingServices, getProgressRepository, getReminderService, getCsvImportService } from './AppServices';
+import { useAppServices, getTrainingServices, getProgressRepository, getReminderService, getCsvImportService, getBackupService } from './AppServices';
 import { Button } from '../ui/Button';
 import { ReviewsScreen } from '../features/reviews/ReviewsScreen';
 import { DifficultWordsScreen } from '../features/reviews/DifficultWordsScreen';
@@ -79,7 +79,7 @@ function NavigationRoutes() {
     else if (route.screen === 'progress')
         content = <ProgressScreen db={db} profileId={profile.id}/>;
     else if (route.screen === 'transfer')
-        content = <TransferScreen key={profile.id} profileId={profile.id} csv={getCsvImportService(app)}/>;
+        content = <TransferScreen key={profile.id} profileId={profile.id} csv={getCsvImportService(app)} backup={getBackupService(app)}/>;
     else if (route.screen === 'topics')
         content = <TopicsScreen db={db} profileId={profile.id} onStart={startQueue}/>;
     else if (route.screen === 'reviews')

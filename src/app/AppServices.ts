@@ -1,3 +1,4 @@
+import { BackupService } from '../features/transfer/backupService';
 import { CsvImportService } from '../features/transfer/csvImportService';
 import { ReminderService } from '../features/reminders/reminderService';
 import { createNotificationPort } from '../features/reminders/expoNotificationPort';
@@ -112,3 +113,6 @@ const transfers = new WeakMap<SqlStore, CsvImportService>();
 export function getCsvImportService(app: AppServices): CsvImportService {
  let value=transfers.get(app.db);if(!value){value=new CsvImportService(app.db);transfers.set(app.db,value);}return value;
 }
+
+const backups=new WeakMap<SqlStore,BackupService>();
+export function getBackupService(app:AppServices):BackupService {let value=backups.get(app.db);if(!value){value=new BackupService(app.db);backups.set(app.db,value);}return value;}

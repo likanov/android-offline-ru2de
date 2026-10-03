@@ -1,0 +1,108 @@
+import { randomUUID } from 'expo-crypto';
+import { createWordHarness } from '../harness';
+import { createProfile } from '../../src/features/profiles/profileRepository';
+import { BackupService } from '../../src/features/transfer/backupService';
+import type { SqlStore } from '../../src/core/sql';
+const day = '2026-10-03';
+let h: Awaited<ReturnType<typeof createWordHarness>>;
+beforeEach(async () => { h = await createWordHarness(); });
+afterEach(() => h.close());
+async function snapshot() { const tables = await h.db.all<{
+    name: string;
+}>("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"); return Promise.all(tables.map(async (t) => [t.name, await h.db.all(`SELECT * FROM ${t.name} ORDER BY rowid`)])); }
+test('restored_answered_session_is_not_rewarded_again', async () => {
+    const p1 = await createProfile(h.db, 'Антон'), p2 = await createProfile(h.db, 'Второй');
+    const words = await h.words.list(p1.id), w = words[0];
+    await h.words.update(p1.id, w.id, { ...w, note: 'Моя заметка' });
+    await h.db.run('UPDATE settings SET dailyGoal=150,reminderEnabled=1,reminderHour=8 WHERE profileId=?',[p1.id]);
+    const aid = randomUUID();
+    await h.db.run('INSERT INTO aids(id,profileId,content) VALUES (?,?,?)', [aid, p1.id, '{"mnemonic":"подсказка"}']);
+    for (const word of words.slice(0, 2))
+        await h.db.run('INSERT INTO aid_words(aidId,profileId,wordId,revision) VALUES (?,?,?,?)', [aid, p1.id, word.id, 1]);
+    await h.db.run('UPDATE word_progress SET streak=19 WHERE wordId=?', [w.id]);
+    const s = await h.sessions.start(p1.id, { mode: 'study', wordIds: [w.id] }, day), q = (await h.sessions.next(p1.id, s.id, day))!;
+    await h.answers.submit(p1.id, s.id, q.attemptId, q.expected[0], day);
+    const backup = new BackupService(h.db), data = await backup.exportAll();
+    expect(data.profiles).toHaveLength(2);
+    expect(JSON.stringify(data)).not.toMatch(/modelPath|\.gguf|activeProfileId|reminderHour/);
+    const restored = await backup.restore(backup.preview(JSON.stringify(data)));
+    expect(restored.profileIds).toHaveLength(2);
+    expect(await h.db.first('SELECT count(*) AS n FROM profiles')).toEqual({ n: 4 });
+    const restoredP1 = restored.profileIds[0], session = (await h.sessions.resume(restoredP1))!;
+    expect(await h.profile(restoredP1)).toMatchObject({ name: 'Антон восстановлено 2', xp: 60 });
+    expect(await h.answers.submit(restoredP1, session.id, session.currentQuestion!.attemptId, 'wrong', day)).toEqual(session.result);
+    expect((await h.profile(restoredP1))!.xp).toBe(60);
+    expect(await h.db.first('SELECT activeProfileId FROM app_settings')).toEqual({ activeProfileId: p2.id });
+    expect((await h.words.list(restoredP1)).find(x => x.note === 'Моя заметка')).toBeTruthy();
+    expect(await h.db.all('SELECT * FROM aid_words WHERE profileId=?', [restoredP1])).toHaveLength(2);
+    expect(await h.db.first('SELECT content FROM aids WHERE profileId=?',[restoredP1])).toEqual({content:'{"mnemonic":"подсказка"}'});
+    expect(await h.db.first('SELECT dailyGoal,reminderEnabled,reminderHour FROM settings WHERE profileId=?',[restoredP1])).toEqual({dailyGoal:150,reminderEnabled:0,reminderHour:19});
+    expect(await h.db.all('SELECT * FROM topics WHERE profileId=?', [restoredP1])).toHaveLength(data.profiles[0].topics.length);
+    expect(await h.db.all('SELECT * FROM skill_history WHERE profileId=?', [restoredP1])).toHaveLength(1);
+    const exported = await backup.exportAll();
+    expect(exported.profiles[2].rewards[0].day).toBe(day);
+});
+test('invalid_or_interrupted_restore_is_atomic', async () => {
+    await createProfile(h.db, 'A');
+    const service = new BackupService(h.db), data = await service.exportAll(), before = await snapshot();
+    for (const mutate of [(d: any) => d.version = 2, (d: any) => d.profiles[0].words[0].profileId = randomUUID(), (d: any) => d.profiles[0].words[1].id = d.profiles[0].words[0].id, (d: any) => d.createdAt = '2026-02-30T12:00:00.000Z', (d: any) => d.profiles[0].profile.xp = -1, (d: any) => d.profiles[0].profile.xp = 10]) {
+        const bad = JSON.parse(JSON.stringify(data));
+        mutate(bad);
+        expect(() => service.preview(JSON.stringify(bad))).toThrow();
+        expect(await snapshot()).toEqual(before);
+    }
+    const broken: SqlStore = { ...h.db, transaction: work => h.db.transaction(tx => work({ ...tx, run: async (sql, params) => { const result = await tx.run(sql, params); if (sql.startsWith('INSERT INTO profiles'))
+                throw new Error('disk full'); return result; } })) };
+    await expect(new BackupService(broken).restore(service.preview(JSON.stringify(data)))).rejects.toThrow('disk full');
+    expect(await snapshot()).toEqual(before);
+    const preview = service.preview(JSON.stringify(data));
+    preview.backup.profiles[0].profile.xp = 2;
+    await expect(service.restore(preview)).rejects.toThrow();
+    expect(await snapshot()).toEqual(before);
+});
+test('restored_active_question_continues_and_historical_revisions_survive', async () => {
+    const p = await createProfile(h.db, 'A'), w = (await h.words.list(p.id))[0];
+    const s = await h.sessions.start(p.id, { mode: 'study', wordIds: [w.id] }, day), q = (await h.sessions.next(p.id, s.id, day))!;
+    await h.answers.submit(p.id, s.id, q.attemptId, q.expected[0], day);
+    await h.words.update(p.id, w.id, { ...w, ru: 'новый перевод' });
+    const active = await h.sessions.start(p.id, { mode: 'study', wordIds: [w.id] }, day);
+    await h.sessions.next(p.id, active.id, day);
+    const service = new BackupService(h.db), result = await service.restore(service.preview(JSON.stringify(await service.exportAll()))), resumed = (await h.sessions.resume(result.profileIds[0]))!;
+    expect(resumed.currentQuestion!.revision).toBe(2);
+    expect(await h.answers.submit(result.profileIds[0], resumed.id, resumed.currentQuestion!.attemptId, resumed.currentQuestion!.expected[0], day)).toMatchObject({ right: true, xpDelta: 10 });
+});
+test('rejects_corrupt_rewards_schedule_active_content_and_skill_totals', async () => {
+    const p = await createProfile(h.db, 'A'), w = (await h.words.list(p.id))[0];
+    await h.db.run('UPDATE word_progress SET streak=19 WHERE wordId=?', [w.id]);
+    const s = await h.sessions.start(p.id, { mode: 'study', wordIds: [w.id] }, day), q = (await h.sessions.next(p.id, s.id, day))!;
+    await h.answers.submit(p.id, s.id, q.attemptId, q.expected[0], day);
+    const service = new BackupService(h.db), mastered = await service.exportAll();
+    const corruptions: [
+        string,
+        (p: any) => void
+    ][] = [['reward amount', p => p.rewards[0].amount = 100], ['reward date', p => p.rewards[0].day = '2026-10-04'], ['missing reward', p => p.rewards = []], ['schedule', p => p.progress.find((r: any) => r.learned).dueDate = null], ['stage', p => p.progress.find((r: any) => r.learned).reviewStage = 6], ['streak', p => p.progress.find((r: any) => r.learned).streak = 19], ['skill totals', p => p.skillStats[0].correct = 99], ['daily totals', p => p.dailyActivity[0].xp = 0], ['historical reward result', p => { p.attempts[0].result.state = { ...p.attempts[0].result.state, mastered: false, streak: 0, reviewStage: 0, dueDay: null }; p.sessions[0].result = p.attempts[0].result; }]];
+    for (const [label, mutate] of corruptions) {
+        const bad = JSON.parse(JSON.stringify(mastered));
+        mutate(bad.profiles[0]);
+        let rejected = false;
+        try {
+            service.preview(JSON.stringify(bad));
+        }
+        catch {
+            rejected = true;
+        }
+        expect({ label, rejected }).toEqual({ label, rejected: true });
+    }
+    const review = await h.sessions.start(p.id, { mode: 'review', wordIds: [w.id] }, '2026-10-04');
+    await h.sessions.next(p.id, review.id, '2026-10-04');
+    const active = await service.exportAll();
+    for (const key of ['prompt', 'expected', 'revision', 'dueDay']) {
+        const bad = JSON.parse(JSON.stringify(active)), part = bad.profiles[0], row = part.questions.find((q: any) => q.status === 'active'), session = part.sessions.find((s: any) => s.status === 'active');
+        const value = key === 'expected' ? ['forged'] : key === 'revision' ? 99 : key === 'dueDay' ? '2026-10-05' : 'forged';
+        row.payload[key] = value;
+        session.currentQuestion[key] = value;
+        if (key === 'revision')
+            row.revision = value;
+        expect(() => service.preview(JSON.stringify(bad))).toThrow();
+    }
+});

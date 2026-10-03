@@ -9,3 +9,9 @@ test('unknown size still uses bounded native read and guards UTF8 bytes',async()
  expect(await picker.readText('csv',2)).toEqual({name:'words.csv',text:'ä'});expect(limit).toBe(2);
  await expect(picker.readText('csv',1)).rejects.toMatchObject({code:'VALIDATION'});
 });
+test('json_limit_is_checked_before_read_and_save_errors_are_translated',async()=>{
+ const picker=createFilePicker(async()=>({name:'large.json',uri:'content://file',size:50*1024*1024+1}),async()=>{throw new Error('must not read');},async()=>{throw new Error('ENOSPC');});
+ await expect(picker.readText('json',50*1024*1024)).rejects.toThrow(/50 МиБ/);
+ await expect(picker.saveText('backup.json','{}')).rejects.toThrow(/места|сохранить/);
+ expect(await createFilePicker(async()=>null,async()=>'',async()=>false).saveText('backup.json','{}')).toBe(false);
+});
