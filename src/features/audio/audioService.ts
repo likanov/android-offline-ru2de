@@ -8,6 +8,10 @@ export class AudioUnavailableError extends Error {
  readonly code = 'AUDIO_UNAVAILABLE';
  constructor(){super('Офлайн-озвучка недоступна');}
 }
+export class AudioCancelledError extends Error {
+ readonly code='AUDIO_CANCELLED';
+ constructor(){super('Озвучка остановлена');}
+}
 export class AudioService {
  private generation=0;
  constructor(private recordings:readonly Recording[],private speech:OfflineSpeech,private player:AudioPlayer){}
@@ -21,7 +25,10 @@ export class AudioService {
   if(recording){const uri=await recording.localUri();if(generation===this.generation)await this.player.play(uri);return;}
   const voice=await this.voice();if(generation!==this.generation)return;
   if(!voice)throw new AudioUnavailableError();
-  try{await this.speech.speakOffline(text,voice.id,`audio-${generation}`);}catch{throw new AudioUnavailableError();}
+  try{await this.speech.speakOffline(text,voice.id,`audio-${generation}`);}catch(error){
+   if(generation!==this.generation || (error as {code?:string})?.code==='AUDIO_CANCELLED')throw new AudioCancelledError();
+   throw new AudioUnavailableError();
+  }
  }
  async stop():Promise<void>{++this.generation;await Promise.all([this.player.stop(),this.speech.stopSpeech()]);}
 }

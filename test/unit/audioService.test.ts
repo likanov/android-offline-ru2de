@@ -25,3 +25,15 @@ test('stop_cancels_pending_playback_resolution',async()=>{
  const service=new AudioService([{text:'der Stuhl',localUri:()=>new Promise<string>(r=>{resolve=r;})}],speech,player);
  const pending=service.play(word());while(!resolve)await Promise.resolve();await service.stop();resolve('file:///stuhl.wav');await pending;expect(player.play).not.toHaveBeenCalled();expect(player.stop).toHaveBeenCalled();expect(speech.stopSpeech).toHaveBeenCalled();
 });
+test('stopped_speech_rejection_is_cancellation_not_unavailability',async()=>{
+ const {speech,service}=setup([{id:'de',language:'de-DE',requiresNetwork:false,installed:true}]);let fail!: (e:Error)=>void;
+ speech.speakOffline.mockImplementation(()=>new Promise<void>((_resolve,reject)=>{fail=reject;}));
+ const pending=service.play(word());while(!fail)await Promise.resolve();const outcome=expect(pending).rejects.toMatchObject({code:'AUDIO_CANCELLED'});
+ await service.stop();fail(new Error('late engine error'));await outcome;
+});
+test('asynchronous_synthesis_error_after_acceptance_rejects_playback',async()=>{
+ const {speech,service}=setup([{id:'de',language:'de-DE',requiresNetwork:false,installed:true}]);let fail!: (e:Error)=>void;
+ speech.speakOffline.mockImplementation(()=>new Promise<void>((_resolve,reject)=>{fail=reject;}));
+ const pending=service.play(word());while(!fail)await Promise.resolve();const outcome=expect(pending).rejects.toMatchObject({code:'AUDIO_UNAVAILABLE'});
+ fail(new Error('synthesis output error'));await outcome;
+});

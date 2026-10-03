@@ -24,6 +24,6 @@ export function WordCardScreen({ db, profileId, wordId, onEdit, onBack, audio: p
         setWord(w); }).catch(e => { if (alive)
         setError(e.message); }); return () => { alive = false; void audio.stop(); }; }, [words, profileId, wordId, audio]);
     useEffect(()=>{let alive=true;if(word)void audio.available(word).then(value=>{if(alive)setAvailable(value);});return()=>{alive=false;};},[word,audio]);
-    async function play(){if(!word)return;setPlaying(true);try{await audio.play(word);}catch{setAvailable(false);setError('Офлайн-озвучка недоступна');}finally{setPlaying(false);}}
+    async function play(){if(!word)return;setPlaying(true);try{await audio.play(word);}catch(error){if((error as {code?:string})?.code!=='AUDIO_CANCELLED'){setAvailable(false);setError('Офлайн-озвучка недоступна');}}finally{setPlaying(false);}}
     return <Screen>{error ? <Text>{error}</Text> : word ? <><GenderCard word={word}/>{available ? <><Button title="Прослушать" disabled={playing} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : <Text>Офлайн-озвучка недоступна</Text>}<Text style={{ fontSize: 24 }}>{word.ru}</Text>{word.plural ? <Text>Множественное число: {word.plural}</Text> : null}{word.exampleDe ? <Text>{word.exampleDe}</Text> : null}{word.exampleRu ? <Text>{word.exampleRu}</Text> : null}{word.note ? <Text>{word.note}</Text> : null}<Button title="Редактировать" onPress={onEdit}/></> : <Text>Загрузка…</Text>}<Button title="Назад в словарь" onPress={onBack}/></Screen>;
 }
