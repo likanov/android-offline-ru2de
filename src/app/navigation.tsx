@@ -70,6 +70,8 @@ function NavigationRoutes() {
         content = <ProfilesScreen />;
     else if (route.screen === 'model')
         content = <ModelSetupScreen />;
+    else if (route.screen === 'transfer')
+        content = <TransferScreen profileId={profile?.id} csv={getCsvImportService(app)} backup={getBackupService(app)}/>;
     else if (!profile)
         content = <Text>Сначала выберите профиль</Text>;
     else if (route.screen === 'today')
@@ -78,8 +80,6 @@ function NavigationRoutes() {
         content = <ReminderSettings key={profile.id} profileId={profile.id} progress={getProgressRepository(app)} service={app.reminders ?? getReminderService(app)}/>;
     else if (route.screen === 'progress')
         content = <ProgressScreen db={db} profileId={profile.id}/>;
-    else if (route.screen === 'transfer')
-        content = <TransferScreen key={profile.id} profileId={profile.id} csv={getCsvImportService(app)} backup={getBackupService(app)}/>;
     else if (route.screen === 'topics')
         content = <TopicsScreen db={db} profileId={profile.id} onStart={startQueue}/>;
     else if (route.screen === 'reviews')
@@ -94,5 +94,5 @@ function NavigationRoutes() {
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
         content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
-    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<View style={{ paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button title="Профили" onPress={() => void navigate({ screen: 'profiles' })}/><Button title="Сегодня" disabled={!profile} onPress={() => void navigate({ screen: 'today' })}/><Button title="Прогресс" disabled={!profile} onPress={() => void navigate({ screen: 'progress' })}/><Button title="Словарь" disabled={!profile} onPress={() => void navigate({ screen: 'dictionary' })}/><Button title="Тренировка" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'study' })}/><Button title="Повторение" disabled={!profile} onPress={() => void navigate({ screen: 'reviews' })}/><Button title="Наборы" disabled={!profile} onPress={() => void navigate({ screen: 'topics' })}/><Button title="Трудные" disabled={!profile} onPress={() => void navigate({ screen: 'difficult' })}/><Button title="Напоминания" disabled={!profile} onPress={() => void navigate({ screen: 'reminders' })}/><Button title="Импорт CSV" disabled={!profile} onPress={() => void navigate({ screen: 'transfer' })}/><Button title="Локальная модель" onPress={() => void navigate({ screen: 'model' })}/></View></View>;
+    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<View style={{ paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button title="Профили" onPress={() => void navigate({ screen: 'profiles' })}/><Button title="Сегодня" disabled={!profile} onPress={() => void navigate({ screen: 'today' })}/><Button title="Прогресс" disabled={!profile} onPress={() => void navigate({ screen: 'progress' })}/><Button title="Словарь" disabled={!profile} onPress={() => void navigate({ screen: 'dictionary' })}/><Button title="Тренировка" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'study' })}/><Button title="Повторение" disabled={!profile} onPress={() => void navigate({ screen: 'reviews' })}/><Button title="Наборы" disabled={!profile} onPress={() => void navigate({ screen: 'topics' })}/><Button title="Трудные" disabled={!profile} onPress={() => void navigate({ screen: 'difficult' })}/><Button title="Напоминания" disabled={!profile} onPress={() => void navigate({ screen: 'reminders' })}/><Button title="Перенос данных" onPress={() => void navigate({ screen: 'transfer' })}/><Button title="Локальная модель" onPress={() => void navigate({ screen: 'model' })}/></View></View>;
 }

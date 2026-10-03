@@ -106,3 +106,34 @@ test('rejects_corrupt_rewards_schedule_active_content_and_skill_totals', async (
         expect(() => service.preview(JSON.stringify(bad))).toThrow();
     }
 });
+test.each(['distractor', 'typing alias'] as const)('export_survives_editing_an_active_question_%s', async dependency => {
+    const p = await createProfile(h.db, 'A');
+    const vocabulary = await h.words.list(p.id), target = vocabulary.find(w => w.pos === 'noun')!;
+    let other = dependency === 'typing alias'
+        ? await h.words.create(p.id, {de:'Sitz',ru:target.ru,pos:'noun',gender:target.gender})
+        : vocabulary.find(w => w.id !== target.id && w.pos === 'noun')!;
+    const session = await h.sessions.start(p.id, {mode:'study',wordIds:[target.id]}, day);
+    let question = (await h.sessions.next(p.id, session.id, day))!;
+    if(dependency === 'typing alias') {
+        await h.sessions.cancelQuestion(p.id, session.id);
+        await h.sessions.next(p.id, session.id, day);
+        await h.sessions.cancelQuestion(p.id, session.id);
+        question = (await h.sessions.next(p.id, session.id, day))!;
+        expect(question.kind).toBe('typing');
+        expect(question.expected).toContain(`${{m:'der',f:'die',n:'das'}[other.gender!]} ${other.de}`);
+    } else {
+        expect(question.kind).toBe('ru-de');
+        other = vocabulary.find(w => w.id !== target.id && question.options.includes(`${{m:'der',f:'die',n:'das'}[w.gender!]} ${w.de}`))!;
+        expect(other).toBeTruthy();
+    }
+    await h.words.update(p.id, other.id, {...other,de:`${other.de}Neu`,ru:'новый зависимый перевод'});
+    // Export must handle this reachable persisted state, without weakening import validation.
+    const data = await h.backup.exportAll();
+    expect(data.profiles[0].sessions[0].currentQuestion).toBeNull();
+    expect(data.profiles[0].questions.find(q => q.attemptId === question.attemptId)!.status).toBe('cancelled');
+    expect((await h.words.get(p.id,target.id)).revision).toBe(target.revision);
+    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(data)));
+    const resumed = (await h.sessions.resume(restored.profileIds[0]))!;
+    const next = (await h.sessions.next(restored.profileIds[0],resumed.id,day))!;
+    expect(await h.answers.submit(restored.profileIds[0],resumed.id,next.attemptId,next.expected[0],day)).toMatchObject({right:true,xpDelta:10});
+});

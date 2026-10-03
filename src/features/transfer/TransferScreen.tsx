@@ -8,7 +8,7 @@ import { CsvImportService, type CsvPreview } from './csvImportService';
 import { BackupService } from './backupService';
 import { BACKUP_MAX_BYTES, type RestorePreview } from './backupTypes';
 type Props = {
-    profileId: string;
+    profileId?: string;
     csv: CsvImportService;
     backup?: BackupService;
     picker?: FilePicker;
@@ -20,6 +20,7 @@ function ProfileTransferScreen({ profileId, csv, backup, picker = filePicker }: 
     const generation = useRef(0), lifetime = useRef({ alive: true });
     useEffect(() => { const state = lifetime.current; state.alive = true; return () => { state.alive = false; }; }, []);
     async function pick() {
+        if (!profileId) return;
         const token = ++generation.current;
         setBusy(true);
         setRestorePreview(null);
@@ -106,5 +107,5 @@ function ProfileTransferScreen({ profileId, csv, backup, picker = filePicker }: 
                 setBusy(false);
         }
     }
-    return <Screen><Text>Импорт CSV</Text><Text>UTF-8, до 10 МиБ. Обязательные столбцы: de, ru. pos: noun (по умолчанию) или adjective; для noun — gender (m/f/n). Дополнительно: plural, example_de, example_ru, note, icon, topic.</Text><Button title="Выбрать CSV" disabled={busy} onPress={() => void pick()}/>{name ? <Text>{name}</Text> : null}{preview ? <><Text>{`Новые: ${preview.valid.length} · Дубли: ${preview.duplicates.length} · Ошибки: ${preview.errors.length}`}</Text>{preview.errors.map(item => <Text key={item.line}>{`Строка ${item.line}: ${item.message}`}</Text>)}<Button title="Импортировать" disabled={busy || !preview.valid.length} onPress={() => void commit()}/></> : null}{backup ? <><Text>Полная резервная копия JSON</Text><Text>Все профили и история занятий, до 50 МиБ. Восстановление создаёт новые профили; переключиться на них можно в разделе «Профили».</Text><Button title="Сохранить резервную копию" disabled={busy} onPress={() => void backupAction('save')}/><Button title="Выбрать резервную копию" disabled={busy} onPress={() => void backupAction('pick')}/>{restorePreview ? <><Text>{`Профилей: ${restorePreview.profileCount} · Слов: ${restorePreview.wordCount}`}</Text><Button title="Восстановить новые профили" disabled={busy || !restorePreview.profileCount} onPress={() => void backupAction('restore')}/><Button title="Отменить восстановление" disabled={busy} onPress={() => setRestorePreview(null)}/></> : null}</> : null}{result ? <Text>{result}</Text> : null}{error ? <Text accessibilityRole="alert">{error}</Text> : null}</Screen>;
+    return <Screen><Text>Импорт CSV</Text>{!profileId ? <Text>Для импорта CSV выберите профиль.</Text> : null}<Text>UTF-8, до 10 МиБ. Обязательные столбцы: de, ru. pos: noun (по умолчанию) или adjective; для noun — gender (m/f/n). Дополнительно: plural, example_de, example_ru, note, icon, topic.</Text><Button title="Выбрать CSV" disabled={busy || !profileId} onPress={() => void pick()}/>{name ? <Text>{name}</Text> : null}{preview ? <><Text>{`Новые: ${preview.valid.length} · Дубли: ${preview.duplicates.length} · Ошибки: ${preview.errors.length}`}</Text>{preview.errors.map(item => <Text key={item.line}>{`Строка ${item.line}: ${item.message}`}</Text>)}<Button title="Импортировать" disabled={busy || !preview.valid.length} onPress={() => void commit()}/></> : null}{backup ? <><Text>Полная резервная копия JSON</Text><Text>Все профили и история занятий, до 50 МиБ. Восстановление создаёт новые профили; переключиться на них можно в разделе «Профили».</Text><Button title="Сохранить резервную копию" disabled={busy} onPress={() => void backupAction('save')}/><Button title="Выбрать резервную копию" disabled={busy} onPress={() => void backupAction('pick')}/>{restorePreview ? <><Text>{`Профилей: ${restorePreview.profileCount} · Слов: ${restorePreview.wordCount}`}</Text><Button title="Восстановить новые профили" disabled={busy || !restorePreview.profileCount} onPress={() => void backupAction('restore')}/><Button title="Отменить восстановление" disabled={busy} onPress={() => setRestorePreview(null)}/></> : null}</> : null}{result ? <Text>{result}</Text> : null}{error ? <Text accessibilityRole="alert">{error}</Text> : null}</Screen>;
 }

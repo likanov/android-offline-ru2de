@@ -63,11 +63,13 @@ export class WordRepository {
             await tx.run('UPDATE words SET de=?,ru=?,pos=?,gender=?,plural=?,exampleDe=?,exampleRu=?,note=?,icon=?,canonicalKey=?,revision=? WHERE id=? AND profileId=?', [draft.de, draft.ru, draft.pos, draft.gender, draft.plural ?? null, draft.exampleDe ?? null, draft.exampleRu ?? null, draft.note ?? '', draft.icon ?? null, wordKey(draft), revision, wordId, profileId]);
             if (learningReset) {
                 await tx.run('UPDATE word_progress SET streak=0,learned=0,reviewStage=0,dueDate=NULL,difficult=0,totalErrors=0,recoveryErrors=0,recoveryCorrect=0 WHERE profileId=? AND wordId=?', [profileId, wordId]);
-                const sessions = await tx.all<{id:string;wordIds:string;currentQuestion:string|null}>('SELECT id,wordIds,currentQuestion FROM sessions WHERE profileId=? AND status=?',[profileId,'active']);
+                const sessions = await tx.all<{id:string;wordIds:string;currentQuestion:string|null;result:string|null}>('SELECT id,wordIds,currentQuestion,result FROM sessions WHERE profileId=? AND status=?',[profileId,'active']);
                 for (const session of sessions) {
                     const current=session.currentQuestion?JSON.parse(session.currentQuestion):null;
                     const ids=(JSON.parse(session.wordIds) as string[]).filter(id=>id!==wordId);
-                    if(current?.wordId===wordId){
+                    // Any unanswered question can contain this word as a distractor or alias.
+                    // Regenerate it after a lexical edit; answered results remain immutable.
+                    if(current?.wordId===wordId || (current && !session.result)){
                         await tx.run("UPDATE questions SET status='cancelled' WHERE attemptId=? AND status='active'",[current.attemptId]);
                         await tx.run('UPDATE sessions SET wordIds=?,cursor=0,currentQuestion=NULL,result=NULL WHERE id=?',[JSON.stringify(ids),session.id]);
                     } else await tx.run('UPDATE sessions SET wordIds=?,cursor=0 WHERE id=?',[JSON.stringify(ids),session.id]);
