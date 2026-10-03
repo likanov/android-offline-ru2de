@@ -3,6 +3,7 @@ import type { Profile } from "../../core/types";
 import { randomUUID } from "expo-crypto";
 import { starterWords } from "../../data/starterWords";
 import { NotFoundError, ValidationError } from "../../core/errors";
+import { wordKey } from "../dictionary/wordValidation";
 function profileName(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) throw new ValidationError("Введите имя профиля");
@@ -26,7 +27,7 @@ export async function createProfile(
     for (const word of starterWords) {
       const id = randomUUID();
       await tx.run(
-        "INSERT INTO words(id,profileId,seedKey,seedDe,de,ru,pos,gender) VALUES (?,?,?,?,?,?,?,?)",
+        "INSERT INTO words(id,profileId,seedKey,seedDe,de,ru,pos,gender,plural,exampleDe,exampleRu,note,canonicalKey) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [
           id,
           profile.id,
@@ -36,6 +37,11 @@ export async function createProfile(
           word.ru,
           word.pos,
           word.gender,
+          word.plural ?? null,
+          word.exampleDe ?? null,
+          word.exampleRu ?? null,
+          word.note ?? "",
+          wordKey(word),
         ],
       );
       await tx.run("INSERT INTO word_progress(profileId,wordId) VALUES (?,?)", [

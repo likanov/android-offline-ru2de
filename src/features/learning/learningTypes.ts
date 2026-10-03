@@ -11,6 +11,8 @@ export type Word = {
   exampleDe: string | null;
   exampleRu: string | null;
   note: string;
+  icon?: string | null;
+  revision?: number;
 };
 export type LearningState = {
   streak: number;
@@ -28,3 +30,4 @@ export type LearningTransition = {
   xpDelta: number;
   firstMastery: boolean;
 };
+export type WordDraft = Pick<Word, 'de'|'ru'|'pos'|'gender'> & Partial<Pick<Word,'plural'|'exampleDe'|'exampleRu'|'note'>> & { icon?: string | null };

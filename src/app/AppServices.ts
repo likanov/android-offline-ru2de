@@ -1,3 +1,4 @@
+import { WordRepository } from "../features/dictionary/wordRepository";
 import { createContext, useContext } from "react";
 import type { SqlStore } from "../core/sql";
 import { ModelFiles } from "../features/assistant/modelFiles";
@@ -46,4 +47,10 @@ export function getAssistantServices(app: AppServices): SetupServices {
   };
   assistants.set(app.db, services);
   return services;
+}
+
+const dictionaries = new WeakMap<SqlStore, WordRepository>();
+export function getWordRepository(app: AppServices): WordRepository {
+ const existing=dictionaries.get(app.db); if(existing) return existing;
+ const words=new WordRepository(app.db); dictionaries.set(app.db,words); return words;
 }
