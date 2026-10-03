@@ -1,5 +1,5 @@
 export type DayKey = string;
-export type Skill = "translation" | "article" | "plural";
+export type Skill = "translation" | "writing" | "article" | "listening";
 export type Word = {
   id: string;
   profileId: string;
