@@ -1,3 +1,4 @@
+import { topicsSchema, seedProfileTopics } from './migrations/004_topics';
 import type { SqlStore } from "./sql";
 import { profilesSchema } from "./migrations/001_profiles";
 import { wordDetailsSchema } from "./migrations/002_word_details";
@@ -10,7 +11,7 @@ export async function migrate(db: SqlStore): Promise<void> {
     const version = await tx.first<{ user_version: number }>(
       "PRAGMA user_version",
     );
-    if ((version?.user_version ?? 0) > 3)
+    if ((version?.user_version ?? 0) > 4)
       throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 1) {
       await tx.exec(profilesSchema);
@@ -27,6 +28,11 @@ export async function migrate(db: SqlStore): Promise<void> {
     if ((version?.user_version ?? 0) < 3) {
       await tx.exec(learningSchema);
       await tx.exec("PRAGMA user_version=3;");
+    }
+    if ((version?.user_version ?? 0) < 4) {
+      await tx.exec(topicsSchema);
+      for (const profile of await tx.all<{id:string}>('SELECT id FROM profiles')) await seedProfileTopics(tx,profile.id);
+      await tx.exec('PRAGMA user_version=4;');
     }
   });
 }

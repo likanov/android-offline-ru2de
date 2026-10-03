@@ -1,3 +1,4 @@
+import { seedProfileTopics } from '../../core/migrations/004_topics';
 import type { SqlStore } from "../../core/sql";
 import type { Profile } from "../../core/types";
 import { randomUUID } from "expo-crypto";
@@ -49,6 +50,7 @@ export async function createProfile(
         id,
       ]);
     }
+    await seedProfileTopics(tx,profile.id);
     await tx.run("INSERT INTO settings(profileId) VALUES (?)", [profile.id]);
     await tx.run("UPDATE app_settings SET activeProfileId=? WHERE id=1", [
       profile.id,

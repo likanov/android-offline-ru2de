@@ -1,3 +1,4 @@
+import { TopicRepository, type Topic } from '../topics/topicRepository';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Text, TextInput, Switch, View } from 'react-native';
 import type { SqlStore } from '../../core/sql';
@@ -13,7 +14,10 @@ export function DictionaryScreen({ db, profileId, onOpen, onCreate }: {
     onCreate: () => void;
 }) {
     const repository = useMemo(() => new WordRepository(db), [db]);
+    const topics=useMemo(()=>new TopicRepository(db),[db]);
+    const [topicRows,setTopicRows]=useState<Topic[]>([]);
     const [words, setWords] = useState<Word[]>([]), [filter, setFilter] = useState<WordFilter>({ state: 'all' }), [error, setError] = useState('');
+    useEffect(()=>{let alive=true;void topics.list(profileId).then(rows=>{if(alive)setTopicRows(rows);}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false;};},[topics,profileId]);
     useEffect(() => { let alive = true; void repository.list(profileId, filter).then(w => { if (alive)
         setWords(w); }).catch(e => { if (alive)
         setError(e.message); }); return () => { alive = false; }; }, [repository, profileId, filter]);
@@ -21,5 +25,6 @@ export function DictionaryScreen({ db, profileId, onOpen, onCreate }: {
  <Text>Фильтр: {filter.state === 'mastered' ? 'Изученные' : filter.state === 'learning' ? 'В процессе' : 'Все'}</Text>
  {([['all', 'Все'], ['learning', 'В процессе'], ['mastered', 'Изученные']] as const).map(([state, title]) => <Button key={state} title={title} onPress={() => setFilter({ ...filter, state })}/>)}
  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Text>Только трудные</Text><Switch accessibilityLabel="Только трудные" value={filter.difficult === true} onValueChange={value => setFilter({ ...filter, difficult: value ? true : undefined })}/></View>
+ <Text>Тема: {topicRows.find(t=>t.id===filter.topicId)?.name ?? 'Все темы'}</Text><Button title="Все темы" onPress={()=>setFilter({...filter,topicId:undefined})}/>{topicRows.map(topic=><Button key={topic.id} title={`Тема: ${topic.name}`} onPress={()=>setFilter({...filter,topicId:topic.id})}/>)}
  <Button title="Добавить слово" onPress={onCreate}/>{error ? <Text>{error}</Text> : null}<Text>Найдено: {words.length}</Text>{words.map(word => <Button key={word.id} title={`${displayGerman(word)} — ${word.ru}`} onPress={() => onOpen(word.id)}/>)}</Screen>;
 }

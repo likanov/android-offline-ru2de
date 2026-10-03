@@ -121,3 +121,12 @@ export const starterWords: readonly StarterWord[] = [
   exampleRu: details[word.de]?.[2] ?? adjectiveExamples[word.de]?.[1] ?? null,
   note: details[word.de]?.[3] ?? "",
 }));
+
+export const starterTopics: readonly { name: string; words: readonly string[] }[] = [
+ {name:'Предметы и комната',words:['Tisch','Stuhl','Schrank','Stift','Computer','Lampe','Tasche','Blume','Vase','Buch','Bild','Haus','Zimmer','Spielzeug']},
+ {name:'Люди',words:['Mensch','Lehrer','Kind','Mädchen']},
+ {name:'Транспорт',words:['Zug','Straße']},
+ {name:'Учёба и печать',words:['Stift','Computer','Buch','Wort','Übung','Zeitung','Zeitschrift']},
+ {name:'Признаки',words:['groß','klein','neu','alt','gut','schlecht','schön','interessant']},
+ {name:'Цвета',words:['weiß','schwarz','rot','blau','grün','grau','braun','gelb']},
+];
