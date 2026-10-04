@@ -526,7 +526,9 @@ name: upgrade-before
     }
   },
   {
-    "tapOn": "Сохранить слово"
+    "tapOn": {
+      "id": "word-save"
+    }
   },
   {
     "runFlow": {

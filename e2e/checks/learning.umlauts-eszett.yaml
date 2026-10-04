@@ -705,7 +705,9 @@ name: learning.umlauts-eszett
     }
   },
   {
-    "tapOn": "Сохранить слово"
+    "tapOn": {
+      "id": "word-save"
+    }
   },
   {
     "tapOn": {

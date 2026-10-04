@@ -290,7 +290,9 @@ name: dictionary.lexical-reset
     }
   },
   {
-    "tapOn": "Сохранить слово"
+    "tapOn": {
+      "id": "word-save"
+    }
   },
   {
     "repeat": {

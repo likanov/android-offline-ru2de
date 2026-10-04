@@ -500,7 +500,9 @@ name: assistant.helper-profile-dependency
     }
   },
   {
-    "tapOn": "Сохранить слово"
+    "tapOn": {
+      "id": "word-save"
+    }
   },
   {
     "repeat": {

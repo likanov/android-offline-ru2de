@@ -54,7 +54,7 @@ export function WordEditorScreen({ db, profileId, wordId, onSaved, onCancel }: {
  <IconPicker value={draft.icon ?? null} onChange={icon => setDraft({ ...draft, icon })}/>
  <TopicPicker topics={topicRows} value={topicIds} onChange={setTopicIds} disabled={busy || !loaded}/>
  <Text>Изменение слова, перевода, части речи или рода сбрасывает обучение этого слова. Заметка, пример, множественное число и иконка сохраняют прогресс.</Text>
- <Button title="Сохранить слово" disabled={busy || !loaded} onPress={() => void save()}/>
+ <Button testID="word-save" title="Сохранить слово" disabled={busy || !loaded} onPress={() => void save()}/>
  <Button title="Отмена" onPress={onCancel}/>
  </Screen></KeyboardAvoidingView>;
 }

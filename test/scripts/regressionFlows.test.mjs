@@ -83,6 +83,14 @@ test('dictionary_edit_returns_to_dictionary_before_looking_for_edit_action',()=>
  assert.notEqual(nounSeekIndex,-1,'the flow should re-anchor on the saved noun card before seeking Edit');
 });
 
+test('dictionary_word_editor_saves_by_stable_button_id',()=>{
+ const path=resolve(root,'checks/dictionary.noun-adjective-edit.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ const saveTaps=commands.filter((command)=>command.tapOn?.id==='word-save');
+ assert.ok(saveTaps.length>=3,'dictionary create/edit/adjective saves should tap the stable word-save id');
+ assert.ok(!s.includes('"tapOn": "Сохранить слово"'),'text-only save taps are flaky on Android after long editor scrolling');
+});
+
 test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_text_scrolls',()=>{
  const path=resolve(root,'checks/first-launch.clean-40-words.yaml'),s=readFileSync(path,'utf8');
  assert.match(s,/"id"\s*:\s*"profile-new-name"/);

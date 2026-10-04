@@ -426,7 +426,9 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
-    "tapOn": "Сохранить слово"
+    "tapOn": {
+      "id": "word-save"
+    }
   },
   {
     "repeat": {
@@ -658,7 +660,9 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
-    "tapOn": "Сохранить слово"
+    "tapOn": {
+      "id": "word-save"
+    }
   },
   {
     "repeat": {
@@ -1117,7 +1121,9 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
-    "tapOn": "Сохранить слово"
+    "tapOn": {
+      "id": "word-save"
+    }
   },
   {
     "repeat": {

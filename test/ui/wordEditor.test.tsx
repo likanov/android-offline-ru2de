@@ -46,6 +46,15 @@ test('editing_metadata_preserves_learning_on_real_sqlite', async () => {
     close();
 });
 
+test('editor_exposes_stable_save_button_for_android_regression', async () => {
+    const { db, close } = openTestDb();
+    await migrate(db);
+    const p = await createProfile(db, 'A');
+    render(<WordEditorScreen db={db} profileId={p.id} onSaved={() => { }} onCancel={() => { }}/>);
+    expect(await screen.findByTestId('word-save')).toBeTruthy();
+    close();
+});
+
 test('navigation_returns_to_saved_card_and_searches_new_word',async()=>{
  const {db,close}=openTestDb();await migrate(db);await createProfile(db,'A');
  render(<AppServicesContext.Provider value={{db}}><ActiveProfileProvider><Navigation/></ActiveProfileProvider></AppServicesContext.Provider>);
