@@ -129,6 +129,17 @@ test('dictionary_search_nfc_nfd_duplicate_uses_same_translation_as_existing_word
  assert.notEqual(duplicateAssertIndex,-1,'flow should assert the duplicate validation message after trying to save same de/ru in NFD form');
 });
 
+test('dictionary_search_nfc_nfd_stops_after_duplicate_validation_message',()=>{
+ const path=resolve(root,'checks/dictionary.search-nfc-nfd.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ const duplicateAssertIndex=commands.findIndex((command)=>command.assertVisible==='Такое слово уже есть в словаре');
+ assert.notEqual(duplicateAssertIndex,-1,'flow should assert the duplicate validation message');
+ const laterCommands=commands.slice(duplicateAssertIndex+1);
+ assert.equal(laterCommands.length,0,'after the duplicate message is visible, the business rule is verified and the flow should not keep scrolling the editor');
+ assert.ok(!s.includes('"text": "Отмена"'),'searching for the cancel button after duplicate validation is flaky because long scrolls can move away from the error message');
+ assert.ok(!s.includes('"tapOn": "Отмена"'));
+});
+
 
 test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_text_scrolls',()=>{
  const path=resolve(root,'checks/first-launch.clean-40-words.yaml'),s=readFileSync(path,'utf8');
