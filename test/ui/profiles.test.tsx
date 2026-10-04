@@ -115,3 +115,25 @@ test("active_profile_actions_stay_next_to_the_profile_name_for_small_viewports",
   );
   close();
 });
+
+
+test("profile_edit_form_appears_before_the_profile_list_after_rename_tap", async () => {
+  const { db, close } = openTestDb();
+  await migrate(db);
+  await createProfile(db, "Второй UI");
+  await createProfile(db, "Регрессия UI");
+  const view = render(
+    <AppServicesContext.Provider value={{ db }}>
+      <ActiveProfileProvider>
+        <ProfilesScreen />
+      </ActiveProfileProvider>
+    </AppServicesContext.Provider>,
+  );
+  fireEvent.press(await screen.findByTestId("profile-rename-второй-ui"));
+  await screen.findByTestId("profile-edit-name");
+  const ids = collectTestIds(view.toJSON());
+  expect(ids.indexOf("profile-edit-name")).toBeLessThan(
+    ids.indexOf("profile-card-второй-ui"),
+  );
+  close();
+});

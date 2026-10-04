@@ -121,7 +121,7 @@ name: profiles.profile-create-rename
             "from": {
               "id": "screen-scroll"
             },
-            "direction": "UP",
+            "direction": "DOWN",
             "duration": 400
           }
         }

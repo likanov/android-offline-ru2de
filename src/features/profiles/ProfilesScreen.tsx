@@ -98,6 +98,29 @@ export function ProfilesScreen() {
           }}
         />
       </View>
+      {editing && (
+        <View style={styles.card}>
+          <TextInput
+            testID="profile-edit-name"
+            style={styles.input}
+            accessibilityLabel="Новое имя профиля"
+            value={editName}
+            onChangeText={setEditName}
+          />
+          <Button
+            testID="profile-save-name"
+            title="Сохранить имя"
+            disabled={busy}
+            onPress={() => {
+              void perform(async () => {
+                await renameProfile(db, editing.id, editName);
+                setEditing(null);
+              });
+            }}
+          />
+          <Button title="Отмена" onPress={() => setEditing(null)} />
+        </View>
+      )}
       {displayedProfiles.map((item) => (
         <View
           key={item.id}
@@ -127,29 +150,6 @@ export function ProfilesScreen() {
           </Text>
         </View>
       ))}
-      {editing && (
-        <View style={styles.card}>
-          <TextInput
-            testID="profile-edit-name"
-            style={styles.input}
-            accessibilityLabel="Новое имя профиля"
-            value={editName}
-            onChangeText={setEditName}
-          />
-          <Button
-            testID="profile-save-name"
-            title="Сохранить имя"
-            disabled={busy}
-            onPress={() => {
-              void perform(async () => {
-                await renameProfile(db, editing.id, editName);
-                setEditing(null);
-              });
-            }}
-          />
-          <Button title="Отмена" onPress={() => setEditing(null)} />
-        </View>
-      )}
       {!!error && (
         <Text accessibilityRole="alert" style={styles.error}>
           {error}

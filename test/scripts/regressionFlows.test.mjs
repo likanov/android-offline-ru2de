@@ -58,6 +58,16 @@ test('profile_create_rename_scrolls_to_new_profile_input_by_id_before_asserting'
 });
 
 
+
+test('profile_create_rename_scrolls_back_to_edit_form_after_rename_tap',()=>{
+ const path=resolve(root,'checks/profiles.profile-create-rename.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ const editSeek=commands.find((command)=>command.repeat?.while?.notVisible?.id==='profile-edit-name');
+ assert.ok(editSeek,'profile edit field should be sought by stable id');
+ assert.equal(editSeek.repeat?.commands?.[0]?.swipe?.from?.id,'screen-scroll');
+ assert.equal(editSeek.repeat?.commands?.[0]?.swipe?.direction,'DOWN');
+});
+
 test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_text_scrolls',()=>{
  const path=resolve(root,'checks/first-launch.clean-40-words.yaml'),s=readFileSync(path,'utf8');
  assert.match(s,/"id"\s*:\s*"profile-new-name"/);
