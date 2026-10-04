@@ -68,6 +68,21 @@ test('profile_create_rename_scrolls_back_to_edit_form_after_rename_tap',()=>{
  assert.equal(editSeek.repeat?.commands?.[0]?.swipe?.direction,'DOWN');
 });
 
+
+
+test('dictionary_edit_returns_to_dictionary_before_looking_for_edit_action',()=>{
+ const path=resolve(root,'checks/dictionary.noun-adjective-edit.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ const savedIndex=commands.findIndex((command)=>command.assertVisible==='der Prüfschrank');
+ assert.notEqual(savedIndex,-1,'flow should verify the saved noun card');
+ const editTargetIndex=commands.findIndex((command,index)=>index>savedIndex&&command.runFlow?.env?.TARGET_TEXT==='Редактировать');
+ assert.notEqual(editTargetIndex,-1,'flow should seek the edit action after saving the noun');
+ const navIndex=commands.findIndex((command,index)=>index>savedIndex&&index<editTargetIndex&&command.tapOn?.id==='nav-dictionary');
+ assert.notEqual(navIndex,-1,'saving returns to the home card, so the flow must reopen Dictionary before seeking Edit');
+ const nounSeekIndex=commands.findIndex((command,index)=>index>navIndex&&index<editTargetIndex&&command.runFlow?.env?.TARGET_TEXT==='der Prüfschrank');
+ assert.notEqual(nounSeekIndex,-1,'the flow should re-anchor on the saved noun card before seeking Edit');
+});
+
 test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_text_scrolls',()=>{
  const path=resolve(root,'checks/first-launch.clean-40-words.yaml'),s=readFileSync(path,'utf8');
  assert.match(s,/"id"\s*:\s*"profile-new-name"/);

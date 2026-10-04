@@ -470,6 +470,19 @@ name: dictionary.noun-adjective-edit
     "assertVisible": "der Prüfschrank"
   },
   {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "der Prüfschrank"
+      }
+    }
+  },
+  {
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
