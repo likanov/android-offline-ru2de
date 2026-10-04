@@ -11,52 +11,10 @@ name: export-state
     "repeat": {
       "while": {
         "notVisible": {
-          "text": "Сохранить резервную копию"
+          "id": "backup-save"
         }
       },
-      "times": 35,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Сохранить резервную копию"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Сохранить резервную копию"
-        }
-      },
-      "times": 18,
+      "times": 12,
       "commands": [
         {
           "swipe": {
@@ -72,19 +30,13 @@ name: export-state
   },
   {
     "assertVisible": {
-      "text": "Сохранить резервную копию"
+      "id": "backup-save"
     }
   },
   {
-    "runFlow": {
-      "file": "ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Сохранить резервную копию"
-      }
+    "tapOn": {
+      "id": "backup-save"
     }
-  },
-  {
-    "tapOn": "Сохранить резервную копию"
   },
   {
     "tapOn": {

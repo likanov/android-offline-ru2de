@@ -24,3 +24,11 @@ test('documentsui_picker_selects_file_result_not_search_box',()=>{
  assert.match(s,/"id"\s*:\s*"android:id\/title"/);
  assert.ok(!s.includes('"tapOn": "${FILE}"'),'generic text tap can hit the search input instead of the file result');
 });
+
+
+test('export_state_scrolls_to_stable_backup_save_id_instead_of_text_only_button_label',()=>{
+ const path=resolve(root,'helpers/export-state.yaml'),s=readFileSync(path,'utf8');
+ assert.match(s, /"id"\s*:\s*"backup-save"/);
+ assert.ok(!s.includes('"text": "Сохранить резервную копию"'), 'React Native Button exposes the title as accessibility text, not stable visible text');
+ assert.ok(!s.includes('"tapOn": "Сохранить резервную копию"'));
+});
