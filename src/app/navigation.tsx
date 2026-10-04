@@ -24,6 +24,7 @@ type Route = {
     screen: 'profiles' | 'assistant' | 'error-explanation' | 'practice' | 'model' | 'dictionary' | 'card' | 'editor' | 'training' | 'reviews' | 'difficult' | 'topics' | 'today' | 'progress' | 'reminders' | 'transfer';
     wordId?: string;
     attemptId?: string;
+    practiceKind?: 'cloze' | 'difficult';
     mode?: 'study' | 'review';
     fromTraining?: boolean;
     wordIds?: string[];
@@ -89,7 +90,7 @@ function NavigationRoutes() {
     else if (route.screen === 'error-explanation')
         content = <ErrorExplanationScreen profileId={profile.id} attemptId={route.attemptId!} assistant={getMemoryAssistant(app)} onModelSetup={() => void navigate({screen:'model'})} onBack={back}/>;
     else if (route.screen === 'practice')
-        content = <PracticeScreen db={db} profileId={profile.id} request={{ kind: 'cloze', profileId: profile.id, wordIds: route.wordIds! }} assistant={getMemoryAssistant(app)} onBack={back}/>;
+        content = <PracticeScreen db={db} profileId={profile.id} request={{ kind: route.practiceKind ?? 'cloze', profileId: profile.id, wordIds: route.wordIds! }} assistant={getMemoryAssistant(app)} onBack={back}/>;
     else if (route.screen === 'today')
         content = <TodayScreen db={db} profileId={profile.id} onStart={startQueue} onProgress={() => setRoute({screen:'progress'})}/>;
     else if (route.screen === 'reminders')
@@ -101,7 +102,7 @@ function NavigationRoutes() {
     else if (route.screen === 'reviews')
         content = <ReviewsScreen db={db} profileId={profile.id} onStart={startQueue}/>;
     else if (route.screen === 'difficult')
-        content = <DifficultWordsScreen db={db} profileId={profile.id} onStart={startQueue}/>;
+        content = <DifficultWordsScreen db={db} profileId={profile.id} onStart={startQueue} onPractice={wordIds => setRoute({ screen: 'practice', practiceKind: 'difficult', wordIds })}/>;
     else if (route.screen === 'training')
         content = <TrainingScreen key={`${profile.id}:${route.mode ?? 'study'}`} db={db} profileId={profile.id} selection={{ mode: route.mode ?? 'study', wordIds: route.wordIds }} onHelper={wordId => setRoute({screen:'assistant', wordId, fromTraining:true, mode:route.mode, wordIds:route.wordIds})} onExplainError={attemptId => setRoute({ screen: 'error-explanation', attemptId, mode: route.mode, wordIds: route.wordIds })} onReveal={wordId => setRoute({ screen: 'card', wordId, fromTraining: true, mode: route.mode, wordIds: route.wordIds })}/>;
     else if (route.screen === 'dictionary')
@@ -109,7 +110,7 @@ function NavigationRoutes() {
     else if (route.screen === 'editor')
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
-        content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
+        content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', practiceKind: 'cloze', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
     const active = ['card', 'editor', 'assistant', 'error-explanation', 'practice'].includes(route.screen)
         ? route.fromTraining ? 'training' : 'dictionary'
         : route.screen as React.ComponentProps<typeof NavigationMenu>['active'];

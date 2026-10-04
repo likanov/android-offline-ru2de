@@ -14,6 +14,7 @@ import { buildMessages } from './assistantPrompts';
 import { readClozeWords, readErrorContext } from './practiceContext';
 import { buildClozePracticeMessages, buildErrorPracticeMessages } from './practicePrompts';
 import { decodeClozeOutput } from './practiceValidation';
+import { DifficultPracticeRepository } from './difficultPracticeRepository';
 export class AssistantService {
     private epoch = 0;
     private active?: AbortController;
@@ -114,7 +115,7 @@ export class AssistantService {
     }
     async generatePractice(request: PracticeRequest, signal: AbortSignal, onText: (text: string) => void): Promise<PracticeResult> {
         request = request.kind === 'error' ? { ...request } : { ...request, wordIds: [...request.wordIds] };
-        if (!['error', 'cloze'].includes(request.kind))
+        if (!['error', 'cloze', 'difficult'].includes(request.kind))
             throw new AppError('VALIDATION', 'Этот режим практики ещё не готов');
         if (signal.aborted)
             throw new AppError('CANCELLED', 'Запрос отменён');
@@ -138,6 +139,8 @@ export class AssistantService {
         try {
             await this.draining.catch(() => { });
             check();
+            if (!await this.activeProfile(this.db, request.profileId))
+                throw new AppError('WRONG_PROFILE', 'Выберите этот профиль');
             let messages;
             let maxTokens = 256;
             let finishResult: (text: string) => PracticeResult;
@@ -148,11 +151,15 @@ export class AssistantService {
                 finishResult = text => ({ kind: 'error', profileId: request.profileId, attemptId: request.attemptId, submittedAnswer: context.result.submittedAnswer, expected: context.question.expected, text, referenceTitle: context.reference?.title ?? null } satisfies ErrorExplanation);
             }
             else {
-                const words = await readClozeWords(this.db, request.profileId, request.wordIds);
+                const words = request.kind === 'difficult' ? await new DifficultPracticeRepository(this.db).select(request.profileId) : await readClozeWords(this.db, request.profileId, request.wordIds);
+                if (!words.length)
+                    throw new AppError('VALIDATION', 'Трудных слов пока нет');
+                if (request.kind === 'difficult' && JSON.stringify(words.map(word => word.id)) !== JSON.stringify(request.wordIds))
+                    throw new AppError('STALE_QUESTION', 'Список трудных слов изменился');
                 dependencies = words.map(word => ({ wordId: word.id, revision: word.revision ?? 1 }));
                 messages = buildClozePracticeMessages(words);
                 maxTokens = 512;
-                finishResult = text => ({ kind: 'cloze', profileId: request.profileId, exercises: decodeClozeOutput(text, words), dependencies } satisfies ClozePractice);
+                finishResult = text => ({ kind: request.kind, profileId: request.profileId, exercises: decodeClozeOutput(text, words), dependencies } satisfies ClozePractice);
             }
             check();
             off = subscribeProfileChanges(request.profileId, () => {

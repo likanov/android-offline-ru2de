@@ -47,3 +47,40 @@ test('practice_reveals_sentence_only_after_submit', async () => {
         h.close();
     }
 });
+
+test('practice_three_correct_does_not_clear_difficult', async () => {
+    let targetId = '';
+    const runtime: LanguageRuntime = {
+        load: async () => {},
+        generate: async () => JSON.stringify({ exercises: [{ wordId: targetId, before: 'Der ', after: ' ist klein.', translationRu: 'Стул маленький.' }] }),
+        cancel: async () => {},
+        release: async () => {},
+    };
+    const h = await createAssistantHarness(runtime);
+    const profile = await createProfile(h.db, 'A');
+    const word = (await h.words.list(profile.id)).find(w => w.de === 'Stuhl')!;
+    targetId = word.id;
+    await h.db.run('UPDATE word_progress SET difficult=1,totalErrors=3 WHERE profileId=? AND wordId=?', [profile.id, word.id]);
+    const before = await h.wordState(profile.id, word.id);
+    const view = render(<AppServicesContext.Provider value={{ db: h.db, assistant: h.assistant }}><ActiveProfileProvider><Navigation /></ActiveProfileProvider></AppServicesContext.Provider>);
+    try {
+        await screen.findByText('Активный профиль: A');
+        fireEvent.press(screen.getByRole('button', { name: 'Ещё' }));
+        fireEvent.press(await screen.findByRole('button', { name: 'Трудные' }));
+        fireEvent.press(await screen.findByRole('button', { name: 'Практика с помощником' }));
+        await screen.findByText(/Выбрано: .*Stuhl/);
+        fireEvent.press(screen.getByRole('button', { name: 'Начать практику' }));
+        await screen.findByText('Der ___ ist klein.');
+        fireEvent.changeText(screen.getByLabelText('Ответ на немецком'), 'Stuhl');
+        fireEvent.press(screen.getByRole('button', { name: 'Проверить' }));
+        await screen.findByText('Верно');
+
+        expect(await h.wordState(profile.id, word.id)).toEqual(before);
+        expect(await h.profile(profile.id)).toMatchObject({ xp: 0 });
+    }
+    finally {
+        view.unmount();
+        await h.assistant.cancelAndRelease();
+        h.close();
+    }
+});
