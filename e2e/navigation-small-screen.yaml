@@ -8,20 +8,6 @@ name: navigation.320dp-large-font
     }
   },
   {
-    "runFlow": {
-      "when": {
-        "notVisible": {
-          "id": "nav-more"
-        }
-      },
-      "commands": [
-        {
-          "hideKeyboard": {}
-        }
-      ]
-    }
-  },
-  {
     "assertVisible": {
       "id": "nav-more"
     }
