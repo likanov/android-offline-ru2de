@@ -56,3 +56,14 @@ test('profile_create_rename_scrolls_to_new_profile_input_by_id_before_asserting'
  assert.equal(firstAfterSelect.repeat?.commands?.[0]?.swipe?.from?.id,'screen-scroll');
  assert.equal(firstAfterSelect.repeat?.commands?.[0]?.swipe?.direction,'UP');
 });
+
+
+test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_text_scrolls',()=>{
+ const path=resolve(root,'checks/first-launch.clean-40-words.yaml'),s=readFileSync(path,'utf8');
+ assert.match(s,/"id"\s*:\s*"profile-new-name"/);
+ assert.match(s,/"id"\s*:\s*"profile-create"/);
+ assert.match(s,/"id"\s*:\s*"dictionary-count"/);
+ assert.ok(!s.includes('"text": "Имя нового профиля"'),'profile input is an accessibility label that may sit below the fold');
+ assert.ok(!s.includes('"text": "Найдено: 40"'),'dictionary count has a stable testID near the top');
+ assert.ok(!s.includes('"tapOn": "Создать профиль"'));
+});

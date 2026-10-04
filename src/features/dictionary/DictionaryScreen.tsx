@@ -22,9 +22,10 @@ export function DictionaryScreen({ db, profileId, onOpen, onCreate }: {
         setWords(w); }).catch(e => { if (alive)
         setError(e.message); }); return () => { alive = false; }; }, [repository, profileId, filter]);
     return <Screen><Text style={{ fontSize: 28, fontWeight: '700' }}>Словарь</Text><TextInput accessibilityLabel="Поиск слов" placeholder="Немецкое слово или перевод" value={filter.query ?? ''} onChangeText={query => setFilter({ ...filter, query })} style={{ borderWidth: 1, padding: 12, borderRadius: 10 }}/>
+ <Text testID="dictionary-count">Найдено: {words.length}</Text>
  <Text>Фильтр: {filter.state === 'mastered' ? 'Изученные' : filter.state === 'learning' ? 'В процессе' : 'Все'}</Text>
  {([['all', 'Все'], ['learning', 'В процессе'], ['mastered', 'Изученные']] as const).map(([state, title]) => <Button key={state} title={title} onPress={() => setFilter({ ...filter, state })}/>)}
  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Text>Только трудные</Text><Switch accessibilityLabel="Только трудные" value={filter.difficult === true} onValueChange={value => setFilter({ ...filter, difficult: value ? true : undefined })}/></View>
  <Text>Тема: {topicRows.find(t=>t.id===filter.topicId)?.name ?? 'Все темы'}</Text><Button title="Все темы" onPress={()=>setFilter({...filter,topicId:undefined})}/>{topicRows.map(topic=><Button key={topic.id} title={`Тема: ${topic.name}`} onPress={()=>setFilter({...filter,topicId:topic.id})}/>)}
- <Button title="Добавить слово" onPress={onCreate}/>{error ? <Text>{error}</Text> : null}<Text>Найдено: {words.length}</Text>{words.map(word => <Button key={word.id} title={`${displayGerman(word)} — ${word.ru}`} onPress={() => onOpen(word.id)}/>)}</Screen>;
+ <Button title="Добавить слово" onPress={onCreate}/>{error ? <Text>{error}</Text> : null}{words.map(word => <Button key={word.id} title={`${displayGerman(word)} — ${word.ru}`} onPress={() => onOpen(word.id)}/>)}</Screen>;
 }

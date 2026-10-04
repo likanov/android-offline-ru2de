@@ -8,6 +8,26 @@ import { AppServicesContext } from '../../src/app/AppServices';
 import { ActiveProfileProvider } from '../../src/app/ActiveProfileProvider';
 import { Navigation } from '../../src/app/navigation';
 
+function collectText(node: unknown, result: string[] = []): string[] {
+ if (typeof node === 'string') { result.push(node); return result; }
+ if (!node || typeof node !== 'object') return result;
+ if (Array.isArray(node)) { for (const child of node) collectText(child, result); return result; }
+ const typed = node as { children?: unknown[] };
+ if (typed.children) collectText(typed.children, result);
+ return result;
+}
+
+
+test('dictionary_count_has_stable_target_before_long_filter_and_word_lists',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A');
+ const view=render(<DictionaryScreen db={h.db} profileId={p.id} onOpen={()=>{}} onCreate={()=>{}}/>);
+ expect(await screen.findByTestId('dictionary-count')).toHaveTextContent('Найдено: 40');
+ const text=collectText(view.toJSON());
+ expect(text.indexOf('Найдено: ')).toBeLessThan(text.indexOf('Тема: '));
+ }finally{h.close();}
+});
+
 test('editor_assigns_multiple_topics_and_dictionary_filters_them',async()=>{
  const h=await createWordHarness();try{
  const p=await createProfile(h.db,'A');let saved='';

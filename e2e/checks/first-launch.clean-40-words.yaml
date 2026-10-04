@@ -11,52 +11,10 @@ name: first-launch.clean-40-words
     "repeat": {
       "while": {
         "notVisible": {
-          "text": "Имя нового профиля"
+          "id": "profile-new-name"
         }
       },
-      "times": 35,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Имя нового профиля"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Имя нового профиля"
-        }
-      },
-      "times": 18,
+      "times": 6,
       "commands": [
         {
           "swipe": {
@@ -72,19 +30,13 @@ name: first-launch.clean-40-words
   },
   {
     "assertVisible": {
-      "text": "Имя нового профиля"
+      "id": "profile-new-name"
     }
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Имя нового профиля"
-      }
+    "tapOn": {
+      "id": "profile-new-name"
     }
-  },
-  {
-    "tapOn": "Имя нового профиля"
   },
   {
     "eraseText": 100
@@ -96,41 +48,13 @@ name: first-launch.clean-40-words
     "hideKeyboard": {}
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Создать профиль"
-      }
-    }
-  },
-  {
-    "tapOn": "Создать профиль"
-  },
-  {
     "repeat": {
       "while": {
-        "notVisible": "Активный профиль: Регрессия UI"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
+        "notVisible": {
+          "id": "profile-create"
         }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "Активный профиль: Регрессия UI"
       },
-      "times": 18,
+      "times": 6,
       "commands": [
         {
           "swipe": {
@@ -143,65 +67,20 @@ name: first-launch.clean-40-words
         }
       ]
     }
-  },
-  {
-    "assertVisible": "Активный профиль: Регрессия UI"
   },
   {
     "tapOn": {
-      "id": "nav-dictionary"
+      "id": "profile-create"
     }
   },
   {
     "repeat": {
       "while": {
         "notVisible": {
-          "text": "Найдено: 40"
+          "id": "profile-rename-регрессия-ui"
         }
       },
-      "times": 35,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Найдено: 40"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Найдено: 40"
-        }
-      },
-      "times": 18,
+      "times": 8,
       "commands": [
         {
           "swipe": {
@@ -217,48 +96,23 @@ name: first-launch.clean-40-words
   },
   {
     "assertVisible": {
-      "text": "Найдено: 40"
+      "id": "profile-rename-регрессия-ui"
     }
   },
   {
-    "repeat": {
-      "while": {
-        "notVisible": "Найдено: 40"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
+    "tapOn": {
+      "id": "nav-dictionary"
     }
   },
   {
-    "repeat": {
-      "while": {
-        "notVisible": "Найдено: 40"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
+    "extendedWaitUntil": {
+      "visible": "Найдено: 40",
+      "timeout": 60000
     }
   },
   {
-    "assertVisible": "Найдено: 40"
+    "assertVisible": {
+      "id": "dictionary-count"
+    }
   }
 ]
