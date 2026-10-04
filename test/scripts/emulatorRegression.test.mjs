@@ -117,3 +117,26 @@ test('runner_completion_uses_complete_real_report_validation',()=>{
 test('report_rejects_primary_crash_even_if_declared_aggregate_is_zero',()=>{
  const f=inputs();try {const report=completeReport(f);writeFileSync(report.deviceLogs[0].path,'FATAL EXCEPTION: main\nProcess: com.personal.germanvocabulary\n');assert.equal(validateRegressionReport(report).ok,false);}finally{rmSync(f.root,{recursive:true,force:true});}
 });
+
+
+test('runner_pulls_exported_backup_from_downloads_when_documentsui_ignores_subfolder', async () => {
+  const {pullExportedFile} = await import('../../scripts/emulator-regression.mjs');
+  const calls = [];
+  const result = pullExportedFile({
+    adb: 'adb',
+    serial: 'emulator-5580',
+    filename: 'imported-fixture.json',
+    destination: '/tmp/imported-fixture.json',
+    execute(command, args, options) {
+      calls.push({command, args, options});
+      const remote = args[3];
+      return {status: remote === '/sdcard/Download/imported-fixture.json' ? 0 : 1};
+    },
+  });
+  assert.equal(result.remote, '/sdcard/Download/imported-fixture.json');
+  assert.deepEqual(calls.map(call => call.args[3]), [
+    '/sdcard/Download/GermanVocabulary/imported-fixture.json',
+    '/sdcard/Download/imported-fixture.json',
+  ]);
+  assert.ok(calls.every(call => call.options?.allowFailure === true));
+});

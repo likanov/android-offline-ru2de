@@ -169,9 +169,22 @@ function hierarchy(name) {
  shell('uiautomator','dump','/sdcard/regression-hierarchy.xml');
  const path=join(reportDir,name+'.xml');execute(adb,['-s',serial,'pull','/sdcard/regression-hierarchy.xml',path]);return path;
 }
+export function exportedBackupCandidates(filename) {
+ return ['/sdcard/Download/GermanVocabulary/'+filename, '/sdcard/Download/'+filename];
+}
+function pullExportedFileInternal({execute, adb, serial, filename, destination}) {
+ const attempts=[];
+ for (const remote of exportedBackupCandidates(filename)) {
+  const result=execute(adb,['-s',serial,'pull',remote,destination],{allowFailure:true});
+  attempts.push({remote,status:result.status,signal:result.signal,error:result.error?.message});
+  if(result.status===0&&!result.error)return {remote,attempts};
+ }
+ throw Error('EXPORTED_FILE_NOT_FOUND:'+filename+':'+attempts.map(row=>row.remote+'='+row.status).join(','));
+}
+export function pullExportedFile(args) { return pullExportedFileInternal(args); }
 function captureState(name) {
  const filename=name+'.json';flow('export-'+name,'helpers/export-state.yaml',{EXPORT_NAME:filename});
- const path=join(reportDir,filename);execute(adb,['-s',serial,'pull','/sdcard/Download/GermanVocabulary/'+filename,path]);
+ const path=join(reportDir,filename);pullExportedFileInternal({execute,adb,serial,filename,destination:path});
  const backup=JSON.parse(readFileSync(path,'utf8'));if(backup.format!=='german-vocabulary-backup')throw Error('EXPORTED_BACKUP_INVALID');
  latestBackup=backup;return backup;
 }
@@ -256,8 +269,9 @@ async function group(row,baseline) {
    const after=captureState(check.id+'-after'),today=shell('date','+%Y-%m-%d').stdout.trim();
    let restoreCheckpoint,restoreEvidence;
    if(check.id==='transfer.json-roundtrip'){
-    restoreEvidence=join(reportDir,check.id+'-restored.json');
-    execute(adb,['-s',serial,'pull','/sdcard/Download/GermanVocabulary/'+check.id+'-restored.json',restoreEvidence]);
+    const filename=check.id+'-restored.json';
+    restoreEvidence=join(reportDir,filename);
+    pullExportedFileInternal({execute,adb,serial,filename,destination:restoreEvidence});
     restoreCheckpoint=JSON.parse(readFileSync(restoreEvidence,'utf8'));
     if(restoreCheckpoint.format!=='german-vocabulary-backup')throw Error('RESTORE_CHECKPOINT_INVALID');
    }
@@ -293,33 +307,36 @@ async function run() {
  if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
  else report.blockers.push('OBSERVATIONS_MISSING:review generated text and audible playback');
 }
-let exitCode=2;
-try {
-  const argv=process.argv.slice(2);
-  const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','fixture','observations']);
-  for(let i=0;i<argv.length;i++){const key=argv[i].replace(/^--/,'');if(!argv[i].startsWith('--')||!allowed.has(key))throw new Unavailable(`ARGUMENT_INVALID:${argv[i]}`);if(key==='preflight')options[key]=true;else {if(!argv[i+1]||argv[i+1].startsWith('--'))throw new Unavailable(`ARGUMENT_VALUE_MISSING:${key}`);options[key]=argv[++i];}}
-  reportDir=resolve(options['report-dir'] ?? join(workRoot,`reports/${new Date().toISOString().replace(/[:.]/g,'-')}`));
-  mkdirSync(reportDir,{recursive:true});mkdirSync(workRoot,{recursive:true});
-  await preflight();
-  if(options.preflight)throw new Unavailable('PREFLIGHT_ONLY:full regression not run');
-  try{fixtureDay=JSON.parse(readFileSync(options.fixture,'utf8')).profiles.find(p=>p.profile.name==='Регрессия — изучено').attempts[0].day;}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
-  await run();
-  const completion=completeRegressionReport(report);exitCode=completion.exitCode;report.status=completion.status;report.blockers.push(...completion.errors);
-} catch(error) {
-  exitCode=error.exitCode ?? 1;report.status=exitCode===2?'not-verified':'failed';report.blockers.push(error.message);console.error(error.message);
-} finally {
-  if(reportDir) {
-    if(processHandle) {
-      try{captureDeviceLog(devicePhase+'-finally');}catch(error){report.blockers.push(error.message);exitCode=error.message.startsWith('CRASH_ANR')?1:(exitCode||2);report.status=exitCode===1?'failed':'not-verified';}
-      if(modelOriginal){try{shell('mv',modelOriginal,modelPath);}catch(error){report.blockers.push('MODEL_RESTORE_FAILED:'+error.message);exitCode=2;report.status='not-verified';}}
-      for(const p of disabledTts)execute(adb,['-s',serial,'shell','pm','enable',p],{allowFailure:true});
-      try{restoreSettings();}catch(error){report.blockers.push(error.message);exitCode=exitCode||2;report.status='not-verified';}
-      execute(adb,['-s',serial,'emu','kill'],{allowFailure:true});processHandle.kill('SIGTERM');
-    }
-    report.completedAt=new Date().toISOString();report.exitCode=exitCode;report.validation=validateRegressionReport(report);
-    writeFileSync(join(reportDir,'report.json'),JSON.stringify(report,null,2)+'\n');
-    writeFileSync(join(reportDir,'summary.md'),`# Android regression\n\nStatus: ${report.status}; exit ${exitCode}.\n\n${report.blockers.map(s=>`- ${s}`).join('\n')}\n\n${report.scenarios.map(s=>`- ${s.id}: ${s.status} (${s.reason})`).join('\n')}\n`);
-    console.log(`Report: ${join(reportDir,'report.json')}`);
-  }
-  process.exitCode=exitCode;
+async function main() {
+ let exitCode=2;
+ try {
+   const argv=process.argv.slice(2);
+   const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','fixture','observations']);
+   for(let i=0;i<argv.length;i++){const key=argv[i].replace(/^--/,'');if(!argv[i].startsWith('--')||!allowed.has(key))throw new Unavailable(`ARGUMENT_INVALID:${argv[i]}`);if(key==='preflight')options[key]=true;else {if(!argv[i+1]||argv[i+1].startsWith('--'))throw new Unavailable(`ARGUMENT_VALUE_MISSING:${key}`);options[key]=argv[++i];}}
+   reportDir=resolve(options['report-dir'] ?? join(workRoot,`reports/${new Date().toISOString().replace(/[:.]/g,'-')}`));
+   mkdirSync(reportDir,{recursive:true});mkdirSync(workRoot,{recursive:true});
+   await preflight();
+   if(options.preflight)throw new Unavailable('PREFLIGHT_ONLY:full regression not run');
+   try{fixtureDay=JSON.parse(readFileSync(options.fixture,'utf8')).profiles.find(p=>p.profile.name==='Регрессия — изучено').attempts[0].day;}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
+   await run();
+   const completion=completeRegressionReport(report);exitCode=completion.exitCode;report.status=completion.status;report.blockers.push(...completion.errors);
+ } catch(error) {
+   exitCode=error.exitCode ?? 1;report.status=exitCode===2?'not-verified':'failed';report.blockers.push(error.message);console.error(error.message);
+ } finally {
+   if(reportDir) {
+     if(processHandle) {
+       try{captureDeviceLog(devicePhase+'-finally');}catch(error){report.blockers.push(error.message);exitCode=error.message.startsWith('CRASH_ANR')?1:(exitCode||2);report.status=exitCode===1?'failed':'not-verified';}
+       if(modelOriginal){try{shell('mv',modelOriginal,modelPath);}catch(error){report.blockers.push('MODEL_RESTORE_FAILED:'+error.message);exitCode=2;report.status='not-verified';}}
+       for(const p of disabledTts)execute(adb,['-s',serial,'shell','pm','enable',p],{allowFailure:true});
+       try{restoreSettings();}catch(error){report.blockers.push(error.message);exitCode=exitCode||2;report.status='not-verified';}
+       execute(adb,['-s',serial,'emu','kill'],{allowFailure:true});processHandle.kill('SIGTERM');
+     }
+     report.completedAt=new Date().toISOString();report.exitCode=exitCode;report.validation=validateRegressionReport(report);
+     writeFileSync(join(reportDir,'report.json'),JSON.stringify(report,null,2)+'\n');
+     writeFileSync(join(reportDir,'summary.md'),`# Android regression\n\nStatus: ${report.status}; exit ${exitCode}.\n\n${report.blockers.map(s=>`- ${s}`).join('\n')}\n\n${report.scenarios.map(s=>`- ${s.id}: ${s.status} (${s.reason})`).join('\n')}\n`);
+     console.log(`Report: ${join(reportDir,'report.json')}`);
+   }
+   process.exitCode=exitCode;
+ }
 }
+if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) await main();

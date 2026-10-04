@@ -4,35 +4,30 @@ name: picker
 [
   {
     "tapOn": {
-      "text": "Show roots",
+      "id": "com.google.android.documentsui:id/option_menu_search",
       "optional": true
     }
   },
   {
-    "tapOn": {
-      "text": "Downloads",
-      "optional": true
-    }
+    "inputText": "${FILE}"
   },
   {
-    "tapOn": {
-      "text": "GermanVocabulary",
-      "optional": true
-    }
+    "hideKeyboard": {}
   },
   {
     "repeat": {
       "while": {
         "notVisible": {
+          "id": "android:id/title",
           "text": "${FILE}"
         }
       },
-      "times": 35,
+      "times": 18,
       "commands": [
         {
           "swipe": {
             "from": {
-              "id": "screen-scroll"
+              "id": "com.google.android.documentsui:id/dir_list"
             },
             "direction": "UP",
             "duration": 400
@@ -45,6 +40,7 @@ name: picker
     "repeat": {
       "while": {
         "notVisible": {
+          "id": "android:id/title",
           "text": "${FILE}"
         }
       },
@@ -53,7 +49,7 @@ name: picker
         {
           "swipe": {
             "from": {
-              "id": "screen-scroll"
+              "id": "com.google.android.documentsui:id/dir_list"
             },
             "direction": "DOWN",
             "duration": 400
@@ -63,32 +59,15 @@ name: picker
     }
   },
   {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "${FILE}"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
     "assertVisible": {
+      "id": "android:id/title",
       "text": "${FILE}"
     }
   },
   {
-    "tapOn": "${FILE}"
+    "tapOn": {
+      "id": "android:id/title",
+      "text": "${FILE}"
+    }
   }
 ]
