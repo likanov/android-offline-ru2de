@@ -32,3 +32,17 @@ test('export_state_scrolls_to_stable_backup_save_id_instead_of_text_only_button_
  assert.ok(!s.includes('"text": "Сохранить резервную копию"'), 'React Native Button exposes the title as accessibility text, not stable visible text');
  assert.ok(!s.includes('"tapOn": "Сохранить резервную копию"'));
 });
+
+
+test('profile_create_rename_uses_stable_profile_form_ids_instead_of_text_only_labels',()=>{
+ const path=resolve(root,'checks/profiles.profile-create-rename.yaml'),s=readFileSync(path,'utf8');
+ assert.match(s,/"id"\s*:\s*"profile-new-name"/);
+ assert.match(s,/"id"\s*:\s*"profile-create"/);
+ assert.match(s,/"id"\s*:\s*"profile-rename-второй-ui"/);
+ assert.match(s,/"id"\s*:\s*"profile-edit-name"/);
+ assert.match(s,/"id"\s*:\s*"profile-save-name"/);
+ assert.ok(!s.includes('"text": "Имя нового профиля"'),'new profile field is an accessibility label, not a stable visible text target');
+ assert.ok(!s.includes('"tapOn": "Создать профиль"'));
+ assert.ok(!s.includes('"tapOn": "Переименовать Второй UI"'));
+ assert.ok(!s.includes('"tapOn": "Сохранить имя"'));
+});

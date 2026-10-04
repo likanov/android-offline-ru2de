@@ -11,6 +11,16 @@ import type { Profile } from "../../core/types";
 import { Screen } from "../../ui/Screen";
 import { Button } from "../../ui/Button";
 import { theme } from "../../ui/theme";
+
+function profileSlug(name: string): string {
+  return (
+    name
+      .toLocaleLowerCase("ru-RU")
+      .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
+      .replace(/^-+|-+$/g, "") || "profile"
+  );
+}
+
 export function ProfilesScreen() {
   const { db } = useAppServices();
   const { profile, select, reload } = useActiveProfile();
@@ -20,6 +30,12 @@ export function ProfilesScreen() {
   const [editName, setEditName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const displayedProfiles = profile
+    ? [
+        ...profiles.filter((item) => item.id === profile.id),
+        ...profiles.filter((item) => item.id !== profile.id),
+      ]
+    : profiles;
   const refresh = useCallback(async () => {
     setProfiles(await listProfiles(db));
   }, [db]);
@@ -60,13 +76,40 @@ export function ProfilesScreen() {
       <Text style={styles.active}>
         Активный профиль: {profile?.name ?? "не выбран"}
       </Text>
-      {profiles.map((item) => (
-        <View key={item.id} style={styles.card}>
+      <View style={styles.card}>
+        <Text style={styles.name}>Новый профиль</Text>
+        <TextInput
+          testID="profile-new-name"
+          style={styles.input}
+          accessibilityLabel="Имя нового профиля"
+          placeholder="Ваше имя"
+          value={name}
+          onChangeText={setName}
+        />
+        <Button
+          testID="profile-create"
+          title="Создать профиль"
+          disabled={busy}
+          onPress={() => {
+            void perform(async () => {
+              await createProfile(db, name);
+              setName("");
+            });
+          }}
+        />
+      </View>
+      {displayedProfiles.map((item) => (
+        <View
+          key={item.id}
+          testID={`profile-card-${profileSlug(item.name)}`}
+          style={styles.card}
+        >
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.body}>
             {item.xp} XP · Стартовый словарь: 40 слов
           </Text>
           <Button
+            testID={`profile-select-${profileSlug(item.name)}`}
             title={`Выбрать ${item.name}`}
             disabled={busy}
             onPress={() => {
@@ -74,6 +117,7 @@ export function ProfilesScreen() {
             }}
           />
           <Button
+            testID={`profile-rename-${profileSlug(item.name)}`}
             title={`Переименовать ${item.name}`}
             disabled={busy}
             onPress={() => {
@@ -86,12 +130,14 @@ export function ProfilesScreen() {
       {editing && (
         <View style={styles.card}>
           <TextInput
+            testID="profile-edit-name"
             style={styles.input}
             accessibilityLabel="Новое имя профиля"
             value={editName}
             onChangeText={setEditName}
           />
           <Button
+            testID="profile-save-name"
             title="Сохранить имя"
             disabled={busy}
             onPress={() => {
@@ -104,24 +150,6 @@ export function ProfilesScreen() {
           <Button title="Отмена" onPress={() => setEditing(null)} />
         </View>
       )}
-      <Text style={styles.name}>Новый профиль</Text>
-      <TextInput
-        style={styles.input}
-        accessibilityLabel="Имя нового профиля"
-        placeholder="Ваше имя"
-        value={name}
-        onChangeText={setName}
-      />
-      <Button
-        title="Создать профиль"
-        disabled={busy}
-        onPress={() => {
-          void perform(async () => {
-            await createProfile(db, name);
-            setName("");
-          });
-        }}
-      />
       {!!error && (
         <Text accessibilityRole="alert" style={styles.error}>
           {error}

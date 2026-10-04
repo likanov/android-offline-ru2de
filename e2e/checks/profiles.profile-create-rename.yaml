@@ -11,83 +11,14 @@ name: profiles.profile-create-rename
     }
   },
   {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Имя нового профиля"
-        }
-      },
-      "times": 35,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Имя нового профиля"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Имя нового профиля"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
     "assertVisible": {
-      "text": "Имя нового профиля"
+      "id": "profile-new-name"
     }
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Имя нового профиля"
-      }
+    "tapOn": {
+      "id": "profile-new-name"
     }
-  },
-  {
-    "tapOn": "Имя нового профиля"
   },
   {
     "eraseText": 100
@@ -99,173 +30,32 @@ name: profiles.profile-create-rename
     "hideKeyboard": {}
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Создать профиль"
-      }
+    "tapOn": {
+      "id": "profile-create"
     }
   },
   {
-    "tapOn": "Создать профиль"
+    "assertVisible": "Активный профиль: Второй UI"
   },
   {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Переименовать Второй UI"
-        }
-      },
-      "times": 35,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
+    "assertVisible": {
+      "id": "profile-rename-второй-ui"
     }
   },
   {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Переименовать Второй UI"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Переименовать Второй UI"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
+    "tapOn": {
+      "id": "profile-rename-второй-ui"
     }
   },
   {
     "assertVisible": {
-      "text": "Переименовать Второй UI"
+      "id": "profile-edit-name"
     }
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Переименовать Второй UI"
-      }
+    "tapOn": {
+      "id": "profile-edit-name"
     }
-  },
-  {
-    "tapOn": "Переименовать Второй UI"
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Новое имя профиля"
-        }
-      },
-      "times": 35,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Новое имя профиля"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "text": "Новое имя профиля"
-        }
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "assertVisible": {
-      "text": "Новое имя профиля"
-    }
-  },
-  {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Новое имя профиля"
-      }
-    }
-  },
-  {
-    "tapOn": "Новое имя профиля"
   },
   {
     "eraseText": 100
@@ -277,52 +67,8 @@ name: profiles.profile-create-rename
     "hideKeyboard": {}
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Сохранить имя"
-      }
-    }
-  },
-  {
-    "tapOn": "Сохранить имя"
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "Активный профиль: Второй переименован"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "Активный профиль: Второй переименован"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
+    "tapOn": {
+      "id": "profile-save-name"
     }
   },
   {
