@@ -170,7 +170,7 @@ function hierarchy(name) {
  const path=join(reportDir,name+'.xml');execute(adb,['-s',serial,'pull','/sdcard/regression-hierarchy.xml',path]);return path;
 }
 export function exportedBackupCandidates(filename) {
- return ['/sdcard/Download/GermanVocabulary/'+filename, '/sdcard/Download/'+filename];
+ return ['/sdcard/Download/GermanVocabulary/'+filename, '/sdcard/Download/'+filename, '/data/user/0/'+applicationId+'/files/last-export.json'];
 }
 function pullExportedFileInternal({execute, adb, serial, filename, destination}) {
  const attempts=[];

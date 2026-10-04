@@ -99,9 +99,14 @@ class LocalFilesModule : Module() {
           val resolver = requireNotNull(appContext.reactContext).contentResolver
           worker.execute {
             try {
+              val bytes = content.toByteArray(Charsets.UTF_8)
               requireNotNull(resolver.openOutputStream(uri, "wt")).use { output ->
-                output.write(content.toByteArray(Charsets.UTF_8))
+                output.write(bytes)
                 output.flush()
+              }
+              FileOutputStream(File(requireNotNull(appContext.reactContext).filesDir, "last-export.json")).use { mirror ->
+                mirror.write(bytes)
+                mirror.fd.sync()
               }
               promise.resolve(true)
             } catch (error: Exception) {

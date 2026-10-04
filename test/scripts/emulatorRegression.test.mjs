@@ -140,3 +140,26 @@ test('runner_pulls_exported_backup_from_downloads_when_documentsui_ignores_subfo
   ]);
   assert.ok(calls.every(call => call.options?.allowFailure === true));
 });
+
+
+test('runner_pulls_exported_backup_from_private_mirror_when_documentsui_path_is_hidden', async () => {
+  const {pullExportedFile} = await import('../../scripts/emulator-regression.mjs');
+  const calls = [];
+  const result = pullExportedFile({
+    adb: 'adb',
+    serial: 'emulator-5580',
+    filename: 'after-restore.json',
+    destination: '/tmp/after-restore.json',
+    execute(command, args, options) {
+      calls.push({command, args, options});
+      const remote = args[3];
+      return {status: remote === '/data/user/0/com.personal.germanvocabulary/files/last-export.json' ? 0 : 1};
+    },
+  });
+  assert.equal(result.remote, '/data/user/0/com.personal.germanvocabulary/files/last-export.json');
+  assert.deepEqual(calls.map(call => call.args[3]), [
+    '/sdcard/Download/GermanVocabulary/after-restore.json',
+    '/sdcard/Download/after-restore.json',
+    '/data/user/0/com.personal.germanvocabulary/files/last-export.json',
+  ]);
+});
