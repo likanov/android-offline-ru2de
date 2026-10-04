@@ -59,6 +59,18 @@ test('profile_create_rename_scrolls_to_new_profile_input_by_id_before_asserting'
 
 
 
+test('profile_create_rename_refocuses_inputs_after_erase_before_typing',()=>{
+ const path=resolve(root,'checks/profiles.profile-create-rename.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ for (const [fieldId,text] of [['profile-new-name','Второй UI'],['profile-edit-name','Второй переименован']]) {
+  const inputIndex=commands.findIndex((command)=>command.inputText===text);
+  assert.notEqual(inputIndex,-1,`flow should type ${text}`);
+  assert.deepEqual(commands[inputIndex-1]?.tapOn,{id:fieldId},`flow should refocus ${fieldId} after eraseText before typing ${text}`);
+  assert.equal(commands[inputIndex-2]?.eraseText,100,`flow should erase ${fieldId} immediately before refocusing`);
+ }
+});
+
+
 test('profile_create_rename_scrolls_back_to_edit_form_after_rename_tap',()=>{
  const path=resolve(root,'checks/profiles.profile-create-rename.yaml'),s=readFileSync(path,'utf8');
  const commands=JSON.parse(s.split('---\n')[1]);

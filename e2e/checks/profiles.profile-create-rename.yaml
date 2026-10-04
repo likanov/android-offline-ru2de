@@ -45,6 +45,11 @@ name: profiles.profile-create-rename
     "eraseText": 100
   },
   {
+    "tapOn": {
+      "id": "profile-new-name"
+    }
+  },
+  {
     "inputText": "Второй UI"
   },
   {
@@ -140,6 +145,11 @@ name: profiles.profile-create-rename
   },
   {
     "eraseText": 100
+  },
+  {
+    "tapOn": {
+      "id": "profile-edit-name"
+    }
   },
   {
     "inputText": "Второй переименован"
