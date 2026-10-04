@@ -11,6 +11,27 @@ name: profiles.profile-create-rename
     }
   },
   {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "profile-new-name"
+        }
+      },
+      "times": 6,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
     "assertVisible": {
       "id": "profile-new-name"
     }
@@ -30,12 +51,51 @@ name: profiles.profile-create-rename
     "hideKeyboard": {}
   },
   {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "profile-create"
+        }
+      },
+      "times": 6,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "profile-create"
     }
   },
   {
-    "assertVisible": "Активный профиль: Второй UI"
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "profile-rename-второй-ui"
+        }
+      },
+      "times": 6,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
   },
   {
     "assertVisible": {
@@ -45,6 +105,27 @@ name: profiles.profile-create-rename
   {
     "tapOn": {
       "id": "profile-rename-второй-ui"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "profile-edit-name"
+        }
+      },
+      "times": 6,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
     }
   },
   {
@@ -67,11 +148,55 @@ name: profiles.profile-create-rename
     "hideKeyboard": {}
   },
   {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "profile-save-name"
+        }
+      },
+      "times": 6,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "profile-save-name"
     }
   },
   {
-    "assertVisible": "Активный профиль: Второй переименован"
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "profile-rename-второй-переименован"
+        }
+      },
+      "times": 6,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "profile-rename-второй-переименован"
+    }
   }
 ]

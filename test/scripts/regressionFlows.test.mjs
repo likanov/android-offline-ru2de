@@ -46,3 +46,13 @@ test('profile_create_rename_uses_stable_profile_form_ids_instead_of_text_only_la
  assert.ok(!s.includes('"tapOn": "Переименовать Второй UI"'));
  assert.ok(!s.includes('"tapOn": "Сохранить имя"'));
 });
+
+
+test('profile_create_rename_scrolls_to_new_profile_input_by_id_before_asserting',()=>{
+ const path=resolve(root,'checks/profiles.profile-create-rename.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ const firstAfterSelect=commands[1];
+ assert.equal(firstAfterSelect.repeat?.while?.notVisible?.id,'profile-new-name');
+ assert.equal(firstAfterSelect.repeat?.commands?.[0]?.swipe?.from?.id,'screen-scroll');
+ assert.equal(firstAfterSelect.repeat?.commands?.[0]?.swipe?.direction,'UP');
+});
