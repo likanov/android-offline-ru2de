@@ -91,3 +91,27 @@ test("new_profile_form_stays_before_restored_profile_list_with_stable_targets", 
   );
   close();
 });
+
+
+test("active_profile_actions_stay_next_to_the_profile_name_for_small_viewports", async () => {
+  const { db, close } = openTestDb();
+  await migrate(db);
+  await createProfile(db, "Второй UI");
+  const view = render(
+    <AppServicesContext.Provider value={{ db }}>
+      <ActiveProfileProvider>
+        <ProfilesScreen />
+      </ActiveProfileProvider>
+    </AppServicesContext.Provider>,
+  );
+  fireEvent.press(await screen.findByTestId("profile-select-второй-ui"));
+  await screen.findByText("Активный профиль: Второй UI");
+  const ids = collectTestIds(view.toJSON());
+  expect(ids.indexOf("profile-card-второй-ui")).toBeLessThan(
+    ids.indexOf("profile-rename-второй-ui"),
+  );
+  expect(ids.indexOf("profile-rename-второй-ui")).toBeLessThan(
+    ids.indexOf("profile-select-второй-ui"),
+  );
+  close();
+});

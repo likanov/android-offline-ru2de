@@ -105,17 +105,6 @@ export function ProfilesScreen() {
           style={styles.card}
         >
           <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.body}>
-            {item.xp} XP · Стартовый словарь: 40 слов
-          </Text>
-          <Button
-            testID={`profile-select-${profileSlug(item.name)}`}
-            title={`Выбрать ${item.name}`}
-            disabled={busy}
-            onPress={() => {
-              void perform(() => select(item.id));
-            }}
-          />
           <Button
             testID={`profile-rename-${profileSlug(item.name)}`}
             title={`Переименовать ${item.name}`}
@@ -125,6 +114,17 @@ export function ProfilesScreen() {
               setEditName(item.name);
             }}
           />
+          <Button
+            testID={`profile-select-${profileSlug(item.name)}`}
+            title={`Выбрать ${item.name}`}
+            disabled={busy}
+            onPress={() => {
+              void perform(() => select(item.id));
+            }}
+          />
+          <Text style={styles.body}>
+            {item.xp} XP · Стартовый словарь: 40 слов
+          </Text>
         </View>
       ))}
       {editing && (
