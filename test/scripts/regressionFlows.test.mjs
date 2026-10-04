@@ -118,6 +118,18 @@ test('dictionary_reopens_saved_noun_by_search_instead_of_long_word_list_scroll',
  assert.notEqual(openSavedIndex,-1,'flow should open the saved noun from filtered dictionary results before seeking Edit');
 });
 
+test('dictionary_search_nfc_nfd_duplicate_uses_same_translation_as_existing_word',()=>{
+ const path=resolve(root,'checks/dictionary.search-nfc-nfd.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ const nfdInputIndex=commands.findIndex((command)=>command.inputText==='Prüfschrank');
+ assert.notEqual(nfdInputIndex,-1,'flow should type the NFD German spelling to exercise normalization');
+ const translationIndex=commands.findIndex((command,index)=>index>nfdInputIndex&&command.inputText);
+ assert.equal(commands[translationIndex]?.inputText,'проверенный шкаф','duplicate assertion must use the same translation as the existing word; a different translation is allowed by canonicalKey rules');
+ const duplicateAssertIndex=commands.findIndex((command,index)=>index>translationIndex&&command.assertVisible==='Такое слово уже есть в словаре');
+ assert.notEqual(duplicateAssertIndex,-1,'flow should assert the duplicate validation message after trying to save same de/ru in NFD form');
+});
+
+
 test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_text_scrolls',()=>{
  const path=resolve(root,'checks/first-launch.clean-40-words.yaml'),s=readFileSync(path,'utf8');
  assert.match(s,/"id"\s*:\s*"profile-new-name"/);
