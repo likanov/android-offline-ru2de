@@ -16,6 +16,7 @@ const flag = integer(0, 1);
 const boolean: Parser = v => typeof v === 'boolean' ? v : invalid();
 const oneOf = (...values: unknown[]): Parser => v => values.includes(v) ? v : invalid();
 const nullable = (parser: Parser): Parser => v => v === null ? null : parser(v);
+const optional = (parser: Parser): Parser => v => v === undefined ? undefined : parser(v);
 const array = (parser: Parser): Parser => v => Array.isArray(v) ? v.map(parser) : invalid();
 const object = (shape: Shape): Parser => v => { if (!v || typeof v !== 'object' || Array.isArray(v))
     return invalid(); const source = v as Record<string, unknown>; return Object.fromEntries(Object.entries(shape).map(([key, parser]) => [key, parser(source[key])])); };
@@ -24,7 +25,7 @@ const iso: Parser = v => { if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{
     return invalid(); day(v.slice(0, 10)); if (!Number.isFinite(Date.parse(v)) || new Date(v).toISOString() !== v)
     return invalid(); return v; };
 const state: Parser = v => { const result = object({ streak: integer(0, 20), mastered: boolean, masteryBonusGranted: boolean, reviewStage: integer(0, 5), dueDay: nullable(day), difficult: boolean, totalErrors: integer(), recoveryErrors: integer(), recoveryCorrect: integer(0, 2) })(v) as LearningState; applyAnswer(result, false, result.mastered ? 'review' : 'study', result.dueDay ?? '2026-01-01'); return result; };
-const result = object({ attemptId: uuid, right: boolean, xpDelta: oneOf(0, 10, 60), state });
+const result = object({ attemptId: uuid, right: boolean, xpDelta: oneOf(0, 10, 60), state, submittedAnswer: optional(string) });
 const question = object({ attemptId: uuid, profileId: uuid, wordId: uuid, revision: integer(1), kind: oneOf('ru-de', 'de-ru', 'typing', 'definite-article', 'indefinite-article', 'listening'), prompt: nonempty, options: array(nonempty), expected: array(nonempty), markerVisible: boolean, reviewStage: nullable(integer(0, 5)), dueDay: nullable(day), nextKindIndex: v => v === undefined ? undefined : integer()(v) });
 const owner = { profileId: uuid }, wordOwner = { ...owner, wordId: uuid }, skill = oneOf('translation', 'writing', 'article', 'listening');
 const profile = object({ id: uuid, name: nonempty, xp: integer(), createdAt: iso });

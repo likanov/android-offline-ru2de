@@ -3,6 +3,8 @@ import { createProfile } from '../../src/features/profiles/profileRepository';
 import { SessionRepository } from '../../src/features/learning/sessionRepository';
 import { buildQuestion } from '../../src/features/learning/questionFactory';
 import { AnswerService } from '../../src/features/learning/answerService';
+import { WordRepository } from '../../src/features/dictionary/wordRepository';
+import { BackupService } from '../../src/features/transfer/backupService';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,6 +16,18 @@ beforeEach(async () => { h = await createWordHarness(); p1 = (await createProfil
 afterEach(() => h.close());
 async function question(mode = 'study') { const session = await s.start(p1, { mode, wordIds: [w.id] }, day); expect(session).not.toBeNull(); return { session, q: await s.next(p1, session.id, day) }; }
 test('duplicate_and_stale_submission_are_not_rewarded', async () => { const { session, q } = await question(); const first = await a.submit(p1, session.id, q.attemptId, 'der Stuhl', day); expect(first).toMatchObject({ right: true, xpDelta: 10, state: { streak: 1 } }); expect(await a.submit(p1, session.id, q.attemptId, 'wrong', day)).toEqual(first); expect(await h.profile(p1)).toMatchObject({ xp: 10 }); expect(await h.db.first('SELECT count(*) AS n FROM attempts WHERE attemptId=?', [q.attemptId])).toEqual({ n: 1 }); await expect(a.submit(p2, session.id, q.attemptId, 'der Stuhl', day)).rejects.toMatchObject({ code: 'WRONG_PROFILE' }); expect((await s.resume(p1)).currentQuestion).toEqual(q); expect((await s.resume(p1)).result).toEqual(first); await s.next(p1, session.id, day); await expect(a.submit(p1, session.id, 'different', 'der Stuhl', day)).rejects.toMatchObject({ code: 'STALE_QUESTION' }); });
+
+test('duplicate_submit_preserves_first_answer', async () => {
+    const { session, q } = await question();
+    const first = await a.submit(p1, session.id, q.attemptId, 'äöüß', day);
+    expect(first).toMatchObject({ right: false, submittedAnswer: 'äöüß', xpDelta: 0 });
+    await expect(a.submit(p1, session.id, q.attemptId, 'der Stuhl', day)).resolves.toEqual(first);
+    expect(await h.profile(p1)).toMatchObject({ xp: 0 });
+    expect(await h.attemptCount(q.attemptId)).toBe(1);
+    const row = await h.db.first('SELECT result FROM attempts WHERE attemptId=?', [q.attemptId]) as { result: string } | null;
+    expect(JSON.parse(row!.result)).toMatchObject({ submittedAnswer: 'äöüß' });
+    expect((await s.resume(p1)).result).toEqual(first);
+});
 test('storage_failure_rolls_back_entire_answer', async () => { const { session, q } = await question(); await h.db.exec("CREATE TRIGGER fail_xp BEFORE UPDATE OF xp ON profiles BEGIN SELECT RAISE(ABORT,'injected'); END;"); const before = await snapshot(); await expect(a.submit(p1, session.id, q.attemptId, 'der Stuhl', day)).rejects.toThrow('injected'); expect(await snapshot()).toEqual(before); await h.db.exec('DROP TRIGGER fail_xp'); expect(await a.submit(p1, session.id, q.attemptId, 'der Stuhl', day)).toMatchObject({ xpDelta: 10 }); });
 async function snapshot() { const tables = ['profiles', 'word_progress', 'sessions', 'questions', 'attempts', 'rewards', 'daily_activity', 'skill_stats', 'skill_history']; return Promise.all(tables.map(t => h.db.all('SELECT * FROM ' + t))); }
 test('mastery_bonus_and_finished_pool_persist', async () => { await h.db.run('UPDATE word_progress SET streak=19 WHERE wordId=?', [w.id]); const { session, q } = await question(); expect(await a.submit(p1, session.id, q.attemptId, q.expected[0], day)).toMatchObject({ xpDelta: 60, state: { mastered: true, dueDay: '2026-10-04' } }); expect(await h.db.first('SELECT amount,attemptId FROM rewards WHERE wordId=?', [w.id])).toEqual({ amount: 50, attemptId: q.attemptId }); expect(await s.next(p1, session.id, day)).toBeNull(); expect(await s.resume(p1)).toBeNull(); });
@@ -49,6 +63,37 @@ finally {
     store.close();
     rmSync(directory, { recursive: true, force: true });
 } });
+
+test('accepted_answer_survives_resume_and_backup', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'german-answer-backup-'));
+    const path = join(directory, 'db.sqlite');
+    let store = openTestDb(path);
+    try {
+        await migrate(store.db);
+        const profile = await createProfile(store.db, 'Persisted');
+        const sessions = new SessionRepository(store.db);
+        const answers = new AnswerService(store.db);
+        const word = (await new WordRepository(store.db).list(profile.id)).find(word => word.de === 'Stuhl')!;
+        const session = await sessions.start(profile.id, { mode: 'study', wordIds: [word.id] }, day);
+        const q = (await sessions.next(profile.id, session.id, day))!;
+        const wrong = await answers.submit(profile.id, session.id, q.attemptId, 'äöüß', day);
+        expect(wrong).toMatchObject({ right: false, submittedAnswer: 'äöüß' });
+        store.close();
+
+        store = openTestDb(path);
+        const backup = new BackupService(store.db);
+        expect((await new SessionRepository(store.db).resume(profile.id))!.result).toMatchObject({ submittedAnswer: 'äöüß' });
+        const exported = await new BackupService(store.db).exportAll();
+        expect(exported.profiles[0].attempts[0].result).toMatchObject({ submittedAnswer: 'äöüß' });
+        expect(exported.profiles[0].sessions[0].result).toMatchObject({ submittedAnswer: 'äöüß' });
+        const restored = await backup.restore(backup.preview(JSON.stringify(exported)));
+        expect((await new SessionRepository(store.db).resume(restored.profileIds[0]))!.result).toMatchObject({ submittedAnswer: 'äöüß' });
+    }
+    finally {
+        store.close();
+        rmSync(directory, { recursive: true, force: true });
+    }
+});
 
 test('five_noun_pool_rotates_each_word_across_types_after_repository_restart', async () => {
     const nouns = (await h.words.list(p1)).filter((word: { pos: string }) => word.pos === 'noun').slice(0, 5);

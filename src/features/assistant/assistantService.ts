@@ -7,9 +7,12 @@ import { profileSelectionVersion } from '../profiles/profileRepository';
 import type { ModelFiles } from './modelFiles';
 import type { LanguageRuntime } from './runtimeTypes';
 import type { HelperDraft, HelperRequest, WordRevision } from './assistantTypes';
+import type { ErrorExplanation, PracticeRequest, PracticeResult } from './practiceTypes';
 import { reference } from '../../data/reference';
 import { buildContext } from './assistantContext';
 import { buildMessages } from './assistantPrompts';
+import { readErrorContext } from './practiceContext';
+import { buildErrorPracticeMessages } from './practicePrompts';
 export class AssistantService {
     private epoch = 0;
     private active?: AbortController;
@@ -91,6 +94,75 @@ export class AssistantService {
             const draft: HelperDraft = { requestId, profileId: request.profileId, wordId: request.wordId, mode: request.mode, ruleTopic: request.mode === 'rule' ? request.ruleTopic : null, text, dependencies: context.dependencies, referenceTitle: context.reference?.title ?? null };
             this.issued.set(draft, { epoch, selection, metadata: JSON.stringify({ ...draft, text: undefined }) });
             return draft;
+        }
+        catch (error) {
+            if (!valid())
+                throw new AppError('CANCELLED', 'Запрос отменён', error);
+            throw error;
+        }
+        finally {
+            off?.();
+            signal.removeEventListener('abort', abort);
+            controller.signal.removeEventListener('abort', stop);
+            if (this.active === controller) {
+                this.active = undefined;
+                this.activeDone = undefined;
+            }
+            finish();
+        }
+    }
+    async generatePractice(request: PracticeRequest, signal: AbortSignal, onText: (text: string) => void): Promise<PracticeResult> {
+        request = { ...request };
+        if (request.kind !== 'error')
+            throw new AppError('VALIDATION', 'Этот режим практики ещё не готов');
+        if (signal.aborted)
+            throw new AppError('CANCELLED', 'Запрос отменён');
+        if (this.active)
+            throw new AppError('BUSY', 'Помощник занят');
+        const controller = new AbortController(), epoch = this.epoch, selection = profileSelectionVersion(this.db);
+        this.active = controller;
+        let finish!: () => void;
+        this.activeDone = new Promise<void>(resolve => { finish = resolve; });
+        const abort = () => controller.abort();
+        signal.addEventListener('abort', abort);
+        const stop = () => { void this.runtime.cancel().catch(() => { }); };
+        controller.signal.addEventListener('abort', stop);
+        const valid = () => !controller.signal.aborted && this.epoch === epoch && profileSelectionVersion(this.db) === selection;
+        const check = () => {
+            if (!valid())
+                throw new AppError('CANCELLED', 'Запрос отменён');
+        };
+        let off: undefined | (() => void);
+        try {
+            await this.draining.catch(() => { });
+            check();
+            const context = await readErrorContext(this.db, request.profileId, request.attemptId);
+            const dependencies: WordRevision[] = [{ wordId: context.word.id, revision: context.word.revision ?? 1 }];
+            check();
+            off = subscribeProfileChanges(request.profileId, () => {
+                void this.owned(this.db, request.profileId, dependencies).then(current => {
+                    if (!current && this.active === controller)
+                        controller.abort();
+                }).catch(() => controller.abort());
+            });
+            const path = await this.files.installedPath();
+            check();
+            if (!path)
+                throw new AppError('MODEL', 'Установите локальную модель для создания подсказок');
+            await this.runtime.load(path);
+            check();
+            const text = await this.runtime.generate({ requestId: randomUUID(), messages: buildErrorPracticeMessages(context), maxTokens: 256 }, controller.signal, token => {
+                if (valid())
+                    onText(token);
+            });
+            check();
+            if (!await this.owned(this.db, request.profileId, dependencies))
+                throw new AppError('CANCELLED', 'Карточка изменилась');
+            check();
+            if (!text.trim())
+                throw new AppError('MODEL', 'Модель вернула пустой результат');
+            const result: ErrorExplanation = { kind: 'error', profileId: request.profileId, attemptId: request.attemptId, submittedAnswer: context.result.submittedAnswer, expected: context.question.expected, text, referenceTitle: context.reference?.title ?? null };
+            return result;
         }
         catch (error) {
             if (!valid())

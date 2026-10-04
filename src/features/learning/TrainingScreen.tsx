@@ -13,7 +13,7 @@ import { useCurrentDay } from '../../app/useCurrentDay';
 import { localDay } from '../../core/calendar';
 import { genderPresentation } from '../dictionary/wordValidation';
 import type { Word } from './learningTypes';
-export function TrainingScreen({ db, profileId, selection, today: injectedDay, onReveal, onHelper, audio: providedAudio }: {
+export function TrainingScreen({ db, profileId, selection, today: injectedDay, onReveal, onHelper, onExplainError, audio: providedAudio }: {
     audio?: AudioService;
     db: SqlStore;
     profileId: string;
@@ -21,6 +21,7 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
     today?: string;
     onReveal?: (wordId: string) => void;
     onHelper?: (wordId: string) => void;
+    onExplainError?: (attemptId: string) => void;
 }) {
     const calendarDay = useCurrentDay(), today = injectedDay ?? calendarDay;
     const currentDay = () => injectedDay ?? localDay(new Date());
@@ -123,5 +124,5 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
         }finally{if(current()){lock.current=false;setBusy(false);}}
     }
     const marker = word && (question?.markerVisible || result) && question?.kind !== 'listening' ? genderPresentation(word) : null;
-    return <KeyboardAvoidingView style={{ flex: 1 }} behavior="height"><Screen><Text style={{ fontSize: 28 }}>Тренировка</Text>{error ? <Text accessibilityRole="alert">{error}</Text> : null}{finished ? <Text>Занятие завершено</Text> : question ? <><Text testID={`training-prompt-${question.kind}`} style={{ fontSize: 24, color: marker?.color ?? '#20252b' }}>{question.prompt}</Text>{marker?.article && question.markerVisible ? <Text testID="training-gender-hint" style={{ color: marker.color! }}>{marker.article}</Text> : null}{question.kind==='listening' ? <><Button title="Прослушать" disabled={busy} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : null}{result ? <><Text testID="training-result">{result.right ? `Верно! +${result.xpDelta} XP` : session?.mode === 'review' ? 'Ошибка. Повторение назначено на завтра.' : 'Ошибка. Серия этого слова сброшена.'}</Text><Text>Ответ: {question.expected.join(' / ')}</Text><Text testID="training-streak">Серия: {result.state.streak}/20</Text><Button title="Продолжить" disabled={busy} onPress={() => void next()}/></> : question.options.length ? question.options.map(option => <Button key={option} title={option} disabled={busy} onPress={() => void submit(option)}/>) : <TypedAnswer key={question.attemptId} disabled={busy} onSubmit={answer => void submit(answer)}/>}<Button title="Открыть карточку" disabled={busy || !!result} onPress={() => void next('card')}/><Button title="Помощник" disabled={busy || !!result} onPress={() => void next('helper')}/></> : <Text>Загрузка…</Text>}</Screen></KeyboardAvoidingView>;
+    return <KeyboardAvoidingView style={{ flex: 1 }} behavior="height"><Screen><Text style={{ fontSize: 28 }}>Тренировка</Text>{error ? <Text accessibilityRole="alert">{error}</Text> : null}{finished ? <Text>Занятие завершено</Text> : question ? <><Text testID={`training-prompt-${question.kind}`} style={{ fontSize: 24, color: marker?.color ?? '#20252b' }}>{question.prompt}</Text>{marker?.article && question.markerVisible ? <Text testID="training-gender-hint" style={{ color: marker.color! }}>{marker.article}</Text> : null}{question.kind==='listening' ? <><Button title="Прослушать" disabled={busy} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : null}{result ? <><Text testID="training-result">{result.right ? `Верно! +${result.xpDelta} XP` : session?.mode === 'review' ? 'Ошибка. Повторение назначено на завтра.' : 'Ошибка. Серия этого слова сброшена.'}</Text><Text>Ответ: {question.expected.join(' / ')}</Text><Text testID="training-streak">Серия: {result.state.streak}/20</Text>{!result.right && onExplainError ? <Button title="Объяснить ошибку" testID="error-explanation-open" disabled={busy} onPress={() => onExplainError(question.attemptId)}/> : null}<Button title="Продолжить" disabled={busy} onPress={() => void next()}/></> : question.options.length ? question.options.map(option => <Button key={option} title={option} disabled={busy} onPress={() => void submit(option)}/>) : <TypedAnswer key={question.attemptId} disabled={busy} onSubmit={answer => void submit(answer)}/>}<Button title="Открыть карточку" disabled={busy || !!result} onPress={() => void next('card')}/><Button title="Помощник" disabled={busy || !!result} onPress={() => void next('helper')}/></> : <Text>Загрузка…</Text>}</Screen></KeyboardAvoidingView>;
 }

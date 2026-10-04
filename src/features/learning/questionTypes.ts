@@ -23,6 +23,7 @@ export type AttemptResult = {
     right: boolean;
     xpDelta: number;
     state: LearningState;
+    submittedAnswer?: string;
 };
 export type Session = {
     id: string;
