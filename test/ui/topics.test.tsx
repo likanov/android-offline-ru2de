@@ -23,6 +23,7 @@ test('dictionary_count_has_stable_target_before_long_filter_and_word_lists',asyn
  const p=await createProfile(h.db,'A');
  const view=render(<DictionaryScreen db={h.db} profileId={p.id} onOpen={()=>{}} onCreate={()=>{}}/>);
  expect(await screen.findByTestId('dictionary-count')).toHaveTextContent('Найдено: 40');
+ expect(await screen.findByTestId('dictionary-search')).toBeTruthy();
  const text=collectText(view.toJSON());
  expect(text.indexOf('Найдено: ')).toBeLessThan(text.indexOf('Тема: '));
  }finally{h.close();}

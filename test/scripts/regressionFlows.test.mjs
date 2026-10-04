@@ -79,8 +79,8 @@ test('dictionary_edit_returns_to_dictionary_before_looking_for_edit_action',()=>
  assert.notEqual(editTargetIndex,-1,'flow should seek the edit action after saving the noun');
  const navIndex=commands.findIndex((command,index)=>index>savedIndex&&index<editTargetIndex&&command.tapOn?.id==='nav-dictionary');
  assert.notEqual(navIndex,-1,'saving returns to the home card, so the flow must reopen Dictionary before seeking Edit');
- const nounSeekIndex=commands.findIndex((command,index)=>index>navIndex&&index<editTargetIndex&&command.runFlow?.env?.TARGET_TEXT==='der Prüfschrank');
- assert.notEqual(nounSeekIndex,-1,'the flow should re-anchor on the saved noun card before seeking Edit');
+ const openSavedIndex=commands.findIndex((command,index)=>index>navIndex&&index<editTargetIndex&&command.tapOn==='der Prüfschrank — контрольный шкаф');
+ assert.notEqual(openSavedIndex,-1,'the flow should open the saved noun card before seeking Edit');
 });
 
 test('dictionary_word_editor_saves_by_stable_button_id',()=>{
@@ -89,6 +89,21 @@ test('dictionary_word_editor_saves_by_stable_button_id',()=>{
  const saveTaps=commands.filter((command)=>command.tapOn?.id==='word-save');
  assert.ok(saveTaps.length>=3,'dictionary create/edit/adjective saves should tap the stable word-save id');
  assert.ok(!s.includes('"tapOn": "Сохранить слово"'),'text-only save taps are flaky on Android after long editor scrolling');
+});
+
+test('dictionary_reopens_saved_noun_by_search_instead_of_long_word_list_scroll',()=>{
+ const path=resolve(root,'checks/dictionary.noun-adjective-edit.yaml'),s=readFileSync(path,'utf8');
+ const commands=JSON.parse(s.split('---\n')[1]);
+ const savedIndex=commands.findIndex((command)=>command.assertVisible==='der Prüfschrank');
+ const editTargetIndex=commands.findIndex((command,index)=>index>savedIndex&&command.runFlow?.env?.TARGET_TEXT==='Редактировать');
+ const navIndex=commands.findIndex((command,index)=>index>savedIndex&&index<editTargetIndex&&command.tapOn?.id==='nav-dictionary');
+ assert.notEqual(navIndex,-1,'flow should reopen Dictionary after saving the noun');
+ const searchTapIndex=commands.findIndex((command,index)=>index>navIndex&&index<editTargetIndex&&command.tapOn?.id==='dictionary-search');
+ assert.notEqual(searchTapIndex,-1,'flow should focus the stable dictionary search before looking for the saved noun');
+ const inputIndex=commands.findIndex((command,index)=>index>searchTapIndex&&index<editTargetIndex&&command.inputText==='Prüfschrank');
+ assert.notEqual(inputIndex,-1,'flow should filter the dictionary to the saved noun instead of scrolling the full list');
+ const openSavedIndex=commands.findIndex((command,index)=>index>inputIndex&&index<editTargetIndex&&command.tapOn==='der Prüfschrank — контрольный шкаф');
+ assert.notEqual(openSavedIndex,-1,'flow should open the saved noun from filtered dictionary results before seeking Edit');
 });
 
 test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_text_scrolls',()=>{

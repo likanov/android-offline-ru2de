@@ -477,12 +477,50 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "dictionary-search"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "DOWN",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "eraseText": 100
+  },
+  {
+    "inputText": "Prüfschrank"
+  },
+  {
+    "hideKeyboard": {}
+  },
+  {
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "der Prüfschrank"
+        "TARGET_TEXT": "der Prüfschrank — контрольный шкаф"
       }
     }
+  },
+  {
+    "tapOn": "der Prüfschrank — контрольный шкаф"
   },
   {
     "runFlow": {
