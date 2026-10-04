@@ -3,6 +3,14 @@ name: export-state
 ---
 [
   {
+    "runFlow": {
+      "file": "open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-transfer"
     }

@@ -1,0 +1,549 @@
+appId: com.personal.germanvocabulary
+name: navigation.compact-menu
+---
+[
+  {
+    "launchApp": {
+      "stopApp": true
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": "Активный профиль: Menu UX"
+      },
+      "commands": [
+        {
+          "tapOn": {
+            "id": "profile-new-name"
+          }
+        },
+        {
+          "eraseText": 100
+        },
+        {
+          "tapOn": {
+            "id": "profile-new-name"
+          }
+        },
+        {
+          "inputText": "Menu UX"
+        },
+        {
+          "runFlow": {
+            "when": {
+              "notVisible": {
+                "id": "nav-more"
+              }
+            },
+            "commands": [
+              {
+                "hideKeyboard": {}
+              }
+            ]
+          }
+        },
+        {
+          "tapOn": {
+            "id": "profile-create"
+          }
+        },
+        {
+          "assertVisible": "Активный профиль: Menu UX"
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "nav-progress"
+    }
+  },
+  {
+    "takeScreenshot": "profiles"
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "takeScreenshot": "dictionary"
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "inputText": "Buch"
+  },
+  {
+    "assertNotVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "takeScreenshot": "keyboard"
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "das Buch — книга"
+      },
+      "times": 8,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "das Buch — книга"
+  },
+  {
+    "tapOn": "das Buch — книга"
+  },
+  {
+    "assertVisible": "das Buch"
+  },
+  {
+    "takeScreenshot": "card"
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Редактировать"
+      },
+      "times": 8,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": "Редактировать"
+  },
+  {
+    "tapOn": "Buch"
+  },
+  {
+    "assertNotVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "word-save"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": "das Buch"
+  },
+  {
+    "tapOn": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "takeScreenshot": "more"
+  },
+  {
+    "tapOn": {
+      "id": "menu-close"
+    }
+  },
+  {
+    "assertVisible": "das Buch"
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-progress"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-reviews"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reviews"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-topics"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-difficult"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-difficult"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-reminders"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reminders"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-model"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-model"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-profiles"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-today"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Открыть карточку"
+      },
+      "times": 8,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Открыть карточку"
+  },
+  {
+    "takeScreenshot": "training"
+  },
+  {
+    "tapOn": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "back": {}
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Открыть карточку"
+      },
+      "times": 8,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Открыть карточку"
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "tapOn": {
+      "point": "50%, 10%"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": "Открыть карточку"
+      },
+      "times": 8,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": "Открыть карточку"
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  }
+]

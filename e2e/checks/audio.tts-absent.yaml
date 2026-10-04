@@ -11,6 +11,20 @@ name: audio.tts-absent
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-dictionary"
     }

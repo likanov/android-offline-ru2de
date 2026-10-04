@@ -37,7 +37,7 @@ test('navigation_opens_difficult_queue_and_trains_only_selected_words', async()=
  const p=await createProfile(h.db,'A');const w=(await h.words.list(p.id))[10];
  await h.db.run('UPDATE word_progress SET difficult=1,totalErrors=3,recoveryErrors=3 WHERE wordId=?',[w.id]);
  render(<AppServicesContext.Provider value={{db:h.db}}><ActiveProfileProvider><Navigation/></ActiveProfileProvider></AppServicesContext.Provider>);
- await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button',{name:'Трудные'}));
+ await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button', { name: 'Ещё' })); fireEvent.press(screen.getByRole('button',{name:'Трудные'}));
  fireEvent.press(await screen.findByRole('button',{name:'Изучать трудные слова'}));await screen.findByRole('button',{name:'Открыть карточку'});
  expect(await h.sessions.resume(p.id)).toMatchObject({mode:'study',wordIds:[w.id],currentQuestion:{wordId:w.id}});
  }finally{h.close();}

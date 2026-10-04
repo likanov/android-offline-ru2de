@@ -11,6 +11,20 @@ name: assistant.helper-cancel-background
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-dictionary"
     }
@@ -238,6 +252,20 @@ name: assistant.helper-cancel-background
   {
     "launchApp": {
       "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
     }
   },
   {

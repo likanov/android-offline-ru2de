@@ -1,0 +1,72 @@
+appId: com.personal.germanvocabulary
+name: open-navigation
+---
+[
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "runFlow": {
+            "when": {
+              "notVisible": {
+                "id": "more-menu"
+              }
+            },
+            "commands": [
+              {
+                "hideKeyboard": {}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "more-menu"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": {
+            "id": "nav-more"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "${NAV_TARGET}"
+        }
+      },
+      "times": 6,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "more-menu-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "${NAV_TARGET}"
+    }
+  }
+]

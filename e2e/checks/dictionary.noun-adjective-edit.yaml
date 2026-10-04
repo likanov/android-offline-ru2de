@@ -11,6 +11,20 @@ name: dictionary.noun-adjective-edit
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-dictionary"
     }
@@ -472,6 +486,20 @@ name: dictionary.noun-adjective-edit
     "assertVisible": "der Prüfschrank"
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-dictionary"
     }
@@ -742,6 +770,20 @@ name: dictionary.noun-adjective-edit
   },
   {
     "assertVisible": "проверенный шкаф"
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
   },
   {
     "tapOn": {

@@ -13,7 +13,7 @@ import { WordCardScreen } from '../features/dictionary/WordCardScreen';
 import { WordEditorScreen } from '../features/dictionary/WordEditorScreen';
 import { useActiveProfile } from './ActiveProfileProvider';
 import { useAppServices, getTrainingServices, getProgressRepository, getReminderService, getCsvImportService, getBackupService, getMemoryAssistant } from './AppServices';
-import { Button } from '../ui/Button';
+import { NavigationMenu } from './NavigationMenu';
 import { ReviewsScreen } from '../features/reviews/ReviewsScreen';
 import { DifficultWordsScreen } from '../features/reviews/DifficultWordsScreen';
 import type { TrainingSelection } from '../features/learning/questionTypes';
@@ -99,5 +99,8 @@ function NavigationRoutes() {
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
         content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
-    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<View style={{ paddingHorizontal: 24, paddingBottom: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button testID="nav-profiles" title="Профили" onPress={() => void navigate({ screen: 'profiles' })}/><Button testID="nav-today" title="Сегодня" disabled={!profile} onPress={() => void navigate({ screen: 'today' })}/><Button testID="nav-progress" title="Прогресс" disabled={!profile} onPress={() => void navigate({ screen: 'progress' })}/><Button testID="nav-dictionary" title="Словарь" disabled={!profile} onPress={() => void navigate({ screen: 'dictionary' })}/><Button testID="nav-training" title="Тренировка" disabled={!profile} onPress={() => void navigate({ screen: 'training', mode: 'study' })}/><Button testID="nav-reviews" title="Повторение" disabled={!profile} onPress={() => void navigate({ screen: 'reviews' })}/><Button testID="nav-topics" title="Наборы" disabled={!profile} onPress={() => void navigate({ screen: 'topics' })}/><Button testID="nav-difficult" title="Трудные" disabled={!profile} onPress={() => void navigate({ screen: 'difficult' })}/><Button testID="nav-reminders" title="Напоминания" disabled={!profile} onPress={() => void navigate({ screen: 'reminders' })}/><Button testID="nav-transfer" title="Перенос данных" onPress={() => void navigate({ screen: 'transfer' })}/><Button testID="nav-model" title="Локальная модель" onPress={() => void navigate({ screen: 'model' })}/></View></View>;
+    const active = ['card', 'editor', 'assistant'].includes(route.screen)
+        ? route.fromTraining ? 'training' : 'dictionary'
+        : route.screen as React.ComponentProps<typeof NavigationMenu>['active'];
+    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<NavigationMenu active={active} hasProfile={!!profile} onNavigate={screen => void navigate({ screen, ...(screen === 'training' ? { mode: 'study' as const } : {}) })}/></View>;
 }

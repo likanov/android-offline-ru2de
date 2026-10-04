@@ -11,6 +11,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-topics"
     }
@@ -198,6 +206,14 @@ name: reviews.all-intervals
       "file": "../helpers/select-profile.yaml",
       "env": {
         "PROFILE": "Регрессия — повторение 1"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
       }
     }
   },
@@ -393,6 +409,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-topics"
     }
@@ -580,6 +604,14 @@ name: reviews.all-intervals
       "file": "../helpers/select-profile.yaml",
       "env": {
         "PROFILE": "Регрессия — повторение 3"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
       }
     }
   },
@@ -775,6 +807,14 @@ name: reviews.all-intervals
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-topics"
     }
@@ -962,6 +1002,14 @@ name: reviews.all-intervals
       "file": "../helpers/select-profile.yaml",
       "env": {
         "PROFILE": "Регрессия — повторение 5"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
       }
     }
   },

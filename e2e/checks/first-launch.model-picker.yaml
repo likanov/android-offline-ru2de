@@ -3,6 +3,14 @@ name: first-launch.model-picker
 ---
 [
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-model"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-model"
     }

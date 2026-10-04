@@ -3,6 +3,14 @@ name: select-profile
 ---
 [
   {
+    "runFlow": {
+      "file": "open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-profiles"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-profiles"
     }

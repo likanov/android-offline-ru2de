@@ -4,6 +4,12 @@ Offline Russian–German vocabulary Android app. Profiles, vocabulary, training,
 reviews, XP, audio, local reminders, CSV and JSON transfer are stored locally.
 The optional assistant uses a separately supplied local GGUF and manifest.
 
+Navigation uses one compact bottom row: Today, Dictionary, Training and More.
+More opens a scrollable menu for profiles, progress, reviews, topics, difficult
+words, reminders, data transfer and the local model. Selecting a section closes
+the menu; Back or tapping outside dismisses it without leaving the current screen.
+The bottom row hides while the keyboard is open.
+
 Run project commands through the pinned local toolchain:
 
 ```sh

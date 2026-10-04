@@ -1,0 +1,287 @@
+appId: com.personal.germanvocabulary
+name: navigation.320dp-large-font
+---
+[
+  {
+    "launchApp": {
+      "stopApp": true
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "takeScreenshot": "dictionary-small"
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "inputText": "Buch"
+  },
+  {
+    "assertNotVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "takeScreenshot": "more-small"
+  },
+  {
+    "back": {}
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-profiles"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-profiles"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-progress"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-reviews"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reviews"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-topics"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-difficult"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-difficult"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-reminders"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-reminders"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-model"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-model"
+    }
+  },
+  {
+    "assertNotVisible": {
+      "id": "more-menu"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-more"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "takeScreenshot": "dictionary-small-final"
+  }
+]

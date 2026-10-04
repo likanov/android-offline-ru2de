@@ -11,6 +11,20 @@ name: persistence-before
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-training"
     }

@@ -3,6 +3,20 @@ name: upgrade.old-ui-word-xp
 ---
 [
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-training"
     }

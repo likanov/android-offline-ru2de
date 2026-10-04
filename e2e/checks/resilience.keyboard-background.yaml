@@ -11,6 +11,20 @@ name: resilience.keyboard-background
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-dictionary"
     }
@@ -35,6 +49,20 @@ name: resilience.keyboard-background
   {
     "launchApp": {
       "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
     }
   },
   {

@@ -11,6 +11,14 @@ name: progress.xp-levels
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-progress"
     }
@@ -96,6 +104,14 @@ name: progress.xp-levels
   },
   {
     "assertVisible": "Уровень: 1"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
   },
   {
     "tapOn": {
@@ -268,6 +284,14 @@ name: progress.xp-levels
         "WORD_RU": "цветок",
         "ARTICLE": "die",
         "INDEFINITE": "eine"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
       }
     }
   },

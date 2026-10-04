@@ -11,6 +11,20 @@ name: profiles.profile-isolation
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-today"
     }
@@ -120,6 +134,20 @@ name: profiles.profile-isolation
       "env": {
         "PROFILE": "Второй переименован"
       }
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
     }
   },
   {
@@ -235,6 +263,20 @@ name: profiles.profile-isolation
   },
   {
     "assertVisible": "Найдено: 40"
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
   },
   {
     "tapOn": {

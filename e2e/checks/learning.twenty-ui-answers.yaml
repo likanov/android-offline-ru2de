@@ -11,6 +11,14 @@ name: learning.twenty-ui-answers
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-topics"
     }
@@ -342,6 +350,14 @@ name: learning.twenty-ui-answers
   },
   {
     "assertVisible": "Занятие завершено"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
   },
   {
     "tapOn": {

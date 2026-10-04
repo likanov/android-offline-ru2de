@@ -3,6 +3,14 @@ name: first-launch
 ---
 [
   {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-profiles"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-profiles"
     }

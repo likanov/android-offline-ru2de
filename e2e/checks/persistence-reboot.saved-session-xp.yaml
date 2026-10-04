@@ -47,6 +47,20 @@ name: persistence-reboot.saved-session-xp
     "assertVisible": "Активный профиль: Регрессия — 20 UI"
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-training"
     }
@@ -91,6 +105,14 @@ name: persistence-reboot.saved-session-xp
   },
   {
     "assertVisible": "Верно! \\+10 XP"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
   },
   {
     "tapOn": {

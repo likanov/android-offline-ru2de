@@ -46,7 +46,7 @@ test('topics_navigation_creates_renames_and_trains_selected_set',async()=>{
  const h=await createWordHarness();try{
  const p=await createProfile(h.db,'A');
  render(<AppServicesContext.Provider value={{db:h.db}}><ActiveProfileProvider><Navigation/></ActiveProfileProvider></AppServicesContext.Provider>);
- await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button',{name:'Наборы'}));
+ await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button', { name: 'Ещё' })); fireEvent.press(screen.getByRole('button',{name:'Наборы'}));
  fireEvent.changeText(await screen.findByLabelText('Название нового набора'),'Мой набор');fireEvent.press(screen.getByRole('button',{name:'Создать набор'}));fireEvent.press(await screen.findByRole('button',{name:'Выбрать набор: Мой набор'}));
  fireEvent.changeText(screen.getByLabelText('Название набора'),'Новое имя');fireEvent.press(screen.getByRole('button',{name:'Переименовать набор'}));await screen.findByRole('button',{name:'Выбрать набор: Новое имя'});
  fireEvent.press(screen.getByRole('button',{name:'Выбрать набор: Предметы и комната'}));fireEvent.press(await screen.findByRole('button',{name:'Изучать набор'}));await screen.findByRole('button',{name:'Открыть карточку'});
@@ -59,7 +59,7 @@ test('future_mastered_topic_disables_study_and_due_topic_starts_review',async()=
  const p=await createProfile(h.db,'A');const transport=await h.words.list(p.id,{query:'Zug'});
  await h.db.run("UPDATE word_progress SET learned=1,streak=20,bonusAwarded=1,dueDate='9999-01-01' WHERE profileId=? AND wordId IN (SELECT id FROM words WHERE de IN ('Zug','Straße'))",[p.id]);
  render(<AppServicesContext.Provider value={{db:h.db}}><ActiveProfileProvider><Navigation/></ActiveProfileProvider></AppServicesContext.Provider>);
- await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button',{name:'Наборы'}));fireEvent.press(await screen.findByRole('button',{name:'Выбрать набор: Транспорт'}));
+ await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button', { name: 'Ещё' })); fireEvent.press(screen.getByRole('button',{name:'Наборы'}));fireEvent.press(await screen.findByRole('button',{name:'Выбрать набор: Транспорт'}));
  await waitFor(()=>expect(screen.getByRole('button',{name:'Изучать набор'})).toBeDisabled());expect(screen.getByRole('button',{name:'Повторить набор'})).toBeDisabled();expect(await h.sessions.resume(p.id)).toBeNull();
  await h.db.run("UPDATE word_progress SET dueDate='2026-01-01' WHERE wordId=?",[transport[0].id]);
  fireEvent.press(screen.getByRole('button',{name:'Выбрать набор: Люди'}));fireEvent.press(screen.getByRole('button',{name:'Выбрать набор: Транспорт'}));
@@ -70,7 +70,7 @@ test('future_mastered_topic_disables_study_and_due_topic_starts_review',async()=
 test('selecting_current_topic_again_keeps_available_training_actions',async()=>{
  const h=await createWordHarness();try{
  await createProfile(h.db,'A');render(<AppServicesContext.Provider value={{db:h.db}}><ActiveProfileProvider><Navigation/></ActiveProfileProvider></AppServicesContext.Provider>);
- await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button',{name:'Наборы'}));fireEvent.press(await screen.findByRole('button',{name:'Выбрать набор: Транспорт'}));await screen.findByText('Доступно для изучения: 2');
+ await screen.findByText('Активный профиль: A');fireEvent.press(screen.getByRole('button', { name: 'Ещё' })); fireEvent.press(screen.getByRole('button',{name:'Наборы'}));fireEvent.press(await screen.findByRole('button',{name:'Выбрать набор: Транспорт'}));await screen.findByText('Доступно для изучения: 2');
  fireEvent.press(screen.getByRole('button',{name:'Выбрать набор: Транспорт'}));await waitFor(()=>expect(screen.getByRole('button',{name:'Изучать набор'})).not.toBeDisabled());
  }finally{h.close();}
 });

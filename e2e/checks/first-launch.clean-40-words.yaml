@@ -3,6 +3,14 @@ name: first-launch.clean-40-words
 ---
 [
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-profiles"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-profiles"
     }
@@ -97,6 +105,20 @@ name: first-launch.clean-40-words
   {
     "assertVisible": {
       "id": "profile-rename-регрессия-ui"
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
     }
   },
   {

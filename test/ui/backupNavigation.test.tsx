@@ -14,6 +14,7 @@ test('fresh_install_restores_without_creating_a_seeded_profile_and_csv_requires_
   const read=jest.spyOn(filePicker,'readText').mockImplementation(async kind=>{if(kind!=='json')throw new Error('CSV cannot run without profile');return {name:'backup.json',text};});
   render(<AppServicesContext.Provider value={{db:h.db}}><ActiveProfileProvider><Navigation/></ActiveProfileProvider></AppServicesContext.Provider>);
   await screen.findByText('Активный профиль: не выбран');
+  fireEvent.press(screen.getByRole('button',{name:'Ещё'}));
   const transfer=screen.getByRole('button',{name:/Перенос данных|Импорт CSV/});
   expect(transfer).not.toBeDisabled();fireEvent.press(transfer);
   expect(screen.getByRole('button',{name:'Выбрать CSV'})).toBeDisabled();
@@ -24,10 +25,10 @@ test('fresh_install_restores_without_creating_a_seeded_profile_and_csv_requires_
   await screen.findByText('Восстановлено профилей: 1');
   expect(await h.db.first('SELECT count(*) AS n FROM profiles')).toEqual({n:1});
   expect(await h.db.first('SELECT activeProfileId FROM app_settings')).toEqual({activeProfileId:null});
-  fireEvent.press(screen.getByRole('button',{name:'Профили'}));
+  fireEvent.press(screen.getByRole('button', { name: 'Ещё' })); fireEvent.press(screen.getByRole('button',{name:'Профили'}));
   fireEvent.press(await screen.findByRole('button',{name:'Выбрать Восстановленный'}));
   await screen.findByText('Активный профиль: Восстановленный');
-  fireEvent.press(screen.getByRole('button',{name:/Перенос данных|Импорт CSV/}));
+  fireEvent.press(screen.getByRole('button', { name: 'Ещё' })); fireEvent.press(screen.getByRole('button',{name:/Перенос данных|Импорт CSV/}));
   await waitFor(()=>expect(screen.getByRole('button',{name:'Выбрать CSV'})).not.toBeDisabled());
   read.mockRestore();
  }finally{jest.restoreAllMocks();source.close();h.close();}

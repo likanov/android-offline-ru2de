@@ -11,6 +11,14 @@ name: learning.bonus-once
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-topics"
     }

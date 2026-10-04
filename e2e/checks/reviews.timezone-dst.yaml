@@ -11,6 +11,20 @@ name: reviews.timezone-dst
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-today"
     }
@@ -55,6 +69,14 @@ name: reviews.timezone-dst
   },
   {
     "assertVisible": "Сегодня"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
   },
   {
     "tapOn": {

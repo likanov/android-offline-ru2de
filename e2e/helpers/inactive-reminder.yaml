@@ -5,6 +5,10 @@ name: inactive-reminder
     file: select-profile.yaml
     env:
       PROFILE: Второй переименован
+- runFlow:
+    file: open-navigation.yaml
+    env:
+      NAV_TARGET: nav-reminders
 - tapOn:
     id: nav-reminders
 - tapOn: Сохранить напоминание

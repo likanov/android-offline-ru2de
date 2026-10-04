@@ -11,6 +11,20 @@ name: resilience.320dp-large-font
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-dictionary"
     }
@@ -28,6 +42,14 @@ name: resilience.320dp-large-font
   },
   {
     "inputText": "ü"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
   },
   {
     "tapOn": {

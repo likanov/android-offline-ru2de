@@ -11,6 +11,14 @@ name: transfer.csv-preview-cancel-profile
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-transfer"
     }
@@ -80,6 +88,14 @@ name: transfer.csv-preview-cancel-profile
       "file": "../helpers/select-profile.yaml",
       "env": {
         "PROFILE": "Второй переименован"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
       }
     }
   },

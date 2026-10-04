@@ -11,6 +11,20 @@ name: assistant.model-absent-corrupt
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-dictionary"
     }
@@ -208,6 +222,20 @@ name: assistant.model-absent-corrupt
     "extendedWaitUntil": {
       "visible": "Установить локальную модель",
       "timeout": 60000
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
     }
   },
   {

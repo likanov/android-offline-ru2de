@@ -11,6 +11,14 @@ name: reminders.reminder-profile
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-reminders"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-reminders"
     }
@@ -113,6 +121,14 @@ name: reminders.reminder-profile
       "file": "../helpers/select-profile.yaml",
       "env": {
         "PROFILE": "Регрессия UI"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-reminders"
       }
     }
   },

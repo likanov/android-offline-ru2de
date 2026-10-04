@@ -11,6 +11,14 @@ name: reminders.reminder-boot-zone
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-reminders"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-reminders"
     }

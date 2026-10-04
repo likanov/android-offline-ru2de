@@ -3,6 +3,20 @@ name: upgrade.resume-no-second-bonus
 ---
 [
   {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-training"
     }
@@ -99,6 +113,14 @@ name: upgrade.resume-no-second-bonus
   },
   {
     "assertVisible": "Занятие завершено"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
   },
   {
     "tapOn": {

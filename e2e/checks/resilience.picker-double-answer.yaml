@@ -11,6 +11,14 @@ name: resilience.picker-double-answer
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-transfer"
     }
@@ -75,6 +83,14 @@ name: resilience.picker-double-answer
       "file": "../helpers/select-profile.yaml",
       "env": {
         "PROFILE": "Регрессия — трудное"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
       }
     }
   },

@@ -3,6 +3,14 @@ name: learning.umlauts-eszett
 ---
 [
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-profiles"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-profiles"
     }
@@ -107,6 +115,14 @@ name: learning.umlauts-eszett
     "tapOn": "Создать профиль"
   },
   {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "nav-topics"
     }
@@ -209,6 +225,20 @@ name: learning.umlauts-eszett
   },
   {
     "tapOn": "Создать набор"
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        }
+      ]
+    }
   },
   {
     "tapOn": {
@@ -707,6 +737,14 @@ name: learning.umlauts-eszett
   {
     "tapOn": {
       "id": "word-save"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-topics"
+      }
     }
   },
   {
