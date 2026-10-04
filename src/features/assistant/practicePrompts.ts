@@ -1,5 +1,6 @@
 import type { GenerationRequest } from './runtimeTypes';
 import type { ErrorContext } from './practiceTypes';
+import type { Word } from '../learning/learningTypes';
 
 function card(context: ErrorContext) {
     const word = context.word;
@@ -40,5 +41,26 @@ export function buildErrorPracticeMessages(context: ErrorContext): GenerationReq
             word: card(context),
             reference: context.reference,
         }),
+    }];
+}
+
+function clozeCard(word: Word) {
+    return {
+        id: word.id,
+        de: word.de,
+        ru: word.ru,
+        pos: word.pos,
+        gender: word.gender,
+        article: word.pos === 'noun' ? { m: 'der', f: 'die', n: 'das' }[word.gender!] : null,
+    };
+}
+
+export function buildClozePracticeMessages(words: Word[]): GenerationRequest['messages'] {
+    return [{
+        role: 'system',
+        content: 'Ты локальный помощник для русскоязычного ученика немецкого. Создай по одному простому немецкому A1 предложению с пропуском для каждого слова. Верни строгий JSON: {"exercises":[{"wordId":"...","before":"...","after":"...","translationRu":"..."}]}. before и after должны окружать точное слово из карточки, но не содержать само целевое слово. Не добавляй expected и не оценивай ответ.',
+    }, {
+        role: 'user',
+        content: JSON.stringify({ kind: 'cloze', words: words.map(clozeCard) }),
     }];
 }

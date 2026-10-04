@@ -7,12 +7,13 @@ import { profileSelectionVersion } from '../profiles/profileRepository';
 import type { ModelFiles } from './modelFiles';
 import type { LanguageRuntime } from './runtimeTypes';
 import type { HelperDraft, HelperRequest, WordRevision } from './assistantTypes';
-import type { ErrorExplanation, PracticeRequest, PracticeResult } from './practiceTypes';
+import type { ClozePractice, ErrorExplanation, PracticeRequest, PracticeResult } from './practiceTypes';
 import { reference } from '../../data/reference';
 import { buildContext } from './assistantContext';
 import { buildMessages } from './assistantPrompts';
-import { readErrorContext } from './practiceContext';
-import { buildErrorPracticeMessages } from './practicePrompts';
+import { readClozeWords, readErrorContext } from './practiceContext';
+import { buildClozePracticeMessages, buildErrorPracticeMessages } from './practicePrompts';
+import { decodeClozeOutput } from './practiceValidation';
 export class AssistantService {
     private epoch = 0;
     private active?: AbortController;
@@ -112,8 +113,8 @@ export class AssistantService {
         }
     }
     async generatePractice(request: PracticeRequest, signal: AbortSignal, onText: (text: string) => void): Promise<PracticeResult> {
-        request = { ...request };
-        if (request.kind !== 'error')
+        request = request.kind === 'error' ? { ...request } : { ...request, wordIds: [...request.wordIds] };
+        if (!['error', 'cloze'].includes(request.kind))
             throw new AppError('VALIDATION', 'Этот режим практики ещё не готов');
         if (signal.aborted)
             throw new AppError('CANCELLED', 'Запрос отменён');
@@ -133,11 +134,26 @@ export class AssistantService {
                 throw new AppError('CANCELLED', 'Запрос отменён');
         };
         let off: undefined | (() => void);
+        let dependencies: WordRevision[] = [];
         try {
             await this.draining.catch(() => { });
             check();
-            const context = await readErrorContext(this.db, request.profileId, request.attemptId);
-            const dependencies: WordRevision[] = [{ wordId: context.word.id, revision: context.word.revision ?? 1 }];
+            let messages;
+            let maxTokens = 256;
+            let finishResult: (text: string) => PracticeResult;
+            if (request.kind === 'error') {
+                const context = await readErrorContext(this.db, request.profileId, request.attemptId);
+                dependencies = [{ wordId: context.word.id, revision: context.word.revision ?? 1 }];
+                messages = buildErrorPracticeMessages(context);
+                finishResult = text => ({ kind: 'error', profileId: request.profileId, attemptId: request.attemptId, submittedAnswer: context.result.submittedAnswer, expected: context.question.expected, text, referenceTitle: context.reference?.title ?? null } satisfies ErrorExplanation);
+            }
+            else {
+                const words = await readClozeWords(this.db, request.profileId, request.wordIds);
+                dependencies = words.map(word => ({ wordId: word.id, revision: word.revision ?? 1 }));
+                messages = buildClozePracticeMessages(words);
+                maxTokens = 512;
+                finishResult = text => ({ kind: 'cloze', profileId: request.profileId, exercises: decodeClozeOutput(text, words), dependencies } satisfies ClozePractice);
+            }
             check();
             off = subscribeProfileChanges(request.profileId, () => {
                 void this.owned(this.db, request.profileId, dependencies).then(current => {
@@ -151,7 +167,7 @@ export class AssistantService {
                 throw new AppError('MODEL', 'Установите локальную модель для создания подсказок');
             await this.runtime.load(path);
             check();
-            const text = await this.runtime.generate({ requestId: randomUUID(), messages: buildErrorPracticeMessages(context), maxTokens: 256 }, controller.signal, token => {
+            const text = await this.runtime.generate({ requestId: randomUUID(), messages, maxTokens }, controller.signal, token => {
                 if (valid())
                     onText(token);
             });
@@ -161,8 +177,7 @@ export class AssistantService {
             check();
             if (!text.trim())
                 throw new AppError('MODEL', 'Модель вернула пустой результат');
-            const result: ErrorExplanation = { kind: 'error', profileId: request.profileId, attemptId: request.attemptId, submittedAnswer: context.result.submittedAnswer, expected: context.question.expected, text, referenceTitle: context.reference?.title ?? null };
-            return result;
+            return finishResult(text);
         }
         catch (error) {
             if (!valid())

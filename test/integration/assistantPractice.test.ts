@@ -121,3 +121,57 @@ test('long_answer_is_bounded_in_model_context', async () => {
     expect(userData.result.submittedAnswer).toBe(longAnswer.slice(0, 500));
     expect(userData.result.submittedAnswerTruncated).toBe(true);
 });
+
+test('cloze_generation_returns_validated_exercises', async () => {
+    const requests: GenerationRequest[] = [];
+    let targetId = '';
+    const runtime: LanguageRuntime = {
+        load: async () => {},
+        generate: async (request) => {
+            requests.push(request);
+            return JSON.stringify({ exercises: [{ wordId: targetId, before: 'Der ', after: ' ist klein.', translationRu: 'Стул маленький.', expected: ['wrong'] }] });
+        },
+        cancel: async () => {},
+        release: async () => {},
+    };
+    const assistantHarness = await createAssistantHarness(runtime);
+    h.close();
+    h = assistantHarness;
+    const profile = await createProfile(h.db, 'A');
+    const created = await h.words.create(profile.id, { de: 'Stuhltest', ru: 'тестовый стул', pos: 'noun', gender: 'm' });
+    targetId = created.id;
+
+    const practice = await h.assistant.generatePractice({ kind: 'cloze', profileId: profile.id, wordIds: [created.id] }, new AbortController().signal, () => {});
+
+    expect(practice).toMatchObject({
+        kind: 'cloze',
+        profileId: profile.id,
+        exercises: [{ wordId: created.id, expected: ['Stuhltest'], sentenceDe: 'Der Stuhltest ist klein.' }],
+        dependencies: [{ wordId: created.id, revision: 1 }],
+    });
+    expect(requests[0].maxTokens).toBe(512);
+    const userData = JSON.parse(requests[0].messages[1].content);
+    expect(userData.words).toEqual([{ id: created.id, de: 'Stuhltest', ru: 'тестовый стул', pos: 'noun', gender: 'm', article: 'der' }]);
+});
+
+test('cloze_generation_rejects_changed_revision', async () => {
+    let finish!: (text: string) => void;
+    const runtime: LanguageRuntime = {
+        load: async () => {},
+        generate: async () => new Promise(resolve => { finish = resolve; }),
+        cancel: async () => {},
+        release: async () => {},
+    };
+    const assistantHarness = await createAssistantHarness(runtime);
+    h.close();
+    h = assistantHarness;
+    const profile = await createProfile(h.db, 'A');
+    const word = (await h.words.list(profile.id)).find(w => w.de === 'Stuhl')!;
+    const pending = h.assistant.generatePractice({ kind: 'cloze', profileId: profile.id, wordIds: [word.id] }, new AbortController().signal, () => {});
+    for (let i = 0; i < 100 && !finish; i++)
+        await new Promise(resolve => setTimeout(resolve, 1));
+    await h.words.update(profile.id, word.id, { ...word, ru: 'изменённый стул' });
+    finish(JSON.stringify({ exercises: [{ wordId: word.id, before: 'Der ', after: ' ist klein.', translationRu: 'Стул маленький.' }] }));
+
+    await expect(pending).rejects.toMatchObject({ code: 'CANCELLED' });
+});

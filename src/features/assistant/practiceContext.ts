@@ -80,3 +80,19 @@ export async function readErrorContext(db: SqlStore, profileId: string, attemptI
         reference: practiceReference(question),
     };
 }
+
+export async function readClozeWords(db: SqlStore, profileId: string, wordIds: string[]): Promise<Word[]> {
+    if (!Array.isArray(wordIds) || wordIds.length < 1 || wordIds.length > 5 || new Set(wordIds).size !== wordIds.length)
+        throw new AppError('VALIDATION', 'Выберите от 1 до 5 слов');
+    const active = await db.first<{ activeProfileId: string | null }>('SELECT activeProfileId FROM app_settings WHERE id=1');
+    if (active?.activeProfileId !== profileId)
+        throw new AppError('WRONG_PROFILE', 'Выберите этот профиль');
+    const words: Word[] = [];
+    for (const id of wordIds) {
+        const word = await db.first<Word>('SELECT * FROM words WHERE profileId=? AND id=?', [profileId, id]);
+        if (!word)
+            throw new AppError('WRONG_PROFILE', 'Слово не принадлежит профилю');
+        words.push(word);
+    }
+    return words;
+}
