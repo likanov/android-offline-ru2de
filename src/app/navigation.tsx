@@ -136,7 +136,7 @@ function NavigationRoutes({ dictionaryViewState, onDictionaryViewStateChange }: 
     else if (route.screen === 'editor')
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
-        content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', practiceKind: 'cloze', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
+        content = <WordCardScreen db={db} profileId={profile.id} profileName={profile.name} wordId={route.wordId!} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', practiceKind: 'cloze', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
     const active = ['card', 'editor', 'assistant', 'error-explanation', 'grammar-explanation', 'practice'].includes(route.screen)
         ? route.fromTraining ? 'training' : 'dictionary'
         : (['training-home', 'grammar-training', 'grammar-reference'].includes(route.screen) ? 'training' : route.screen as React.ComponentProps<typeof NavigationMenu>['active']);
