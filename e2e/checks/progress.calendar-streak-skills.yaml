@@ -6,7 +6,7 @@ name: progress.calendar-streak-skills
     "runFlow": {
       "file": "../helpers/select-profile.yaml",
       "env": {
-        "PROFILE": "Регрессия — 20 UI"
+        "PROFILE": "Регрессия — изучено"
       }
     }
   },
@@ -24,83 +24,7 @@ name: progress.calendar-streak-skills
     }
   },
   {
-    "repeat": {
-      "while": {
-        "notVisible": "XP: 250"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "XP: 250"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
     "assertVisible": "XP: 250"
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "Серия дней: 1"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "Серия дней: 1"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
   },
   {
     "assertVisible": "Серия дней: 1"

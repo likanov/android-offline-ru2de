@@ -76,28 +76,6 @@ export function ProfilesScreen() {
       <Text style={styles.active}>
         Активный профиль: {profile?.name ?? "не выбран"}
       </Text>
-      <View style={styles.card}>
-        <Text style={styles.name}>Новый профиль</Text>
-        <TextInput
-          testID="profile-new-name"
-          style={styles.input}
-          accessibilityLabel="Имя нового профиля"
-          placeholder="Ваше имя"
-          value={name}
-          onChangeText={setName}
-        />
-        <Button
-          testID="profile-create"
-          title="Создать профиль"
-          disabled={busy}
-          onPress={() => {
-            void perform(async () => {
-              await createProfile(db, name);
-              setName("");
-            });
-          }}
-        />
-      </View>
       {editing && (
         <View style={styles.card}>
           <TextInput
@@ -121,6 +99,28 @@ export function ProfilesScreen() {
           <Button title="Отмена" onPress={() => setEditing(null)} />
         </View>
       )}
+      <View style={styles.card}>
+        <Text style={styles.name}>Новый профиль</Text>
+        <TextInput
+          testID="profile-new-name"
+          style={styles.input}
+          accessibilityLabel="Имя нового профиля"
+          placeholder="Ваше имя"
+          value={name}
+          onChangeText={setName}
+        />
+        <Button
+          testID="profile-create"
+          title="Создать профиль"
+          disabled={busy}
+          onPress={() => {
+            void perform(async () => {
+              await createProfile(db, name);
+              setName("");
+            });
+          }}
+        />
+      </View>
       {displayedProfiles.map((item) => (
         <View
           key={item.id}

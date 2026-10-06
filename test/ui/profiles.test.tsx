@@ -117,7 +117,7 @@ test("active_profile_actions_stay_next_to_the_profile_name_for_small_viewports",
 });
 
 
-test("profile_edit_form_appears_before_the_profile_list_after_rename_tap", async () => {
+test("profile_edit_form_appears_above_create_form_and_profile_list_after_rename_tap", async () => {
   const { db, close } = openTestDb();
   await migrate(db);
   await createProfile(db, "Второй UI");
@@ -132,6 +132,9 @@ test("profile_edit_form_appears_before_the_profile_list_after_rename_tap", async
   fireEvent.press(await screen.findByTestId("profile-rename-второй-ui"));
   await screen.findByTestId("profile-edit-name");
   const ids = collectTestIds(view.toJSON());
+  expect(ids.indexOf("profile-edit-name")).toBeLessThan(
+    ids.indexOf("profile-new-name"),
+  );
   expect(ids.indexOf("profile-edit-name")).toBeLessThan(
     ids.indexOf("profile-card-второй-ui"),
   );

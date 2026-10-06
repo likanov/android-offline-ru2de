@@ -208,18 +208,38 @@ name: dictionary.cosmetic-preserve
     }
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Заметка"
-      }
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "word-note"
+        }
+      },
+      "times": 18,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        }
+      ]
     }
   },
   {
-    "tapOn": "Заметка"
+    "tapOn": {
+      "id": "word-note"
+    }
   },
   {
     "eraseText": 100
+  },
+  {
+    "tapOn": {
+      "id": "word-note"
+    }
   },
   {
     "inputText": "Сохранённая серия"

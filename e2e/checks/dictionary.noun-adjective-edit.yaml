@@ -1245,5 +1245,8 @@ name: dictionary.noun-adjective-edit
   },
   {
     "assertVisible": "hübsch"
+  },
+  {
+    "takeScreenshot": "dictionary-noun-adjective-edit-final"
   }
 ]

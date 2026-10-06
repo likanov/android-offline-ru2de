@@ -27,17 +27,15 @@ TOOLS="$SDK/build-tools/36.0.0"
 "$TOOLS/apksigner" verify --verbose --print-certs "$APK"
 PERMISSIONS=$("$TOOLS/aapt" dump permissions "$APK")
 if printf '%s\n' "$PERMISSIONS" | rg -q 'android.permission.INTERNET'; then echo 'RELEASE_HAS_INTERNET' >&2; exit 1; fi
-"$TOOLS/aapt" dump badging "$APK" | head -n 6
-python3 - "$APK" <<'PY'
-import sys,zipfile,hashlib,json
-path=sys.argv[1]
-with zipfile.ZipFile(path) as apk:
- names=apk.namelist()
- assert 'assets/index.android.bundle' in names,'RELEASE_JS_MISSING'
- wav=[n for n in names if n.endswith('.wav')]
- assert len(wav)==40,f'EXPECTED_40_WAV_GOT_{len(wav)}'
-h=hashlib.sha256()
-with open(path,'rb') as f:
- for data in iter(lambda:f.read(1024*1024),b''): h.update(data)
-print(json.dumps({'apk':path,'sha256':h.hexdigest(),'wavCount':len(wav)},indent=2))
-PY
+BADGING_FILE=$(mktemp "${TMPDIR:-/tmp}/vocabulary-badging.XXXXXX")
+trap 'rm -f "$BADGING_FILE"' EXIT INT HUP TERM
+"$TOOLS/aapt" dump badging "$APK" > "$BADGING_FILE"
+head -n 6 "$BADGING_FILE"
+ASSET_LIST=$(mktemp "${TMPDIR:-/tmp}/vocabulary-assets.XXXXXX")
+trap 'rm -f "$BADGING_FILE" "$ASSET_LIST"' EXIT INT HUP TERM
+"$TOOLS/aapt" list "$APK" > "$ASSET_LIST"
+grep -qx 'assets/index.android.bundle' "$ASSET_LIST" || { echo 'RELEASE_JS_MISSING' >&2; exit 1; }
+WAV_COUNT=$(grep -c '\.wav$' "$ASSET_LIST" || true)
+if [ "$WAV_COUNT" -ne 40 ]; then echo "EXPECTED_40_WAV_GOT_$WAV_COUNT" >&2; exit 1; fi
+SHA256=$(openssl dgst -sha256 -r "$APK" | awk '{print $1}')
+printf '{\n  "apk": "%s",\n  "sha256": "%s",\n  "wavCount": %s\n}\n' "$APK" "$SHA256" "$WAV_COUNT"

@@ -122,5 +122,8 @@ name: export-state
   },
   {
     "assertVisible": "Резервная копия сохранена"
+  },
+  {
+    "takeScreenshot": "export-state-saved"
   }
 ]

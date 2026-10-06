@@ -211,6 +211,17 @@ name: assistant.helper-cancel-background
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
+        "TARGET_TEXT": "Короткий текст"
+      }
+    }
+  },
+  {
+    "tapOn": "Короткий текст"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
         "TARGET_TEXT": "Создать подсказку"
       }
     }
@@ -219,11 +230,18 @@ name: assistant.helper-cancel-background
     "tapOn": "Создать подсказку"
   },
   {
-    "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Отменить"
-      }
+    "swipe": {
+      "from": {
+        "id": "screen-scroll"
+      },
+      "direction": "UP",
+      "duration": 300
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": "Отменить",
+      "timeout": 15000
     }
   },
   {

@@ -11,6 +11,7 @@ import type { ClozePractice, ErrorExplanation, GrammarErrorExplanation, Practice
 import { reference } from '../../data/reference';
 import { buildContext } from './assistantContext';
 import { buildMessages } from './assistantPrompts';
+import { userFacingAssistantText } from './assistantOutput';
 import { readClozeWords, readErrorContext } from './practiceContext';
 import { buildClozePracticeMessages, buildErrorPracticeMessages } from './practicePrompts';
 import { loadGrammarErrorContext } from './grammarErrorContext';
@@ -85,10 +86,11 @@ export class AssistantService {
             // idle disposal or a profile change. The GGUF file is shared, never the dialog.
             await this.runtime.load(path);
             check();
-            const requestId = randomUUID(), text = await this.runtime.generate({ requestId, messages: buildMessages(context), maxTokens: request.mode === 'text' ? 512 : 256 }, controller.signal, token => {
+            const requestId = randomUUID(), rawText = await this.runtime.generate({ requestId, messages: buildMessages(context), maxTokens: request.mode === 'text' ? 128 : 256 }, controller.signal, token => {
                 if (valid())
                     onText(token);
             });
+            const text = userFacingAssistantText(rawText, context);
             check();
             if (!await this.owned(this.db, request.profileId, context.dependencies))
                 throw new AppError('CANCELLED', 'Карточка изменилась');
@@ -153,7 +155,7 @@ export class AssistantService {
                 finishResult = text => ({ kind: 'error', profileId: request.profileId, attemptId: request.attemptId, submittedAnswer: context.result.submittedAnswer, expected: context.question.expected, text, referenceTitle: context.reference?.title ?? null } satisfies ErrorExplanation);
             }
             else if (request.kind === 'grammar-error') {
-                // Grammar explanations are historical snapshots. In particular,
+                // Grammar explanations are historical snapshots.  In particular,
                 // editing a referenced word must not invalidate the saved error.
                 const context = await loadGrammarErrorContext(this.db, request.profileId, request.attemptId);
                 messages = buildGrammarErrorMessages(context);

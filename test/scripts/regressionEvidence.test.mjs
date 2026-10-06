@@ -13,6 +13,11 @@ test('generation_capture_uses_nonempty_actual_edittext_and_completed_status',()=
   assert.equal(generationFromHierarchy(xml.replace('Проверьте подсказку перед сохранением','Загрузка модели и создание подсказки…')),null);
   assert.equal(generationFromHierarchy(xml.replace('DE: Der Stuhl.&#10;RU: Стул &amp; дом.','')),null);
 });
+
+test('generation_capture_accepts_uiautomator_single_quoted_edittext',()=>{
+  const xml=`<hierarchy><node resource-id="assistant-status" text="Проверьте подсказку перед сохранением"/><node index="12" text='{"type":"association","word":{"de":"Stuhl","ru":"стул"}}' resource-id="assistant-result" class="android.widget.EditText" /></hierarchy>`;
+  assert.equal(generationFromHierarchy(xml),'{"type":"association","word":{"de":"Stuhl","ru":"стул"}}');
+});
 test('complete_report_can_succeed_and_environment_incomplete_stays_nonzero',()=>{
   const validation={ok:true,errors:[]};
   assert.deepEqual(completeRegressionReport({blockers:[],crashCount:0,anrCount:0},()=>validation),{exitCode:0,status:'passed',errors:[]});
@@ -35,6 +40,10 @@ test('reminder_evidence_parses_only_future_application_alarms_and_local_time',as
  const time=Date.parse('2026-10-04T06:30:00Z');
  const dump=`RTC_WAKEUP #0: Alarm{abc type 0 when ${time} com.personal.germanvocabulary}\nRTC_WAKEUP #1: Alarm{def type 0 when ${time+5000} other.app}\nAlarm{old type 0 when 1000 com.personal.germanvocabulary}`;
  assert.deepEqual(applicationAlarmEpochs(dump,2000),[time]);
+ const modernDump=`RTC_WAKEUP #19: Alarm{3966c00 type 0 origWhen ${time} whenElapsed 66634527 com.personal.germanvocabulary}
+      tag=*walarm*:expo.modules.notifications.NOTIFICATION_EVENT
+      type=RTC_WAKEUP origWhen=2026-10-04 08:30:00.000 window=+1h0m0s0ms repeatInterval=0 count=0 flags=0x20`;
+ assert.deepEqual(applicationAlarmEpochs(modernDump,2000),[time]);
  assert.equal(alarmMatchesLocalTime(time,'Europe/Berlin','08:30'),true);
  assert.equal(alarmMatchesLocalTime(time,'America/New_York','08:30'),false);
 });
