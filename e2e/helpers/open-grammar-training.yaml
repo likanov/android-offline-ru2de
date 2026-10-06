@@ -1,6 +1,14 @@
 appId: com.personal.germanvocabulary
 name: open-grammar-training
 ---
+- runFlow:
+    file: select-profile.yaml
+    env:
+      PROFILE: Грамматика — 18 целей
+- runFlow:
+    file: open-navigation.yaml
+    env:
+      NAV_TARGET: nav-training
 - tapOn:
     id: nav-training
 - extendedWaitUntil:
