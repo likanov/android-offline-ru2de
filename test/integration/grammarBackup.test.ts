@@ -1,6 +1,7 @@
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import type { GrammarQuestion, GrammarSubmission } from '../../src/features/grammar/grammarTypes';
 import { createGrammarHarness } from '../harness';
+import { persistLegacySiePluralQuestion } from '../fixtures/legacyGrammarQuestion';
 
 const day = '2026-10-06';
 function answer(question: GrammarQuestion): GrammarSubmission {
@@ -68,5 +69,45 @@ test('v2_rejects_forged_grammar_result_and_cross_ledger_attempt_ids', async () =
     const duplicate = JSON.parse(JSON.stringify(source));
     duplicate.profiles[0].grammar.attempts[0].result.attemptId = duplicate.profiles[0].attempts[0].attemptId;
     expect(() => h.backup.preview(JSON.stringify(duplicate))).toThrow();
+  } finally { h.close(); }
+});
+
+test.each(['sie_plural', 'sie_feminine'] as const)('legacy_v2_restores_historical_%s_and_continues_with_german_only_choices', async optionId => {
+  const h = await createGrammarHarness();
+  try {
+    const profile = await createProfile(h.db, 'Старая версия');
+    const session = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'pronouns', targetIds: ['pronoun-cloze:sie_plural'] }, day))!;
+    const question = (await h.grammarSessions.next(profile.id, session.id, day))!;
+    await persistLegacySiePluralQuestion(h.db, question);
+    const result = await h.grammarAnswers.submit(profile.id, session.id, question.attemptId, { kind: 'choice', optionId }, day);
+    const right = optionId === 'sie_plural';
+    expect(result.right).toBe(right);
+    const backup = await h.backup.exportAll();
+    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(backup)));
+    const restoredId = restored.profileIds[0];
+    const reopened = (await h.grammarSessions.resume(restoredId))!;
+    expect(reopened.result).toMatchObject({ right, xpDelta: right ? 10 : 0, submittedAnswer: { kind: 'choice', optionId } });
+    expect(reopened.currentQuestion!.options[0].label).toBe('sie — они');
+    expect(await h.profile(restoredId)).toMatchObject({ xp: right ? 10 : 0 });
+    const next = (await h.grammarSessions.next(restoredId, reopened.id, day))!;
+    expect(next.options.map(option => option.label).sort()).toEqual(['Du', 'Er', 'Ich', 'Sie']);
+  } finally { h.close(); }
+});
+
+test('legacy_v2_restores_unanswered_question_and_accepts_current_distractor', async () => {
+  const h = await createGrammarHarness();
+  try {
+    const profile = await createProfile(h.db, 'Без ответа');
+    const session = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'pronouns', targetIds: ['pronoun-cloze:sie_plural'] }, day))!;
+    const question = (await h.grammarSessions.next(profile.id, session.id, day))!;
+    await persistLegacySiePluralQuestion(h.db, question);
+    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(await h.backup.exportAll())));
+    const restoredId = restored.profileIds[0];
+    await h.db.run('UPDATE app_settings SET activeProfileId=? WHERE id=1', [restoredId]);
+    const reopened = (await h.grammarSessions.resume(restoredId))!;
+    const result = await h.grammarAnswers.submit(restoredId, reopened.id, reopened.currentQuestion!.attemptId, { kind: 'choice', optionId: 'du' }, day);
+    expect(result).toMatchObject({ right: false, xpDelta: 0, state: { streak: 0, totalErrors: 1 } });
+    const after = await h.backup.exportAll();
+    expect(() => h.backup.preview(JSON.stringify(after))).not.toThrow();
   } finally { h.close(); }
 });

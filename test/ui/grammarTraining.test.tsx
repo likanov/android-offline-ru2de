@@ -4,6 +4,7 @@ import { createGrammarHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import { TrainingHomeScreen } from '../../src/features/learning/TrainingHomeScreen';
 import { GrammarTrainingScreen } from '../../src/features/grammar/GrammarTrainingScreen';
+import { persistLegacySiePluralQuestion } from '../fixtures/legacyGrammarQuestion';
 
 test('training_home_opens_both_blocks_and_resumes', async () => {
   const h = await createGrammarHarness();
@@ -52,4 +53,37 @@ test('grammar_choice_then_typing_same_target', async () => {
   fireEvent.press(screen.getByTestId('grammar-submit'));
   await screen.findByTestId('grammar-result');
   view.unmount(); h.close();
+});
+
+test.each([
+  { label: 'Sie', right: true, xp: 10, streak: 1, errors: 0 },
+  { label: 'Du', right: false, xp: 0, streak: 0, errors: 1 },
+])('resumed_legacy_question_grades_$label_from_four_german_only_buttons', async ({ label, right, xp, streak, errors }) => {
+  const h = await createGrammarHarness();
+  let view: ReturnType<typeof render> | undefined;
+  try {
+    const profile = await createProfile(h.db, 'Продолжение');
+    const selection = { mode: 'study' as const, lesson: 'pronouns' as const, targetIds: ['pronoun-cloze:sie_plural' as const] };
+    const session = (await h.grammarSessions.start(profile.id, selection, '2026-10-06'))!;
+    const question = (await h.grammarSessions.next(profile.id, session.id, '2026-10-06'))!;
+    const legacy = await persistLegacySiePluralQuestion(h.db, question);
+    view = render(<GrammarTrainingScreen db={h.db} profileId={profile.id} today="2026-10-06" selection={selection} onReference={jest.fn()} onExplainError={jest.fn()} />);
+    const buttons = await screen.findAllByTestId(/grammar-option-/);
+    expect(buttons.map(button => button.props.accessibilityLabel).sort()).toEqual(['Du', 'Er', 'Ich', 'Sie']);
+    for (const name of ['Du', 'Er', 'Ich', 'Sie']) {
+      expect(screen.getByText(name)).toBeTruthy();
+      expect(screen.getByRole('button', { name })).toBeTruthy();
+    }
+    expect(screen.getByTestId('grammar-context')).toHaveTextContent('Контекст: они.');
+    expect(screen.queryByTestId('grammar-result')).toBeNull();
+    fireEvent.press(screen.getByRole('button', { name: label }));
+    await screen.findByTestId('grammar-result');
+    expect(screen.getByText(legacy.feedback.translationRu)).toBeTruthy();
+    expect((await h.grammarSessions.resume(profile.id))!.result).toMatchObject({ right, xpDelta: xp });
+    expect(await h.grammar.getState(profile.id, 'pronoun-cloze:sie_plural')).toMatchObject({ attemptCount: 1, state: { streak, totalErrors: errors } });
+    expect(await h.profile(profile.id)).toMatchObject({ xp });
+  } finally {
+    view?.unmount();
+    h.close();
+  }
 });

@@ -27,11 +27,22 @@ test('all_templates_have_valid_german_and_russian_feedback', () => {
   }
 });
 
-test('sie_targets_keep_all_three_sie_meanings_as_choice_options', () => {
-  for (const target of grammarTargets.filter(t => t.pronounId.startsWith('sie_') && t.kind === 'pronoun-cloze')) {
-    const q = makeGrammarQuestion({ attemptId: target.id, sessionId: 's', profileId: 'p', targetId: target.id, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex: 0, words: [] });
-    expect(q.options.map(option => option.id)).toEqual(expect.arrayContaining(['sie_feminine', 'sie_plural', 'sie_formal']));
+test('all_choice_buttons_have_four_distinct_german_forms_without_translation', () => {
+  for (const target of grammarTargets) for (const variantIndex of [0, 1, 2]) {
+    const q = makeGrammarQuestion({ attemptId: `${target.id}-${variantIndex}`, sessionId: 's', profileId: 'p', targetId: target.id, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex, words: [] });
+    const labels = q.options.map(option => option.label);
+    expect(labels).toHaveLength(4);
+    expect(new Set(labels).size).toBe(4);
+    expect(labels.every(label => /^[A-Za-z]+$/.test(label))).toBe(true);
+    expect(q.options.find(option => option.id === q.expected.optionId)!.label).toBe(q.expected.token);
   }
+});
+
+test.each(['sie_feminine', 'sie_plural', 'sie_formal'] as const)('internal_%s_distinguishes_ordinary_and_formal_sie', pronounId => {
+  const q = makeGrammarQuestion({ attemptId: pronounId, sessionId: 's', profileId: 'p', targetId: `pronoun-cloze:${pronounId}`, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex: 2, words: [] });
+  expect(q.options.map(option => option.label)).toEqual(expect.arrayContaining(['sie', 'Sie']));
+  expect(q.options.filter(option => option.label === 'sie')).toHaveLength(1);
+  expect(q.options.filter(option => option.label === 'Sie')).toHaveLength(1);
 });
 
 test('dependencies_are_profile_scoped_and_match_rendered_noun', () => {
