@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import { AppServicesContext } from '../../src/app/AppServices';
 import { ActiveProfileProvider } from '../../src/app/ActiveProfileProvider';
 import { Navigation } from '../../src/app/navigation';
@@ -25,6 +25,7 @@ test('wrong_feedback_opens_explanation_and_returns_unchanged', async () => {
     try {
         await screen.findByText('Активный профиль: A');
         fireEvent.press(await screen.findByRole('button', { name: 'Тренировка' }));
+        fireEvent.press(await screen.findByTestId('training-vocabulary-start'));
         await screen.findByRole('button', { name: 'Открыть карточку' });
         const session = (await h.sessions.resume(profile.id))!;
         const question = session.currentQuestion!;
@@ -67,6 +68,7 @@ test('old_attempt_explains_correct_variant_without_claiming_user_answer', async 
     try {
         await screen.findByText('Активный профиль: A');
         fireEvent.press(await screen.findByRole('button', { name: 'Тренировка' }));
+        fireEvent.press(await screen.findByTestId('training-vocabulary-start'));
         await screen.findByText('Ошибка. Серия этого слова сброшена.');
         fireEvent.press(screen.getByRole('button', { name: 'Объяснить ошибку' }));
         await screen.findByText('Ваш ответ: Ответ не сохранён');
