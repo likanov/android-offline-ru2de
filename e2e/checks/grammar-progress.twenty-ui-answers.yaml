@@ -4,7 +4,7 @@ name: grammar-progress.twenty-ui-answers
 [
   {"assertVisible":{"id":"grammar-context"}},
   {"repeat":{"times":20,"commands":[
-    {"runFlow":{"when":{"visible":{"id":"grammar-option-correct"}},"commands":[{"tapOn":{"id":"grammar-option-correct"}}]}},
+    {"runFlow":{"when":{"visible":{"id":"grammar-option-ich"}},"commands":[{"tapOn":{"id":"grammar-option-ich"}}]}},
     {"runFlow":{"when":{"visible":{"id":"grammar-answer-input"}},"commands":[{"tapOn":{"id":"grammar-answer-input"}},{"inputText":"Ich"},{"tapOn":{"id":"grammar-submit"}}]}},
     {"runFlow":{"when":{"visible":{"id":"grammar-result"}},"commands":[{"tapOn":{"id":"grammar-next"}}]}}
   ]}},

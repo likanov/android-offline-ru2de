@@ -4,7 +4,7 @@ name: grammar-core.typing-case-context
 [
   {"assertVisible":{"id":"grammar-context"}},
   {"runFlow":{"when":{"visible":{"id":"grammar-result"}},"commands":[{"tapOn":{"id":"grammar-next"}}]}},
-  {"repeat":{"while":{"notVisible":{"id":"grammar-answer-input"}},"times":40,"commands":[{"tapOn":{"id":"grammar-option-correct"}},{"tapOn":{"id":"grammar-next"}}]}},
+  {"repeat":{"while":{"notVisible":{"id":"grammar-answer-input"}},"times":40,"commands":[{"tapOn":{"id":"grammar-option-ich"}},{"tapOn":{"id":"grammar-next"}}]}},
   {"assertVisible":{"id":"grammar-answer-input"}},
   {"tapOn":{"id":"grammar-answer-input"}},
   {"inputText":"Sie"},
