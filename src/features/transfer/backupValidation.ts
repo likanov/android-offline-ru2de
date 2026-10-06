@@ -235,11 +235,16 @@ export function validateBackup(value: unknown): BackupV2 {
         validateCombinedLedger(profile);
     }
     const ids = new Set<string>();
+    const attemptIds = new Set<string>();
     for (const profile of backup.profiles) {
-        const candidates = [profile.profile.id, ...profile.words.map(row => row.id), ...profile.topics.map(row => row.id), ...profile.aids.map(row => row.id), ...profile.sessions.map(row => row.id), ...profile.questions.map(row => row.attemptId), ...profile.grammar.sessions.map(row => row.id), ...profile.grammar.questions.map(row => row.question.attemptId)];
+        const candidates = [profile.profile.id, ...profile.words.map(row => row.id), ...profile.topics.map(row => row.id), ...profile.aids.map(row => row.id), ...profile.sessions.map(row => row.id), ...profile.grammar.sessions.map(row => row.id)];
         for (const id of candidates) {
             if (ids.has(id)) invalid();
             ids.add(id);
+        }
+        for (const id of [...profile.attempts.map(row => row.attemptId), ...profile.grammar.attempts.map(row => row.result.attemptId)]) {
+            if (attemptIds.has(id)) invalid();
+            attemptIds.add(id);
         }
     }
     return JSON.parse(JSON.stringify(backup)) as BackupV2;

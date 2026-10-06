@@ -1,8 +1,9 @@
 import { applyAnswer } from '../learning/learningRules';
 import { grammarTargets } from '../grammar/grammarCatalog';
-import { makeGrammarQuestion, validateGrammarQuestion } from '../grammar/grammarQuestionFactory';
+import { checkGrammarAnswer, makeGrammarQuestion, validateGrammarQuestion } from '../grammar/grammarQuestionFactory';
 import type { GrammarProfileBackup, ProfileBackupV2 } from './backupTypes';
 import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession } from '../grammar/grammarTypes';
+import type { LearningState } from '../learning/learningTypes';
 
 function invalid(): never {
   throw new Error('Резервная копия повреждена или имеет неподдерживаемый формат');
@@ -17,6 +18,7 @@ function isDay(value: unknown): value is string {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`));
 }
 function equal(a: unknown, b: unknown): boolean { return JSON.stringify(a) === JSON.stringify(b); }
+function emptyState() { return { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 } as const; }
 function targetKnown(id: unknown): boolean { return typeof id === 'string' && grammarTargets.some(target => target.id === id); }
 function validateQuestionSnapshot(question: GrammarQuestion, words?: ProfileBackupV2['words']): void {
   const variantIndex = Number(question.templateId.split(':').pop());
@@ -93,6 +95,23 @@ export function validateGrammarProfile(part: ProfileBackupV2): void {
   for (const row of grammar.attempts) {
     const question = questions.get(row.result.attemptId);
     if (!question || question.status !== 'answered' || question.question.sessionId !== row.sessionId || question.question.targetId !== row.targetId || row.result.right !== (row.result.right === true)) invalid();
+    let answeredRight: boolean;
+    try { answeredRight = checkGrammarAnswer(question.question, row.result.submittedAnswer); } catch { invalid(); }
+    if (answeredRight !== row.result.right) invalid();
+  }
+  // Replay each target's immutable attempt stream. This rejects forged states,
+  // XP deltas, and mastery bonuses while retaining the persisted final state.
+  const replay = new Map<string, LearningState>();
+  for (const row of grammar.attempts) {
+    const current = replay.get(row.targetId) ?? emptyState();
+    let transition;
+    try { transition = applyAnswer(current, row.result.right, current.mastered ? 'review' : 'study', row.day); } catch { invalid(); }
+    if (!equal(transition.state, row.result.state) || transition.xpDelta !== row.result.xpDelta) invalid();
+    replay.set(row.targetId, transition.state);
+  }
+  for (const progress of grammar.progress) {
+    const expected = replay.get(progress.targetId);
+    if (expected && !equal(expected, progress.state)) invalid();
   }
   for (const session of grammar.sessions) {
     if (!session.currentQuestion) continue;

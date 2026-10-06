@@ -47,3 +47,26 @@ test('v1_import_is_normalized_with_empty_grammar', async () => {
     expect(profile.id).not.toBe(restored.profileIds[0]);
   } finally { h.close(); }
 });
+
+test('v2_rejects_forged_grammar_result_and_cross_ledger_attempt_ids', async () => {
+  const h = await createGrammarHarness();
+  try {
+    const profile = await createProfile(h.db, 'A');
+    const grammarSession = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'mixed', targetIds: ['pronoun-cloze:er'] }, day))!;
+    const grammarQuestion = (await h.grammarSessions.next(profile.id, grammarSession.id, day))!;
+    await h.grammarAnswers.submit(profile.id, grammarSession.id, grammarQuestion.attemptId, answer(grammarQuestion), day);
+    const wordSession = (await h.sessions.start(profile.id, { mode: 'study', wordIds: [(await h.words.list(profile.id))[0].id] }, day));
+    const wordQuestion = (await h.sessions.next(profile.id, wordSession.id, day))!;
+    await h.answers.submit(profile.id, wordSession.id, wordQuestion.attemptId, wordQuestion.expected[0], day);
+    const source = await h.backup.exportAll();
+    const forgedState = JSON.parse(JSON.stringify(source));
+    forgedState.profiles[0].grammar.attempts[0].result.state.streak = 0;
+    expect(() => h.backup.preview(JSON.stringify(forgedState))).toThrow();
+    const forgedAnswer = JSON.parse(JSON.stringify(source));
+    forgedAnswer.profiles[0].grammar.attempts[0].result.submittedAnswer = { kind: 'choice', optionId: 'du' };
+    expect(() => h.backup.preview(JSON.stringify(forgedAnswer))).toThrow();
+    const duplicate = JSON.parse(JSON.stringify(source));
+    duplicate.profiles[0].grammar.attempts[0].result.attemptId = duplicate.profiles[0].attempts[0].attemptId;
+    expect(() => h.backup.preview(JSON.stringify(duplicate))).toThrow();
+  } finally { h.close(); }
+});
