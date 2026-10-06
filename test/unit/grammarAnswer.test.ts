@@ -1,6 +1,7 @@
 import { checkGrammarAnswer, makeGrammarQuestion } from '../../src/features/grammar/grammarQuestionFactory';
 import { grammarTargets } from '../../src/features/grammar/grammarCatalog';
 import type { GrammarQuestion } from '../../src/features/grammar/grammarTypes';
+import { legacySiePluralQuestion } from '../fixtures/legacyGrammarQuestion';
 
 const q = (targetId: any, variantIndex = 0, responseMode: 'choice'|'typed' = 'choice') => makeGrammarQuestion({ attemptId: 'a', sessionId: 's', profileId: 'p', targetId, responseMode, reviewStage: null, dueDay: null, variantIndex, words: [] });
 
@@ -46,4 +47,22 @@ test('question_validation_rejects_tampered_fields', () => {
   expect(() => checkGrammarAnswer({ ...question, options: question.options.map((option, index) => index === 0 ? { ...option, label: 'подмена' } : option) }, { kind: 'choice', optionId: question.expected.optionId })).toThrow('GRAMMAR_QUESTION_INVALID');
   expect(() => checkGrammarAnswer({ ...question, feedback: { ...question.feedback, ruleId: 'sein-present' } }, { kind: 'choice', optionId: question.expected.optionId })).toThrow('GRAMMAR_QUESTION_INVALID');
   expect(() => checkGrammarAnswer({ ...question, dependencies: [{ wordId: 'other', revision: 1, de: 'Tisch', ru: 'стол', gender: 'm', plural: 'Tische' }] }, { kind: 'choice', optionId: question.expected.optionId })).toThrow('GRAMMAR_QUESTION_INVALID');
+});
+
+test('legacy_question_accepts_a_current_german_distractor_for_grading', () => {
+  const question = legacySiePluralQuestion(q('pronoun-cloze:sie_plural'));
+  expect(checkGrammarAnswer(question, { kind: 'choice', optionId: 'du' })).toBe(false);
+});
+
+test('legacy_question_keeps_historical_semantic_answer_results', () => {
+  const question = legacySiePluralQuestion(q('pronoun-cloze:sie_plural'));
+  expect(checkGrammarAnswer(question, { kind: 'choice', optionId: 'sie_plural' })).toBe(true);
+  expect(checkGrammarAnswer(question, { kind: 'choice', optionId: 'sie_feminine' })).toBe(false);
+  expect(checkGrammarAnswer(question, { kind: 'choice', optionId: 'sie_formal' })).toBe(false);
+});
+
+test('compatible_legacy_options_still_reject_tampered_labels_and_ids', () => {
+  const question = legacySiePluralQuestion(q('pronoun-cloze:sie_plural'));
+  expect(() => checkGrammarAnswer({ ...question, options: question.options.map((option, index) => index === 0 ? { ...option, label: 'sie — подсказка' } : option) }, { kind: 'choice', optionId: 'sie_plural' })).toThrow('GRAMMAR_QUESTION_INVALID');
+  expect(() => checkGrammarAnswer({ ...question, options: question.options.map((option, index) => index === 0 ? { ...option, id: 'du' } : option) }, { kind: 'choice', optionId: 'du' })).toThrow('GRAMMAR_QUESTION_INVALID');
 });

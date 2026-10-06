@@ -3,8 +3,6 @@ import { createProfile } from '../../src/features/profiles/profileRepository';
 import { DifficultPracticeRepository } from '../../src/features/assistant/difficultPracticeRepository';
 import type { LanguageRuntime } from '../../src/features/assistant/runtimeTypes';
 
-const day = '2026-10-03';
-
 test('difficult_selection_is_owned_flagged_ordered_and_bounded', async () => {
     const h = await createAssistantHarness();
     try {

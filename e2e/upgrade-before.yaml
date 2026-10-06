@@ -526,9 +526,7 @@ name: upgrade-before
     }
   },
   {
-    "tapOn": {
-      "id": "word-save"
-    }
+    "tapOn": "Сохранить слово"
   },
   {
     "runFlow": {
@@ -543,7 +541,7 @@ name: upgrade-before
   },
   {
     "repeat": {
-      "times": 99,
+      "times": 19,
       "commands": [
         {
           "runFlow": {
@@ -618,7 +616,7 @@ name: upgrade-before
   {
     "repeat": {
       "while": {
-        "notVisible": ".*1250 XP.*"
+        "notVisible": ".*250 XP.*"
       },
       "times": 18,
       "commands": [
@@ -637,7 +635,7 @@ name: upgrade-before
   {
     "repeat": {
       "while": {
-        "notVisible": ".*1250 XP.*"
+        "notVisible": ".*250 XP.*"
       },
       "times": 18,
       "commands": [
@@ -654,7 +652,7 @@ name: upgrade-before
     }
   },
   {
-    "assertVisible": ".*1250 XP.*"
+    "assertVisible": ".*250 XP.*"
   },
   {
     "tapOn": {

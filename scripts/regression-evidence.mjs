@@ -9,7 +9,7 @@ export function appendDeviceLog(report,{phase,path,text}) {
 }
 function decode(text) { return text.replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCodePoint(parseInt(n,16))).replace(/&#([0-9]+);/g,(_,n)=>String.fromCodePoint(Number(n))).replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&'); }
 export function generationFromHierarchy(xml) {
-  const nodes=[...xml.matchAll(/<node\b[^>]*>/g)].map(([node])=>Object.fromEntries([...node.matchAll(/([\w-]+)="([^"]*)"/g)].map(([,k,v])=>[k,decode(v)])));
+  const nodes=[...xml.matchAll(/<node\b[^>]*>/g)].map(([node])=>Object.fromEntries([...node.matchAll(/([\w-]+)=("([^"]*)"|'([^']*)')/g)].map(([,k,,doubleQuoted,singleQuoted])=>[k,decode(doubleQuoted ?? singleQuoted ?? '')])));
   const find=id=>nodes.find(n=>n['resource-id']===id||n['resource-id']?.endsWith('/'+id));
   if(find('assistant-status')?.text!=='Проверьте подсказку перед сохранением')return null;
   return find('assistant-result')?.text?.trim()||null;
@@ -26,7 +26,11 @@ export function offlineRadioState({wifi,mobile,airplane}) {return {wifi:wifi==='
 export function rootVerified({uid}) {return uid.trim()==='0';}
 
 export function applicationAlarmEpochs(dump,now) {
- return [...new Set([...dump.matchAll(/Alarm\{[^\n}]*\bwhen (\d+) com\.personal\.germanvocabulary\}/g)].map(m=>Number(m[1])).filter(n=>n>now))];
+ const values=[
+  ...[...dump.matchAll(/Alarm\{[^\n}]*\bwhen (\d+) com\.personal\.germanvocabulary\}/g)].map(m=>Number(m[1])),
+  ...[...dump.matchAll(/Alarm\{[^\n}]*\borigWhen (\d+)[^\n}]* com\.personal\.germanvocabulary\}/g)].map(m=>Number(m[1])),
+ ];
+ return [...new Set(values.filter(n=>Number.isFinite(n)&&n>now))];
 }
 export function alarmMatchesLocalTime(epoch,zone,time) {
  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(epoch);

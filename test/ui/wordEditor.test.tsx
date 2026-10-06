@@ -46,6 +46,18 @@ test('editing_metadata_preserves_learning_on_real_sqlite', async () => {
     close();
 });
 
+
+test('editor_exposes_stable_input_ids_for_android_regression', async () => {
+    const { db, close } = openTestDb();
+    await migrate(db);
+    const p = await createProfile(db, 'A');
+    render(<WordEditorScreen db={db} profileId={p.id} onSaved={() => { }} onCancel={() => { }}/>);
+    expect(await screen.findByTestId('word-de')).toBeTruthy();
+    expect(await screen.findByTestId('word-ru')).toBeTruthy();
+    expect(await screen.findByTestId('word-note')).toBeTruthy();
+    close();
+});
+
 test('editor_exposes_stable_save_button_for_android_regression', async () => {
     const { db, close } = openTestDb();
     await migrate(db);

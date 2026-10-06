@@ -222,7 +222,7 @@ name: assistant.helper-profile-dependency
     "runFlow": {
       "file": "../helpers/select-profile.yaml",
       "env": {
-        "PROFILE": "Второй переименован"
+        "PROFILE": "Регрессия — продолжение"
       }
     }
   },

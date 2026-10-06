@@ -87,7 +87,7 @@ name: transfer.csv-preview-cancel-profile
     "runFlow": {
       "file": "../helpers/select-profile.yaml",
       "env": {
-        "PROFILE": "Второй переименован"
+        "PROFILE": "Регрессия — продолжение"
       }
     }
   },
@@ -120,6 +120,24 @@ name: transfer.csv-preview-cancel-profile
   },
   {
     "back": {}
+  },
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
   },
   {
     "repeat": {

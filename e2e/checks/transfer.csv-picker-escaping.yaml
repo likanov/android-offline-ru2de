@@ -45,7 +45,7 @@ name: transfer.csv-picker-escaping
   {
     "repeat": {
       "while": {
-        "notVisible": "Новые: 2 · Дубли: 1 · Ошибки: 1"
+        "notVisible": "Новые: 3 · Дубли: 0 · Ошибки: 1"
       },
       "times": 18,
       "commands": [
@@ -64,7 +64,7 @@ name: transfer.csv-picker-escaping
   {
     "repeat": {
       "while": {
-        "notVisible": "Новые: 2 · Дубли: 1 · Ошибки: 1"
+        "notVisible": "Новые: 3 · Дубли: 0 · Ошибки: 1"
       },
       "times": 18,
       "commands": [
@@ -81,7 +81,7 @@ name: transfer.csv-picker-escaping
     }
   },
   {
-    "assertVisible": "Новые: 2 · Дубли: 1 · Ошибки: 1"
+    "assertVisible": "Новые: 3 · Дубли: 0 · Ошибки: 1"
   },
   {
     "runFlow": {
@@ -97,7 +97,7 @@ name: transfer.csv-picker-escaping
   {
     "repeat": {
       "while": {
-        "notVisible": "Добавлено: 2 · Дубли: 1 · Ошибки: 1"
+        "notVisible": "Добавлено: 3 · Дубли: 0 · Ошибки: 1"
       },
       "times": 18,
       "commands": [
@@ -116,7 +116,7 @@ name: transfer.csv-picker-escaping
   {
     "repeat": {
       "while": {
-        "notVisible": "Добавлено: 2 · Дубли: 1 · Ошибки: 1"
+        "notVisible": "Добавлено: 3 · Дубли: 0 · Ошибки: 1"
       },
       "times": 18,
       "commands": [
@@ -133,6 +133,6 @@ name: transfer.csv-picker-escaping
     }
   },
   {
-    "assertVisible": "Добавлено: 2 · Дубли: 1 · Ошибки: 1"
+    "assertVisible": "Добавлено: 3 · Дубли: 0 · Ошибки: 1"
   }
 ]

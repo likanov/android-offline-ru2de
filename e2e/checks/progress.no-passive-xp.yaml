@@ -6,7 +6,7 @@ name: progress.no-passive-xp
     "runFlow": {
       "file": "../helpers/select-profile.yaml",
       "env": {
-        "PROFILE": "Регрессия — 20 UI"
+        "PROFILE": "Регрессия — изучено"
       }
     }
   },

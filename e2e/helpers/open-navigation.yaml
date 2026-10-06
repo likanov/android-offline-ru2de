@@ -37,6 +37,11 @@ name: open-navigation
       "commands": [
         {
           "tapOn": {
+            "id": "nav-today"
+          }
+        },
+        {
+          "tapOn": {
             "id": "nav-more"
           }
         }

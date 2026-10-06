@@ -46,7 +46,7 @@ export function WordEditorScreen({ db, profileId, wordId, onSaved, onCancel }: {
     return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><Screen>
  <Text style={{ fontSize: 26, fontWeight: '700' }}>Редактор карточки</Text>
  {error ? <Text accessibilityRole="alert" style={{ color: theme.error }}>{error}</Text> : null}
- {fields.map(([field, label]) => <React.Fragment key={field}><Text>{label}</Text><TextInput accessibilityLabel={label} value={String(draft[field] ?? '')} onChangeText={value => setDraft({ ...draft, [field]: value })} editable={loaded && !busy} multiline={field === 'note' || field === 'exampleDe' || field === 'exampleRu'} autoCorrect={false} autoCapitalize={field === 'de' ? 'none' : 'sentences'} style={{ borderWidth: 1, borderColor: theme.muted, borderRadius: 10, padding: 12, color: theme.foreground }}/></React.Fragment>)}
+ {fields.map(([field, label]) => <React.Fragment key={field}><Text>{label}</Text><TextInput testID={`word-${field}`} accessibilityLabel={label} value={String(draft[field] ?? '')} onChangeText={value => setDraft({ ...draft, [field]: value })} editable={loaded && !busy} multiline={field === 'note' || field === 'exampleDe' || field === 'exampleRu'} autoCorrect={false} autoCapitalize={field === 'de' ? 'none' : 'sentences'} style={{ borderWidth: 1, borderColor: theme.muted, borderRadius: 10, padding: 12, color: theme.foreground }}/></React.Fragment>)}
  <Text>Часть речи: {draft.pos === 'noun' ? 'существительное' : 'прилагательное'}</Text>
  <Button title="Существительное" onPress={() => setDraft({ ...draft, pos: 'noun' })}/>
  <Button title="Прилагательное" onPress={() => setDraft({ ...draft, pos: 'adjective', gender: null })}/>

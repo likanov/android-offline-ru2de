@@ -4,7 +4,7 @@ import type { AssistantContext, HelpMode } from './assistantTypes';
 const instructions: Record<HelpMode, string> = {
     association: 'Дай короткую русскую ассоциацию для запоминания слова (1–2 предложения). Для существительного свяжи образ с его артиклем и родом из карточки.',
     example: 'Дай одно короткое предложение на немецком с целевым словом и затем его точный русский перевод. Формат: DE: ...\\nRU: ...',
-    text: 'Дай 3–5 простых немецких предложений уровня A1, используя все выбранные слова (до 10), затем их русский перевод. Служебные слова и глаголы разрешены. Формат: DE: ...\\nRU: ...',
+    text: 'Дай 2–3 простых немецких предложения уровня A1, используя выбранные слова, затем их русский перевод. Служебные слова и глаголы разрешены. Формат: DE: ...\\nRU: ...',
     rule: 'Объясни выбранное правило кратко по-русски, используя только встроенный справочник из поля reference. Приведи немецкий пример с переводом и явно укажи название источника reference.title. Если вопрос вне фрагмента, скажи, что справочник его не охватывает.',
 };
 function card(word: Word) { return { de: word.de, ru: word.ru, pos: word.pos, gender: word.gender, article: word.pos === 'noun' ? { m: 'der', f: 'die', n: 'das' }[word.gender!] : null, plural: word.plural, note: word.note.slice(0, 500), exampleDe: word.exampleDe?.slice(0, 500) ?? null, exampleRu: word.exampleRu?.slice(0, 500) ?? null }; }

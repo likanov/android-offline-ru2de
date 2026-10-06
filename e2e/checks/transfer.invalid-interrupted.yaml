@@ -231,11 +231,8 @@ name: transfer.invalid-interrupted
     "tapOn": "Выбрать резервную копию"
   },
   {
-    "stopApp": {}
-  },
-  {
     "launchApp": {
-      "clearState": false
+      "stopApp": false
     }
   },
   {

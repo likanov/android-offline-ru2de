@@ -183,7 +183,7 @@ name: learning.twenty-ui-answers
   },
   {
     "repeat": {
-      "times": 10,
+      "times": 19,
       "commands": [
         {
           "runFlow": {

@@ -69,5 +69,11 @@ name: picker
       "id": "android:id/title",
       "text": "${FILE}"
     }
+  },
+  {
+    "tapOn": {
+      "text": "Select",
+      "optional": true
+    }
   }
 ]

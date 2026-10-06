@@ -32,6 +32,35 @@ test.each(['association', 'example', 'rule'] as const)('save_%s_is_explicit_idem
     await h.words.update(p1.id, first.id, { ...first, icon: 'chair', note: 'new note' });
     expect(await h.aids.current(p1.id, first.id)).toHaveLength(1);
 });
+
+
+test('text_mode_uses_bounded_token_budget_for_mobile_cpu_generation', async () => {
+    await h.assistant.cancelAndRelease();
+    h.close();
+    let seenMaxTokens = 0;
+    const runtime = {
+        load: async () => { },
+        generate: async (request: import('../../src/features/assistant/runtimeTypes').GenerationRequest) => { seenMaxTokens = request.maxTokens; return 'DE: Der Stuhl ist hier.\nRU: Стул здесь.'; },
+        cancel: async () => { },
+        release: async () => { },
+    };
+    h = await createAssistantHarness(runtime);
+    const { p1, first } = await fixture();
+    await h.assistant.generate(request(p1.id, first.id, [first.id], 'text'), new AbortController().signal, () => { });
+    expect(seenMaxTokens).toBeLessThanOrEqual(128);
+});
+test('json_echo_from_small_model_is_replaced_with_user_facing_helper_text', async () => {
+    await h.assistant.cancelAndRelease();
+    h.close();
+    const runtime = new LlamaRuntime(async () => ({ completion: async () => ({ text: '{"type":"association","word":{"de":"Stuhl","ru":"стул","pos":"noun","gender":"m","article":"der"}}' }), stopCompletion: async () => { }, release: async () => { } }));
+    h = await createAssistantHarness(runtime);
+    const { p1, first } = await fixture();
+    const draft = await h.assistant.generate(request(p1.id, first.id, [], 'association'), new AbortController().signal, () => { });
+    expect(draft.text).not.toContain('"type"');
+    expect(draft.text).toMatch(/Ассоциация/);
+    expect(draft.text).toContain(first.de);
+    expect(draft.text).toContain(first.ru);
+});
 test('current_excludes_saved_text_when_secondary_revision_changes', async () => {
     const { p1, first, second } = await fixture();
     const draft = await h.assistant.generate(request(p1.id, first.id, [second.id]), new AbortController().signal, () => { });

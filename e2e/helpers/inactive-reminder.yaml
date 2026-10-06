@@ -4,7 +4,7 @@ name: inactive-reminder
 - runFlow:
     file: select-profile.yaml
     env:
-      PROFILE: Второй переименован
+      PROFILE: Регрессия — 20 UI
 - runFlow:
     file: open-navigation.yaml
     env:

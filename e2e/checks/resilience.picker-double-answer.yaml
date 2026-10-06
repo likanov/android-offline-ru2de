@@ -38,6 +38,24 @@ name: resilience.picker-double-answer
     "back": {}
   },
   {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
     "repeat": {
       "while": {
         "notVisible": "Выбрать CSV"

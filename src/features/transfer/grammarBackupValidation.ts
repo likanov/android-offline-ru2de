@@ -1,6 +1,6 @@
 import { applyAnswer } from '../learning/learningRules';
 import { grammarTargets } from '../grammar/grammarCatalog';
-import { checkGrammarAnswer, makeGrammarQuestion, validateGrammarQuestion } from '../grammar/grammarQuestionFactory';
+import { checkGrammarAnswer, validateGrammarQuestion } from '../grammar/grammarQuestionFactory';
 import type { GrammarProfileBackup, ProfileBackupV2 } from './backupTypes';
 import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession } from '../grammar/grammarTypes';
 import type { LearningState } from '../learning/learningTypes';
@@ -21,13 +21,7 @@ function equal(a: unknown, b: unknown): boolean { return JSON.stringify(a) === J
 function emptyState() { return { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 } as const; }
 function targetKnown(id: unknown): boolean { return typeof id === 'string' && grammarTargets.some(target => target.id === id); }
 function validateQuestionSnapshot(question: GrammarQuestion, words?: ProfileBackupV2['words']): void {
-  const variantIndex = Number(question.templateId.split(':').pop());
-  const inputWords = words ?? question.dependencies.map(dependency => ({ id: dependency.wordId, profileId: dependency.profileId ?? question.profileId, de: dependency.de, ru: dependency.ru, pos: 'noun' as const, gender: dependency.gender, plural: dependency.plural, exampleDe: null, exampleRu: null, note: '', revision: dependency.revision }));
-  const expected = makeGrammarQuestion({ attemptId: question.attemptId, sessionId: question.sessionId, profileId: question.profileId, targetId: question.targetId, responseMode: question.responseMode, reviewStage: question.reviewStage, dueDay: question.dueDay, variantIndex, words: inputWords });
-  const sorted = (items: unknown[]) => JSON.stringify([...items].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))));
-  if (sorted(question.options) !== sorted(expected.options)) invalid();
-  const canonical = { ...question, options: expected.options };
-  try { validateGrammarQuestion(canonical, words); } catch { invalid(); }
+  try { validateGrammarQuestion(question, words); } catch { invalid(); }
 }
 function checkProgress(row: GrammarProgress & { profileId: string }, profileId: string): void {
   if (row.profileId !== profileId || !targetKnown(row.targetId) || !Number.isInteger(row.attemptCount) || row.attemptCount < 0 || !Number.isInteger(row.variantIndex) || row.variantIndex < 0 || row.variantIndex > 2)
