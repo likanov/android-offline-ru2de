@@ -25,6 +25,8 @@ import { TrainingHomeScreen } from '../features/learning/TrainingHomeScreen';
 import { GrammarTrainingScreen } from '../features/grammar/GrammarTrainingScreen';
 import { GrammarReferenceScreen } from '../features/grammar/GrammarReferenceScreen';
 import type { GrammarSelection } from '../features/grammar/grammarTypes';
+import { useDictionaryViewState } from '../features/dictionary/useDictionaryViewState';
+import type { DictionaryViewState } from '../features/dictionary/dictionaryViewState';
 type Route = {
     screen: 'profiles' | 'assistant' | 'error-explanation' | 'grammar-explanation' | 'practice' | 'model' | 'dictionary' | 'card' | 'editor' | 'training' | 'training-home' | 'grammar-training' | 'grammar-reference' | 'reviews' | 'difficult' | 'topics' | 'today' | 'progress' | 'reminders' | 'transfer';
     wordId?: string;
@@ -38,9 +40,11 @@ type Route = {
 };
 export function Navigation() {
     const { profile } = useActiveProfile();
-    return <NavigationRoutes key={profile?.id ?? 'no-profile'}/>;
+    const dictionary = useDictionaryViewState();
+    const profileId = profile?.id ?? 'no-profile';
+    return <NavigationRoutes key={profileId} dictionaryViewState={dictionary.get(profileId)} onDictionaryViewStateChange={value => dictionary.update(profileId, value)}/>;
 }
-function NavigationRoutes() {
+function NavigationRoutes({ dictionaryViewState, onDictionaryViewStateChange }: { dictionaryViewState: DictionaryViewState; onDictionaryViewStateChange: (value: DictionaryViewState) => void }) {
     const app = useAppServices(), { db } = app, { profile } = useActiveProfile();
     const [route, setRoute] = useState<Route>({ screen: 'profiles' }), [error, setError] = useState('');
     async function navigate(target: Route) {
@@ -128,7 +132,7 @@ function NavigationRoutes() {
     else if (route.screen === 'training')
         content = <TrainingScreen key={`${profile.id}:${route.mode ?? 'study'}`} db={db} profileId={profile.id} selection={{ mode: route.mode ?? 'study', wordIds: route.wordIds }} onHelper={wordId => setRoute({screen:'assistant', wordId, fromTraining:true, mode:route.mode, wordIds:route.wordIds})} onExplainError={attemptId => setRoute({ screen: 'error-explanation', attemptId, mode: route.mode, wordIds: route.wordIds })} onReveal={wordId => setRoute({ screen: 'card', wordId, fromTraining: true, mode: route.mode, wordIds: route.wordIds })}/>;
     else if (route.screen === 'dictionary')
-        content = <DictionaryScreen db={db} profileId={profile.id} onOpen={wordId => setRoute({ screen: 'card', wordId })} onCreate={() => setRoute({ screen: 'editor' })}/>;
+        content = <DictionaryScreen db={db} profileId={profile.id} profileName={profile.name} viewState={dictionaryViewState} onViewStateChange={onDictionaryViewStateChange} onOpen={wordId => setRoute({ screen: 'card', wordId })} onCreate={() => setRoute({ screen: 'editor' })}/>;
     else if (route.screen === 'editor')
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
