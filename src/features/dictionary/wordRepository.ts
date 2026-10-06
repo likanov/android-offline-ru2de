@@ -3,8 +3,8 @@ import { replaceWordTopics } from '../topics/topicRepository';
 import { randomUUID } from 'expo-crypto';
 import type { SqlStore, SqlExecutor } from '../../core/sql';
 import type { Word, WordDraft } from '../learning/learningTypes';
-import { normalizeAnswer } from '../learning/normalizeAnswer';
 import { validateWord, wordKey, WordError } from './wordValidation';
+import { searchWords } from './dictionarySearch';
 export type WordFilter = {
     query?: string;
     topicId?: string;
@@ -18,8 +18,8 @@ export class WordRepository {
             learned: number;
             difficult: number;
         }>('SELECT w.*,p.learned,p.difficult FROM words w JOIN word_progress p ON p.profileId=w.profileId AND p.wordId=w.id WHERE w.profileId=? AND (? IS NULL OR EXISTS (SELECT 1 FROM word_topics wt WHERE wt.profileId=w.profileId AND wt.wordId=w.id AND wt.topicId=?)) ORDER BY w.de,w.id', [profileId,filter.topicId ?? null,filter.topicId ?? null]);
-        const query = normalizeAnswer(filter.query ?? '');
-        return rows.filter(w => (!query || normalizeAnswer(w.de).includes(query) || normalizeAnswer(w.ru).includes(query)) && (filter.state !== 'mastered' || !!w.learned) && (filter.state !== 'learning' || !w.learned) && (filter.difficult === undefined || !!w.difficult === filter.difficult));
+        const filtered = rows.filter(w => (filter.state !== 'mastered' || !!w.learned) && (filter.state !== 'learning' || !w.learned) && (filter.difficult === undefined || !!w.difficult === filter.difficult));
+        return searchWords(filtered, filter.query ?? '');
     }
     private async owned(tx: SqlExecutor, profileId: string, wordId: string): Promise<Word> {
         const word = await tx.first<Word>('SELECT * FROM words WHERE id=?', [wordId]);

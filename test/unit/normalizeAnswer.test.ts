@@ -14,6 +14,8 @@ test("normalizes case whitespace and NFC", () => {
 test.each([
   ["gross", ["groß"]],
   ["grun", ["grün"]],
+  ["gruen", ["grün"]],
+  ["Strasse", ["Straße"]],
   ["Stuhl", ["der Stuhl"]],
   ["!gut", ["gut"]],
 ])("keeps significant characters %s", (answer, expected) => {
