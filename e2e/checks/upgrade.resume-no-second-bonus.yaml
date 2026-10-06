@@ -17,8 +17,8 @@ name: upgrade.resume-no-second-bonus
     }
   },
   {
-    "tapOn": {
-      "id": "nav-training"
+    "runFlow": {
+      "file": "../helpers/open-vocabulary-training.yaml"
     }
   },
   {
@@ -130,7 +130,7 @@ name: upgrade.resume-no-second-bonus
   {
     "repeat": {
       "while": {
-        "notVisible": "XP: 1250"
+        "notVisible": "XP: 250"
       },
       "times": 18,
       "commands": [
@@ -149,7 +149,7 @@ name: upgrade.resume-no-second-bonus
   {
     "repeat": {
       "while": {
-        "notVisible": "XP: 1250"
+        "notVisible": "XP: 250"
       },
       "times": 18,
       "commands": [
@@ -166,6 +166,6 @@ name: upgrade.resume-no-second-bonus
     }
   },
   {
-    "assertVisible": "XP: 1250"
+    "assertVisible": "XP: 250"
   }
 ]

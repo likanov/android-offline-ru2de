@@ -61,8 +61,8 @@ name: persistence-reboot.saved-session-xp
     }
   },
   {
-    "tapOn": {
-      "id": "nav-training"
+    "runFlow": {
+      "file": "../helpers/open-vocabulary-training.yaml"
     }
   },
   {

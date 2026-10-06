@@ -81,8 +81,8 @@ name: first-launch.all-screens
     }
   },
   {
-    "tapOn": {
-      "id": "nav-training"
+    "runFlow": {
+      "file": "../helpers/open-vocabulary-training.yaml"
     }
   },
   {
