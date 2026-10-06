@@ -13,6 +13,8 @@ import { AnswerService } from '../src/features/learning/answerService';
 import { openTestDb } from './sqlite';
 import { migrate } from '../src/core/migrations';
 import { WordRepository } from '../src/features/dictionary/wordRepository';
+import { GrammarRepository } from '../src/features/grammar/grammarRepository';
+import { GrammarSessionRepository } from '../src/features/grammar/grammarSessionRepository';
 jest.mock("expo-crypto", () => ({
     randomUUID: () => jest.requireActual("crypto").randomUUID(),
 }));
@@ -44,6 +46,10 @@ export async function createWordHarness(path?: string) {
             return { streak: row.streak, mastered: !!row.learned, masteryBonusGranted: !!row.bonusAwarded, reviewStage: row.reviewStage, dueDay: row.dueDate, difficult: !!row.difficult, totalErrors: row.totalErrors, recoveryErrors: row.recoveryErrors, recoveryCorrect: row.recoveryCorrect };
         }
     };
+}
+export async function createGrammarHarness(path?: string) {
+    const h = await createWordHarness(path);
+    return { ...h, grammar: new GrammarRepository(h.db), grammarSessions: new GrammarSessionRepository(h.db) };
 }
 export async function createAssistantHarness(runtime: LanguageRuntime = new LlamaRuntime(async () => ({ completion: async () => ({ text: 'Das ist ein Stuhl. Это стул.' }), stopCompletion: async () => { }, release: async () => { } })), files: Pick<ModelFiles, 'installedPath'> = { installedPath: async () => '/models/local.gguf' }, path?: string) {
     const h = await createWordHarness(path);
