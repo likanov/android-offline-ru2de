@@ -16,7 +16,7 @@ function parts(targetId:GrammarTargetId, variant:number) {
     if(v===1 && object) {
       const noun=object==='Tisch'?['Der','Tisch','стол','ist']:object==='Lampe'?['Die','Lampe','лампа','ist']:['Das','Buch','книга',p.id==='sie_plural'?'sind':'ist'];
       const plural=p.id==='sie_plural';
-      return {position:'initial' as const,contextRu:`Замените ${plural?'существительное во множественном числе':'существительное'} ${noun[2]} местоимением «${p.labelRu}».`,beforeDe:`${plural?'Die Bücher':`${noun[0]} ${noun[1]}`} ${noun[3]}. `,afterDe:` ${noun[3]}.`,translationRu:`${plural?'Книги':'Предмет'}: ${p.labelRu}.`,dependencyDe:object};
+      return {position:'initial' as const,contextRu:`Замените ${plural?'существительное во множественном числе':'существительное'} ${noun[2]} местоимением «${p.labelRu}».`,beforeDe:`${plural?'Die Bücher':`${noun[0]} ${noun[1]}`} ${noun[3]} neu. `,afterDe:` ${noun[3]} neu.`,translationRu:`${plural?'Книги':'Предмет'}: ${p.labelRu}.`,dependencyDe:object};
     }
     if(v===0) return {position:'initial' as const,contextRu:`Контекст: ${p.labelRu}.`,beforeDe:'',afterDe:` ${p.sein} hier.`,translationRu:`${p.labelRu} находится здесь.`};
     if(v===1) return {position:'initial' as const,contextRu:`Контекст: ${p.labelRu}.`,beforeDe:'Das ist klar: ',afterDe:` ${p.sein} hier.`,translationRu:`Ясно: ${p.labelRu} находится здесь.`};
@@ -24,8 +24,9 @@ function parts(targetId:GrammarTargetId, variant:number) {
   }
   const context=p.id==='sie_feminine'?'О ней: она высокая.':p.id==='sie_plural'?'О группе людей: они новые ученики.':p.id==='sie_formal'?'Вежливое обращение: Вы здесь.':`Согласование: ${p.labelRu}.`;
   if(v===0)return {position:'internal' as const,contextRu:context,beforeDe:`${p.token[0].toUpperCase()+p.token.slice(1)} `,afterDe:' groß.',translationRu:`${context} Это утверждение о высоте.`};
-  if(v===1)return {position:'internal' as const,contextRu:context,beforeDe:`Ich weiß, dass ${p.token[0].toUpperCase()+p.token.slice(1)} hier `,afterDe:'.',translationRu:`${context} Я знаю, что это так.`};
-  return {position:'internal' as const,contextRu:context,beforeDe:`Heute ${p.sein} ${p.token[0].toUpperCase()+p.token.slice(1)} `,afterDe:'hier.',translationRu:`${context} Сегодня это так.`};
+  const subject = p.id === 'sie_formal' ? 'Sie' : p.token;
+  if(v===1)return {position:'internal' as const,contextRu:context,beforeDe:`Ich weiß, dass ${subject} hier `,afterDe:'.',translationRu:`${context} Я знаю, что это так.`};
+  return {position:'internal' as const,contextRu:context,beforeDe:`Heute ${p.sein} ${subject} `,afterDe:'hier.',translationRu:`${context} Сегодня это так.`};
 }
 export function grammarResponseMode(attemptCount:number):'choice'|'typed' { return attemptCount===3?'typed':attemptCount>3 && attemptCount%2===1?'typed':'choice'; }
 export function makeGrammarQuestion(input:GrammarQuestionInput):GrammarQuestion {
