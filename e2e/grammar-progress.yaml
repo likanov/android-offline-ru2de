@@ -2,8 +2,7 @@ appId: com.personal.germanvocabulary
 name: grammar-progress
 ---
 [
-  {"tapOn":{"id":"nav-training"}},
-  {"tapOn":{"id":"training-grammar"}},
-  {"assertVisible":{"id":"grammar-streak"}},
+  {"runFlow":{"file":"helpers/open-grammar-training.yaml"}},
+  {"assertVisible":{"id":"grammar-context"}},
   {"takeScreenshot":"grammar-progress"}
 ]

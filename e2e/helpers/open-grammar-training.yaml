@@ -1,0 +1,11 @@
+appId: com.personal.germanvocabulary
+name: open-grammar-training
+---
+- tapOn:
+    id: nav-training
+- extendedWaitUntil:
+    visible:
+      id: training-grammar-start
+    timeout: 5000
+- tapOn:
+    id: training-grammar-start
