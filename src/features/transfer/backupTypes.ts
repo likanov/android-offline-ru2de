@@ -1,6 +1,7 @@
 import type { Profile } from '../../core/types';
 import type { Word, Skill } from '../learning/learningTypes';
 import type { Session, Question, AttemptResult } from '../learning/questionTypes';
+import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession, GrammarTargetId } from '../grammar/grammarTypes';
 export type BackupWord = Word & {
     seedKey: string | null;
     seedDe: string | null;
@@ -115,9 +116,38 @@ export type BackupV1 = {
     createdAt: string;
     profiles: ProfileBackup[];
 };
+export type GrammarProfileBackup = {
+    catalogVersion: 1;
+    progress: (GrammarProgress & { profileId: string })[];
+    sessions: GrammarSession[];
+    questions: {
+        question: GrammarQuestion;
+        status: 'active' | 'answered' | 'cancelled';
+    }[];
+    attempts: {
+        profileId: string;
+        sessionId: string;
+        targetId: GrammarTargetId;
+        day: string;
+        result: GrammarAttemptResult;
+    }[];
+    rewards: {
+        profileId: string;
+        targetId: GrammarTargetId;
+        attemptId: string;
+        amount: 50;
+        day: string;
+    }[];
+};
+export type ProfileBackupV2 = ProfileBackup & { grammar: GrammarProfileBackup };
+export type BackupV2 = Omit<BackupV1, 'version' | 'profiles'> & {
+    version: 2;
+    profiles: ProfileBackupV2[];
+};
 export type RestorePreview = {
-    backup: BackupV1;
+    backup: BackupV2;
     profileCount: number;
     wordCount: number;
+    grammarTargetCount: number;
 };
 export const BACKUP_MAX_BYTES = 50 * 1024 * 1024;

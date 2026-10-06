@@ -46,7 +46,7 @@ test('restored_answered_session_is_not_rewarded_again', async () => {
 test('invalid_or_interrupted_restore_is_atomic', async () => {
     await createProfile(h.db, 'A');
     const service = new BackupService(h.db), data = await service.exportAll(), before = await snapshot();
-    for (const mutate of [(d: any) => d.version = 2, (d: any) => d.profiles[0].words[0].profileId = randomUUID(), (d: any) => d.profiles[0].words[1].id = d.profiles[0].words[0].id, (d: any) => d.createdAt = '2026-02-30T12:00:00.000Z', (d: any) => d.profiles[0].profile.xp = -1, (d: any) => d.profiles[0].profile.xp = 10]) {
+    for (const mutate of [(d: any) => d.version = 3, (d: any) => d.profiles[0].words[0].profileId = randomUUID(), (d: any) => d.profiles[0].words[1].id = d.profiles[0].words[0].id, (d: any) => d.createdAt = '2026-02-30T12:00:00.000Z', (d: any) => d.profiles[0].profile.xp = -1, (d: any) => d.profiles[0].profile.xp = 10]) {
         const bad = JSON.parse(JSON.stringify(data));
         mutate(bad);
         expect(() => service.preview(JSON.stringify(bad))).toThrow();

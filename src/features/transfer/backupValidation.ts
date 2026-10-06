@@ -3,7 +3,8 @@ import { addDays } from '../../core/calendar';
 import { applyAnswer } from '../learning/learningRules';
 import { buildQuestion, germanLabel } from '../learning/questionFactory';
 import { wordKey } from '../dictionary/wordValidation';
-import type { BackupV1, ProfileBackup } from './backupTypes';
+import type { BackupV1, BackupV2, ProfileBackup, ProfileBackupV2 } from './backupTypes';
+import { validateCombinedLedger, validateGrammarProfile } from './grammarBackupValidation';
 import type { LearningState } from '../learning/learningTypes';
 type Parser = (value: unknown) => unknown;
 type Shape = Record<string, Parser>;
@@ -178,10 +179,68 @@ function checkProfile(p: ProfileBackup) {
             invalid();
     }
 }
-export function validateBackup(value: unknown): BackupV1 {
+export function validateBackupV1(value: unknown): BackupV1 {
     const backup = object({ format: oneOf('german-vocabulary-backup'), version: oneOf(1), createdAt: iso, profiles: array(part) })(value) as BackupV1;
     unique(backup.profiles.flatMap(p => [p.profile.id, ...p.words.map(w => w.id), ...p.topics.map(t => t.id), ...p.aids.map(a => a.id), ...p.sessions.map(s => s.id), ...p.questions.map(q => q.attemptId)]));
     for (const p of backup.profiles)
         checkProfile(p);
     return backup;
+}
+
+function emptyGrammar(): ProfileBackupV2['grammar'] {
+    return { catalogVersion: 1, progress: [], sessions: [], questions: [], attempts: [], rewards: [] };
+}
+
+function wordOnlyPart(part: ProfileBackupV2): ProfileBackup {
+    const wordXp = part.attempts.reduce((sum, attempt) => sum + attempt.xpDelta, 0);
+    const wordDays = new Set(part.attempts.map(attempt => attempt.day));
+    return {
+        ...part,
+        profile: { ...part.profile, xp: wordXp },
+        dailyActivity: part.dailyActivity
+            .filter(row => wordDays.has(row.day))
+            .map(row => {
+                const rows = part.attempts.filter(attempt => attempt.day === row.day);
+                return { ...row, correct: rows.filter(attempt => !!attempt.right).length, errors: rows.filter(attempt => !attempt.right).length, xp: rows.reduce((sum, attempt) => sum + attempt.xpDelta, 0) };
+            }),
+    } as ProfileBackup;
+}
+
+export function validateBackup(value: unknown): BackupV2 {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) invalid();
+    const source = value as Record<string, unknown>;
+    if (source.format !== 'german-vocabulary-backup' || typeof source.createdAt !== 'string') invalid();
+    if (source.version === 1) {
+        const v1 = validateBackupV1(value);
+        return {
+            format: v1.format,
+            version: 2,
+            createdAt: v1.createdAt,
+            profiles: v1.profiles.map(profile => ({ ...profile, grammar: emptyGrammar() })),
+        };
+    }
+    if (source.version !== 2 || !Array.isArray(source.profiles)) invalid();
+    const backup = {
+        format: source.format,
+        version: 2 as const,
+        createdAt: source.createdAt,
+        profiles: source.profiles,
+    } as BackupV2;
+    // Keep the old strict validator for all vocabulary tables, but validate XP and
+    // daily totals against the word ledger only here; grammar is checked below.
+    for (const profile of backup.profiles) {
+        if (!profile || typeof profile !== 'object' || !('grammar' in profile)) invalid();
+        validateBackupV1({ format: 'german-vocabulary-backup', version: 1, createdAt: backup.createdAt, profiles: [wordOnlyPart(profile)] });
+        validateGrammarProfile(profile);
+        validateCombinedLedger(profile);
+    }
+    const ids = new Set<string>();
+    for (const profile of backup.profiles) {
+        const candidates = [profile.profile.id, ...profile.words.map(row => row.id), ...profile.topics.map(row => row.id), ...profile.aids.map(row => row.id), ...profile.sessions.map(row => row.id), ...profile.questions.map(row => row.attemptId), ...profile.grammar.sessions.map(row => row.id), ...profile.grammar.questions.map(row => row.question.attemptId)];
+        for (const id of candidates) {
+            if (ids.has(id)) invalid();
+            ids.add(id);
+        }
+    }
+    return JSON.parse(JSON.stringify(backup)) as BackupV2;
 }

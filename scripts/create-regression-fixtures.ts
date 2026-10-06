@@ -9,10 +9,10 @@ import { AnswerService } from '../src/features/learning/answerService';
 import { BackupService } from '../src/features/transfer/backupService';
 import { validateBackup } from '../src/features/transfer/backupValidation';
 import type { DayKey } from '../src/features/learning/learningTypes';
-import type { BackupV1 } from '../src/features/transfer/backupTypes';
+import type { BackupV2 } from '../src/features/transfer/backupTypes';
 // Host-only generator. It is never imported by the Android application.
 // Every learning state comes from persisted real questions and AnswerService.
-export async function createRegressionBackup(today: DayKey): Promise<BackupV1> {
+export async function createRegressionBackup(today: DayKey): Promise<BackupV2> {
   addDays(today, 0);
   const { db, close } = openTestDb();
   try {
