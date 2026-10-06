@@ -1,4 +1,4 @@
-import { makeGrammarQuestion } from '../../src/features/grammar/grammarQuestionFactory';
+import { makeGrammarQuestion, validateGrammarQuestion } from '../../src/features/grammar/grammarQuestionFactory';
 import { grammarTargets } from '../../src/features/grammar/grammarCatalog';
 import type { GrammarTargetId } from '../../src/features/grammar/grammarTypes';
 
@@ -41,4 +41,10 @@ test('dependencies_are_profile_scoped_and_match_rendered_noun', () => {
   ]});
   expect(q.dependencies).toEqual([expect.objectContaining({ wordId: 'owned', profileId: 'p' })]);
   expect(q.feedback.sentenceDe).toContain('Der Tisch');
+});
+
+test('trusted_dictionary_rows_reject_forged_dependency_identity', () => {
+  const word = { id: 'owned', profileId: 'p', de: 'Tisch', ru: 'стол', pos: 'noun', gender: 'm', plural: 'Tische', exampleDe: null, exampleRu: null, note: '', revision: 2 } as any;
+  const question = makeGrammarQuestion({ attemptId: 'trusted', sessionId: 's', profileId: 'p', targetId: 'pronoun-cloze:er' as GrammarTargetId, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex: 1, words: [word] });
+  expect(() => validateGrammarQuestion({ ...question, dependencies: [{ ...question.dependencies[0], wordId: 'forged' }] }, [word])).toThrow('GRAMMAR_QUESTION_INVALID');
 });
