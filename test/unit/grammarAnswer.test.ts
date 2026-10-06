@@ -12,7 +12,7 @@ test('internal_formal_sie_preserves_case', () => {
 });
 
 test('initial_plural_preserves_case', () => {
-  const question = q('pronoun-cloze:sie_plural', 1);
+  const question = q('pronoun-cloze:sie_plural', 1, 'typed');
   if (question.position !== 'initial') return;
   expect(checkGrammarAnswer(question, { kind: 'typed', text: 'Sie' })).toBe(true);
   expect(checkGrammarAnswer(question, { kind: 'typed', text: 'sie' })).toBe(false);

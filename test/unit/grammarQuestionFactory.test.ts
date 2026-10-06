@@ -33,3 +33,12 @@ test('sie_targets_keep_all_three_sie_meanings_as_choice_options', () => {
     expect(q.options.map(option => option.id)).toEqual(expect.arrayContaining(['sie_feminine', 'sie_plural', 'sie_formal']));
   }
 });
+
+test('dependencies_are_profile_scoped_and_match_rendered_noun', () => {
+  const q = makeGrammarQuestion({ attemptId: 'dep', sessionId: 's', profileId: 'p', targetId: 'pronoun-cloze:er' as GrammarTargetId, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex: 1, words: [
+    { id: 'foreign', profileId: 'other', de: 'Tisch', ru: 'стол', pos: 'noun', gender: 'm', plural: 'Tische', exampleDe: null, exampleRu: null, note: '', revision: 1 } as any,
+    { id: 'owned', profileId: 'p', de: 'Tisch', ru: 'стол', pos: 'noun', gender: 'm', plural: 'Tische', exampleDe: null, exampleRu: null, note: '', revision: 2 } as any,
+  ]});
+  expect(q.dependencies).toEqual([expect.objectContaining({ wordId: 'owned', profileId: 'p' })]);
+  expect(q.feedback.sentenceDe).toContain('Der Tisch');
+});
