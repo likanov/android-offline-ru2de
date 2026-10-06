@@ -22,7 +22,7 @@ test('grammar_error_without_model_shows_local_rule_without_runtime', async () =>
     const session = await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'mixed', targetIds: ['pronoun-cloze:ich'] }, day);
     const question = await h.grammarSessions.next(profile.id, session!.id, day);
     await h.grammarAnswers.submit(profile.id, session!.id, question!.attemptId, wrongFor(question!), day);
-    const assistant = { generatePractice } as unknown as AssistantService;
+    const assistant = { generatePractice, cancelAndRelease: jest.fn().mockResolvedValue(undefined) } as unknown as AssistantService;
     render(<GrammarExplanationScreen db={h.db} profileId={profile.id} attemptId={question!.attemptId} assistant={assistant} onModelSetup={jest.fn()} onBack={jest.fn()} />);
     await screen.findByText('Личные местоимения');
     await screen.findByText('В именительном падеже местоимение является подлежащим.');
@@ -39,7 +39,7 @@ test('grammar_generation_uses_shared_assistant_only_after_explicit_action', asyn
     const session = await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'mixed', targetIds: ['pronoun-cloze:ich'] }, day);
     const question = await h.grammarSessions.next(profile.id, session!.id, day);
     await h.grammarAnswers.submit(profile.id, session!.id, question!.attemptId, wrongFor(question!), day);
-    const assistant = { generatePractice } as unknown as AssistantService;
+    const assistant = { generatePractice, cancelAndRelease: jest.fn().mockResolvedValue(undefined) } as unknown as AssistantService;
     render(<GrammarExplanationScreen db={h.db} profileId={profile.id} attemptId={question!.attemptId} assistant={assistant} onModelSetup={jest.fn()} onBack={jest.fn()} />);
     await screen.findByText('Объяснить подробнее');
     fireEvent.press(screen.getByRole('button', { name: 'Объяснить подробнее' }));

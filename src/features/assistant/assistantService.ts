@@ -7,12 +7,14 @@ import { profileSelectionVersion } from '../profiles/profileRepository';
 import type { ModelFiles } from './modelFiles';
 import type { LanguageRuntime } from './runtimeTypes';
 import type { HelperDraft, HelperRequest, WordRevision } from './assistantTypes';
-import type { ClozePractice, ErrorExplanation, PracticeRequest, PracticeResult } from './practiceTypes';
+import type { ClozePractice, ErrorExplanation, GrammarErrorExplanation, PracticeRequest, PracticeResult } from './practiceTypes';
 import { reference } from '../../data/reference';
 import { buildContext } from './assistantContext';
 import { buildMessages } from './assistantPrompts';
 import { readClozeWords, readErrorContext } from './practiceContext';
 import { buildClozePracticeMessages, buildErrorPracticeMessages } from './practicePrompts';
+import { loadGrammarErrorContext } from './grammarErrorContext';
+import { buildGrammarErrorMessages } from './grammarErrorPrompts';
 import { decodeClozeOutput } from './practiceValidation';
 import { DifficultPracticeRepository } from './difficultPracticeRepository';
 export class AssistantService {
@@ -114,8 +116,8 @@ export class AssistantService {
         }
     }
     async generatePractice(request: PracticeRequest, signal: AbortSignal, onText: (text: string) => void): Promise<PracticeResult> {
-        request = request.kind === 'error' ? { ...request } : { ...request, wordIds: [...request.wordIds] };
-        if (!['error', 'cloze', 'difficult'].includes(request.kind))
+        request = request.kind === 'error' || request.kind === 'grammar-error' ? { ...request } : { ...request, wordIds: [...request.wordIds] };
+        if (!['error', 'grammar-error', 'cloze', 'difficult'].includes(request.kind))
             throw new AppError('VALIDATION', 'Этот режим практики ещё не готов');
         if (signal.aborted)
             throw new AppError('CANCELLED', 'Запрос отменён');
@@ -149,6 +151,13 @@ export class AssistantService {
                 dependencies = [{ wordId: context.word.id, revision: context.word.revision ?? 1 }];
                 messages = buildErrorPracticeMessages(context);
                 finishResult = text => ({ kind: 'error', profileId: request.profileId, attemptId: request.attemptId, submittedAnswer: context.result.submittedAnswer, expected: context.question.expected, text, referenceTitle: context.reference?.title ?? null } satisfies ErrorExplanation);
+            }
+            else if (request.kind === 'grammar-error') {
+                // Grammar explanations are historical snapshots. In particular,
+                // editing a referenced word must not invalidate the saved error.
+                const context = await loadGrammarErrorContext(this.db, request.profileId, request.attemptId);
+                messages = buildGrammarErrorMessages(context);
+                finishResult = text => ({ kind: 'grammar-error', profileId: request.profileId, attemptId: request.attemptId, text, referenceTitle: context.reference.title } satisfies GrammarErrorExplanation);
             }
             else {
                 const words = request.kind === 'difficult' ? await new DifficultPracticeRepository(this.db).select(request.profileId) : await readClozeWords(this.db, request.profileId, request.wordIds);

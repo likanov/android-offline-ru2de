@@ -4,6 +4,7 @@ import type { WordRevision } from './assistantTypes';
 
 export type PracticeRequest =
     | { kind: 'error'; profileId: string; attemptId: string }
+    | { kind: 'grammar-error'; profileId: string; attemptId: string }
     | { kind: 'cloze'; profileId: string; wordIds: string[] }
     | { kind: 'difficult'; profileId: string; wordIds: string[] };
 
@@ -15,6 +16,14 @@ export type ErrorExplanation = {
     expected: string[];
     text: string;
     referenceTitle: string | null;
+};
+
+export type GrammarErrorExplanation = {
+    kind: 'grammar-error';
+    profileId: string;
+    attemptId: string;
+    text: string;
+    referenceTitle: string;
 };
 
 export type ClozeExercise = {
@@ -34,7 +43,7 @@ export type ClozePractice = {
     dependencies: WordRevision[];
 };
 
-export type PracticeResult = ErrorExplanation | ClozePractice;
+export type PracticeResult = ErrorExplanation | GrammarErrorExplanation | ClozePractice;
 
 export type ErrorContext = {
     question: Question;

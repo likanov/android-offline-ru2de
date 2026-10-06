@@ -27,7 +27,7 @@ export function PracticeScreen({ profileId, request, assistant, onBack }: {
         setBusy(true);
         setStatus('Создаём упражнение…');
         void assistant.generatePractice(request, controller.signal, () => {}).then(result => {
-            if (!controller.signal.aborted && result.kind !== 'error') {
+            if (!controller.signal.aborted && (result.kind === 'cloze' || result.kind === 'difficult')) {
                 setPractice(result);
                 setStatus('');
             }

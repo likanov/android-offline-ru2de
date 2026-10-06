@@ -1,5 +1,6 @@
 import { AssistantScreen } from '../features/assistant/AssistantScreen';
 import { ErrorExplanationScreen } from '../features/assistant/ErrorExplanationScreen';
+import { GrammarExplanationScreen } from '../features/assistant/GrammarExplanationScreen';
 import { PracticeScreen } from '../features/assistant/PracticeScreen';
 import { TransferScreen } from '../features/transfer/TransferScreen';
 import { ReminderSettings } from '../features/reminders/ReminderSettings';
@@ -25,7 +26,7 @@ import { GrammarTrainingScreen } from '../features/grammar/GrammarTrainingScreen
 import { GrammarReferenceScreen } from '../features/grammar/GrammarReferenceScreen';
 import type { GrammarSelection } from '../features/grammar/grammarTypes';
 type Route = {
-    screen: 'profiles' | 'assistant' | 'error-explanation' | 'practice' | 'model' | 'dictionary' | 'card' | 'editor' | 'training' | 'training-home' | 'grammar-training' | 'grammar-reference' | 'reviews' | 'difficult' | 'topics' | 'today' | 'progress' | 'reminders' | 'transfer';
+    screen: 'profiles' | 'assistant' | 'error-explanation' | 'grammar-explanation' | 'practice' | 'model' | 'dictionary' | 'card' | 'editor' | 'training' | 'training-home' | 'grammar-training' | 'grammar-reference' | 'reviews' | 'difficult' | 'topics' | 'today' | 'progress' | 'reminders' | 'transfer';
     wordId?: string;
     attemptId?: string;
     practiceKind?: 'cloze' | 'difficult';
@@ -61,6 +62,8 @@ function NavigationRoutes() {
             void navigate({ screen: 'card', wordId: route.wordIds[0] });
         } else if (route.screen === 'error-explanation') {
             void navigate({ screen: 'training', mode: route.mode, wordIds: route.wordIds });
+        } else if (route.screen === 'grammar-explanation') {
+            void navigate({ screen: 'grammar-training', grammarSelection: route.grammarSelection });
         } else if (route.screen === 'grammar-reference') {
             void navigate({ screen: 'grammar-training', grammarSelection: route.grammarSelection, grammarAttemptId: route.grammarAttemptId });
         } else if (route.screen === 'grammar-training' || route.screen === 'training-home') {
@@ -77,7 +80,7 @@ function NavigationRoutes() {
     }
     useEffect(() => {
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-            if (['assistant', 'error-explanation', 'practice', 'card', 'editor', 'training', 'training-home', 'grammar-training', 'grammar-reference', 'reviews', 'difficult', 'topics', 'transfer'].includes(route.screen)) {
+            if (['assistant', 'error-explanation', 'grammar-explanation', 'practice', 'card', 'editor', 'training', 'training-home', 'grammar-training', 'grammar-reference', 'reviews', 'difficult', 'topics', 'transfer'].includes(route.screen)) {
                 back();
                 return true;
             }
@@ -100,6 +103,8 @@ function NavigationRoutes() {
         content = <AssistantScreen db={db} profileId={profile.id} wordId={route.wordId!} assistant={getMemoryAssistant(app)} onModelSetup={() => void navigate({screen:'model'})} onBack={back}/>;
     else if (route.screen === 'error-explanation')
         content = <ErrorExplanationScreen profileId={profile.id} attemptId={route.attemptId!} assistant={getMemoryAssistant(app)} onModelSetup={() => void navigate({screen:'model'})} onBack={back}/>;
+    else if (route.screen === 'grammar-explanation')
+        content = <GrammarExplanationScreen db={db} profileId={profile.id} attemptId={route.grammarAttemptId!} assistant={getMemoryAssistant(app)} onModelSetup={() => void navigate({screen:'model'})} onBack={back}/>;
     else if (route.screen === 'practice')
         content = <PracticeScreen db={db} profileId={profile.id} request={{ kind: route.practiceKind ?? 'cloze', profileId: profile.id, wordIds: route.wordIds! }} assistant={getMemoryAssistant(app)} onBack={back}/>;
     else if (route.screen === 'today')
@@ -117,7 +122,7 @@ function NavigationRoutes() {
     else if (route.screen === 'training-home')
         content = <TrainingHomeScreen db={db} profileId={profile.id} onVocabulary={startQueue} onGrammar={startGrammar}/>;
     else if (route.screen === 'grammar-training')
-        content = <GrammarTrainingScreen key={`${profile.id}:${JSON.stringify(route.grammarSelection ?? {mode:'study',lesson:'mixed'})}`} db={db} profileId={profile.id} selection={route.grammarSelection ?? {mode:'study',lesson:'mixed'}} onReference={() => setRoute({ screen: 'grammar-reference', grammarSelection: route.grammarSelection, grammarAttemptId: route.grammarAttemptId })} onExplainError={attemptId => setRoute({ screen: 'grammar-training', grammarSelection: route.grammarSelection, grammarAttemptId: attemptId })}/>;
+        content = <GrammarTrainingScreen key={`${profile.id}:${JSON.stringify(route.grammarSelection ?? {mode:'study',lesson:'mixed'})}`} db={db} profileId={profile.id} selection={route.grammarSelection ?? {mode:'study',lesson:'mixed'}} onReference={() => setRoute({ screen: 'grammar-reference', grammarSelection: route.grammarSelection, grammarAttemptId: route.grammarAttemptId })} onExplainError={attemptId => setRoute({ screen: 'grammar-explanation', grammarSelection: route.grammarSelection, grammarAttemptId: attemptId })}/>;
     else if (route.screen === 'grammar-reference')
         content = <GrammarReferenceScreen onBack={back}/>;
     else if (route.screen === 'training')
@@ -128,7 +133,7 @@ function NavigationRoutes() {
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
         content = <WordCardScreen db={db} profileId={profile.id} wordId={route.wordId!} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', practiceKind: 'cloze', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
-    const active = ['card', 'editor', 'assistant', 'error-explanation', 'practice'].includes(route.screen)
+    const active = ['card', 'editor', 'assistant', 'error-explanation', 'grammar-explanation', 'practice'].includes(route.screen)
         ? route.fromTraining ? 'training' : 'dictionary'
         : (['training-home', 'grammar-training', 'grammar-reference'].includes(route.screen) ? 'training' : route.screen as React.ComponentProps<typeof NavigationMenu>['active']);
     return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<NavigationMenu active={active} hasProfile={!!profile} onNavigate={screen => void navigate(screen === 'training' ? { screen: 'training-home' } : { screen })}/></View>;

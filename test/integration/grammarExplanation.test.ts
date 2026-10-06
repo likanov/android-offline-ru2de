@@ -46,7 +46,7 @@ test('grammar_error_context_distinguishes_feminine_and_formal_sie', async () => 
     const feminineContext = await loadGrammarErrorContext(h.db, profile.id, feminine.question.attemptId);
     const formalContext = await loadGrammarErrorContext(h.db, profile.id, formal.question.attemptId);
     expect(feminineContext.question.expected.optionId).toBe('sie_feminine');
-    expect(formalContext.question.expected.optionId).toBe('ist');
+    expect(formalContext.question.expected.optionId).toBe('sind');
     expect(feminineContext.question.contextRu).toContain('она');
     expect(formalContext.question.contextRu).toContain('Вы');
     expect(feminineContext.reference.title).toBe('Личные местоимения');
