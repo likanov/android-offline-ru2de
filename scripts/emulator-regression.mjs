@@ -376,7 +376,7 @@ async function run() {
  else report.blockers.push('OBSERVATIONS_MISSING:review generated text and audible playback');
 }
 function completeBlockRegressionReport(block) {
- const ids=scenarioIdsForBlock(block), validation=validateBlockRegressionReport(report,block), errors=[...validation.errors];
+ const ids=scenarioIdsForBlock(block), validation=validateBlockRegressionReport({...report,status:'passed'},block), errors=[...validation.errors];
  if(report.blockers.length)errors.push(...report.blockers);
  const failed=ids.some(id=>report.scenarios.find(s=>s.id===id)?.status==='failed')||(report.crashCount??0)!==0||(report.anrCount??0)!==0;
  return {exitCode:errors.length?(failed?1:2):0,status:errors.length?(failed?'failed':'not-verified'):'passed',errors};
