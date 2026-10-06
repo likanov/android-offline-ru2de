@@ -16,3 +16,20 @@ test('options_are_reproducibly_shuffled_by_attempt', () => {
   const base = { sessionId: 's', profileId: 'p', targetId: target, responseMode: 'choice' as const, reviewStage: null, dueDay: null, variantIndex: 0, words: [] };
   expect(makeGrammarQuestion({ ...base, attemptId: 'same' }).options).toEqual(makeGrammarQuestion({ ...base, attemptId: 'same' }).options);
 });
+
+test('all_templates_have_valid_german_and_russian_feedback', () => {
+  for (const target of grammarTargets) for (const variantIndex of [0, 1, 2]) {
+    const q = makeGrammarQuestion({ attemptId: `${target.id}-${variantIndex}`, sessionId: 's', profileId: 'p', targetId: target.id, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex, words: [] });
+    expect(q.feedback.translationRu).toMatch(/[А-Яа-яЁё]/);
+    expect(q.feedback.translationRu).not.toMatch(/\b(bin|bist|ist|sind|seid)\b/);
+    expect(q.feedback.sentenceDe).not.toMatch(/\b(bin|bist|ist|sind|seid)\s+\1\b/);
+    expect(q.feedback.sentenceDe).not.toContain('Das Lampe');
+  }
+});
+
+test('sie_targets_keep_all_three_sie_meanings_as_choice_options', () => {
+  for (const target of grammarTargets.filter(t => t.pronounId.startsWith('sie_') && t.kind === 'pronoun-cloze')) {
+    const q = makeGrammarQuestion({ attemptId: target.id, sessionId: 's', profileId: 'p', targetId: target.id, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex: 0, words: [] });
+    expect(q.options.map(option => option.id)).toEqual(expect.arrayContaining(['sie_feminine', 'sie_plural', 'sie_formal']));
+  }
+});
