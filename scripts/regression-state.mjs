@@ -30,7 +30,7 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
  if(id==='reviews.difficult-recovery')check(state(part('Регрессия — трудное'),'Prüfstuhl')?.difficult===0,'DIFFICULT_NOT_RECOVERED');
  if(id==='progress.xp-levels')check(part('Регрессия — 490 XP')?.profile.xp===500,'LEVEL_500');
  if(id==='progress.goal-bounds')check(part('Регрессия UI')?.settings.dailyGoal===200,'GOAL_200');
- if(id==='progress.calendar-streak-skills'){const p=part('Регрессия — 20 UI');check(p?.dailyActivity.some(d=>d.day===fixtureDay&&d.correct===20&&d.xp===250),'CALENDAR_TOTAL');check(new Set(p?.skillHistory.map(h=>h.skill)).size===4,'FOUR_SKILLS');}
+ if(id==='progress.calendar-streak-skills'){const p=part('Регрессия — изучено');check(p?.dailyActivity.some(d=>d.day===fixtureDay&&d.correct===20&&d.xp===250),'CALENDAR_TOTAL');check(['translation','writing','article'].every(skill=>p?.skillHistory.some(h=>h.skill===skill)),'RECORDED_SKILLS');}
  if(id==='progress.no-passive-xp'||id==='audio.wav-listening'){for(const p of backup.profiles)check(!old(p.profile.name)||conserved(p,old(p.profile.name)),'PASSIVE_XP:'+p.profile.name);}
  if(id==='transfer.csv-picker-escaping'){const p=part('Регрессия UI');check(p?.words.some(w=>w.de==='Prüfstuhl'&&w.note.includes('"внутри"')&&w.note.includes('\n')),'CSV_ESCAPED_NOTE');check(p?.words.some(w=>w.de==='regressionsschön')&&p?.topics.some(t=>t.name==='Регрессия'),'CSV_TOPIC_UNICODE');}
  if(id==='transfer.csv-preview-cancel-profile'||id==='transfer.invalid-interrupted')check(same(backup.profiles,before?.profiles),'TRANSFER_CANCEL_MUTATED');
@@ -69,10 +69,43 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
  if(id==='assistant.helper-cancel-background')check(same(part('Регрессия UI')?.aids,old('Регрессия UI')?.aids),'LATE_HELPER_SAVED');
  if(id==='assistant.helper-profile-dependency'){check(part('Регрессия UI')?.aids.filter(a=>!a.stale).length===0,'STALE_HELPER_VISIBLE');check(part('Второй переименован')?.aids.length===old('Второй переименован')?.aids.length,'CROSS_PROFILE_HELPER');}
  if(id.startsWith('persistence-')){const p=part('Регрессия — 20 UI'),b=old('Регрессия — 20 UI');check(p?.profile.xp>=250&&p.rewards.length===1&&state(p,'Stuhl')?.streak===20,'PERSISTENCE_NONZERO_STATE');check(conserved(p,b)&&same(p?.sessions,b?.sessions),'PERSISTENCE_CHANGED');}
- if(id.startsWith('upgrade.')){const p=part('Миграция UI');check(p?.words.some(w=>w.de==='Upgradeprobe'),'UPGRADE_CUSTOM_WORD_LOST');check(p?.profile.xp===1250&&p.rewards.length===5&&p.attempts.length===100,'UPGRADE_EARNED_HISTORY');if(id==='upgrade.topic-migration')check(p?.topics.length>=6&&p.wordTopics.length>0,'TOPIC_MIGRATION_MISSING');if(before?.profiles?.length){const b=old('Миграция UI');check(p?.profile.xp===b?.profile.xp&&same(p?.attempts,b?.attempts)&&same(p?.rewards,b?.rewards),'UPGRADE_DUPLICATE_REWARD');}}
+ if(id.startsWith('upgrade.')){const p=part('Миграция UI');check(p?.words.some(w=>w.de==='Upgradeprobe'),'UPGRADE_CUSTOM_WORD_LOST');check(p?.profile.xp===250&&p.rewards.length===1&&p.attempts.length===20,'UPGRADE_EARNED_HISTORY');if(id==='upgrade.topic-migration')check(p?.topics.length>=6&&p.wordTopics.length>0,'TOPIC_MIGRATION_MISSING');if(before?.profiles?.length){const b=old('Миграция UI');check(p?.profile.xp===b?.profile.xp&&same(p?.attempts,b?.attempts)&&same(p?.rewards,b?.rewards),'UPGRADE_DUPLICATE_REWARD');}}
  if(id==='resilience.picker-double-answer'){const p=part('Регрессия — трудное'),b=old('Регрессия — трудное');check(p?.attempts.length===b?.attempts.length+1&&p?.profile.xp===b?.profile.xp+10,'DOUBLE_ANSWER_REWARDED');}
+ if(id.startsWith('grammar-')) checkGrammarState(id,(backup?.profiles??[]).find(p=>p?.grammar),check);
  return {ok:errors.length===0,errors};
 }
+
+const GRAMMAR_TARGETS=new Set(['ich','du','er','sie_feminine','es','wir','ihr','sie_plural','sie_formal']);
+function grammarTargetKnown(targetId){const [kind,pronoun]=String(targetId??'').split(':');return (kind==='pronoun-cloze'||kind==='sein-cloze')&&GRAMMAR_TARGETS.has(pronoun);}
+function checkGrammarState(id,p,check){
+ const g=p?.grammar;
+ check(!!g,'GRAMMAR_SECTION_MISSING');
+ if(!g)return;
+ for(const key of ['progress','sessions','questions','attempts','rewards'])check(Array.isArray(g[key]),'GRAMMAR_'+key.toUpperCase()+'_MISSING');
+ const targets=new Set((g.progress??[]).map(row=>row.targetId));
+ for(const target of targets)check(grammarTargetKnown(target),'GRAMMAR_UNKNOWN_TARGET:'+target);
+ check(targets.size===(g.progress??[]).length,'GRAMMAR_PROGRESS_DUPLICATE');
+ const sessions=new Map((g.sessions??[]).map(row=>[row.id,row]));
+ const questions=new Map((g.questions??[]).map(row=>[row.question?.attemptId,row]));
+ for(const a of g.attempts??[]){
+  check(grammarTargetKnown(a.targetId),'GRAMMAR_ATTEMPT_TARGET');
+  check(!!sessions.get(a.sessionId),'GRAMMAR_ATTEMPT_SESSION_MISSING');
+  check(!!questions.get(a.result?.attemptId),'GRAMMAR_ATTEMPT_QUESTION_MISSING');
+  check(a.result?.targetId===a.targetId,'GRAMMAR_ATTEMPT_TARGET_MISMATCH');
+  check(a.result?.xpDelta===(a.result?.right?(a.result?.state?.mastered&&a.result?.state?.masteryBonusGranted?60:10):0),'GRAMMAR_ATTEMPT_XP');
+ }
+ const wordXp=(p.attempts??[]).reduce((n,a)=>n+(a.xpDelta??0),0),grammarXp=(g.attempts??[]).reduce((n,a)=>n+(a.result?.xpDelta??0),0);
+ check(p.profile.xp===wordXp+grammarXp,'GRAMMAR_COMBINED_XP');
+ const daily=new Map();for(const a of p.attempts??[])addDaily(daily,a.day,!!a.right,a.xpDelta??0);for(const a of g.attempts??[])addDaily(daily,a.day,!!a.result?.right,a.result?.xpDelta??0);
+ check((p.dailyActivity??[]).length===daily.size,'GRAMMAR_DAILY_COUNT');
+ for(const row of p.dailyActivity??[]){const expected=daily.get(row.day);if(expected)check(row.correct===expected.correct&&row.errors===expected.errors&&row.xp===expected.xp,'GRAMMAR_DAILY_LEDGER:'+row.day);}
+ if(id==='grammar-progress.twenty-ui-answers')check((g.attempts??[]).some(a=>a.result?.state?.streak===20),'GRAMMAR_TWENTY_ANSWERS');
+ if(id==='grammar-progress.nineteen-error')check((g.attempts??[]).some(a=>a.result?.right===false),'GRAMMAR_NINETEEN_ERROR');
+ if(id==='grammar-progress.bonus-once-double-submit')check((g.rewards??[]).length===new Set((g.rewards??[]).map(r=>r.targetId)).size,'GRAMMAR_BONUS_DUPLICATE');
+ if(id==='grammar-progress.reviews-difficult')check((g.progress??[]).some(r=>r.state?.difficult===true||r.state?.reviewStage>0),'GRAMMAR_REVIEW_STATE');
+ if(id==='grammar-progress.combined-summary')check((g.attempts??[]).length>0&&p.profile.xp===wordXp+grammarXp,'GRAMMAR_COMBINED_SUMMARY');
+}
+function addDaily(map,day,right,xp){const current=map.get(day)??{correct:0,errors:0,xp:0};current.correct+=right?1:0;current.errors+=right?0:1;current.xp+=xp;map.set(day,current);}
 
 // Compare every exported value, tolerating only UUID regeneration and the new
 // profile name. Array order remains significant for question choices/word pools.

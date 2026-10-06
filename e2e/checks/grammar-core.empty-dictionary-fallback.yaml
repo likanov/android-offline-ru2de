@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-core.empty-dictionary-fallback
+---
+[{"assertVisible":{"id":"grammar-context"}},{"assertVisible":{"id":"grammar-prompt"}},{"takeScreenshot":"grammar-empty-dictionary-fallback"}]

@@ -33,7 +33,7 @@ export class AnswerService {
             if (!word || word.revision !== q.revision || qr?.status !== 'active' || !eligible(state, s.mode, today) || (s.mode === 'review' && (state.reviewStage !== q.reviewStage || state.dueDay !== q.dueDay)))
                 throw new TrainingError('STALE_QUESTION', 'Задание устарело');
             const right = checkAnswer(answer, q.expected), transition = applyAnswer(state, right, s.mode, today), n = transition.state;
-            const result: AttemptResult = { attemptId, right, xpDelta: transition.xpDelta, state: n };
+            const result: AttemptResult = { attemptId, right, xpDelta: transition.xpDelta, state: n, submittedAnswer: answer };
             await tx.run('UPDATE word_progress SET streak=?,learned=?,bonusAwarded=?,reviewStage=?,dueDate=?,difficult=?,totalErrors=?,recoveryErrors=?,recoveryCorrect=? WHERE profileId=? AND wordId=?', [n.streak, +n.mastered, +n.masteryBonusGranted, n.reviewStage, n.dueDay, +n.difficult, n.totalErrors, n.recoveryErrors, n.recoveryCorrect, profileId, q.wordId]);
             await tx.run('UPDATE profiles SET xp=xp+? WHERE id=?', [result.xpDelta, profileId]);
             await tx.run('INSERT INTO attempts(attemptId,profileId,sessionId,wordId,right,xpDelta,result,day) VALUES (?,?,?,?,?,?,?,?)', [attemptId, profileId, sessionId, q.wordId, +right, result.xpDelta, JSON.stringify(result), today]);

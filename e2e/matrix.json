@@ -465,5 +465,63 @@
         "device": "logs"
       }
     ]
+  },
+  {
+    "id": "grammar-core",
+    "flow": "grammar-core.yaml",
+    "phase": "main",
+    "expectation": "Pronoun and sein choice/typing with context, fallback dictionary and compact keyboard layout",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {"id":"grammar-core.pronouns-sein-choice","status":"implemented-unverified","flow":"checks/grammar-core.pronouns-sein-choice.yaml","state":true},
+      {"id":"grammar-core.typing-case-context","status":"implemented-unverified","flow":"checks/grammar-core.typing-case-context.yaml","state":true},
+      {"id":"grammar-core.reference-no-xp","status":"implemented-unverified","flow":"checks/grammar-core.reference-no-xp.yaml","state":true},
+      {"id":"grammar-core.empty-dictionary-fallback","status":"implemented-unverified","flow":"checks/grammar-core.empty-dictionary-fallback.yaml"},
+      {"id":"grammar-core.keyboard-320dp","status":"implemented-unverified","flow":"checks/grammar-core.keyboard-320dp.yaml","device":"display"}
+    ]
+  },
+  {
+    "id": "grammar-progress",
+    "flow": "grammar-progress.yaml",
+    "phase": "main",
+    "expectation": "Twenty real UI answers, error at nineteen, one mastery bonus, reviews and difficult recovery",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {"id":"grammar-progress.twenty-ui-answers","status":"implemented-unverified","flow":"checks/grammar-progress.twenty-ui-answers.yaml","state":true},
+      {"id":"grammar-progress.nineteen-error","status":"implemented-unverified","flow":"checks/grammar-progress.nineteen-error.yaml","state":true},
+      {"id":"grammar-progress.bonus-once-double-submit","status":"implemented-unverified","flow":"checks/grammar-progress.bonus-once-double-submit.yaml","state":true},
+      {"id":"grammar-progress.reviews-difficult","status":"implemented-unverified","flow":"checks/grammar-progress.reviews-difficult.yaml","state":true},
+      {"id":"grammar-progress.combined-summary","status":"implemented-unverified","flow":"checks/grammar-progress.combined-summary.yaml","state":true}
+    ]
+  },
+  {
+    "id": "grammar-persistence",
+    "flow": "grammar-persistence.yaml",
+    "phase": "main",
+    "expectation": "Profile isolation, force stop/reboot, stale word dependencies and SQLite five to six upgrade",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {"id":"grammar-persistence.profile-isolation","status":"implemented-unverified","flow":"checks/grammar-persistence.profile-isolation.yaml","state":true},
+      {"id":"grammar-persistence.force-stop-reboot","status":"implemented-unverified","flow":"checks/grammar-persistence.force-stop-reboot.yaml","state":true,"device":"reboot"},
+      {"id":"grammar-persistence.word-dependency-edit","status":"implemented-unverified","flow":"checks/grammar-persistence.word-dependency-edit.yaml","state":true},
+      {"id":"grammar-persistence.sqlite-five-six-upgrade","status":"implemented-unverified","flow":"checks/grammar-persistence.sqlite-five-six-upgrade.yaml","state":true,"device":"upgrade-provenance"}
+    ]
+  },
+  {
+    "id": "grammar-transfer-assistant",
+    "flow": "grammar-transfer-assistant.yaml",
+    "phase": "main",
+    "expectation": "V1/V2 transfer, atomic malformed import, offline rule explanation and model cancellation",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {"id":"grammar-transfer-assistant.v1-v2-roundtrip","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.v1-v2-roundtrip.yaml","state":true},
+      {"id":"grammar-transfer-assistant.invalid-backup-atomicity","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.invalid-backup-atomicity.yaml","state":true},
+      {"id":"grammar-transfer-assistant.no-model-rule","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.no-model-rule.yaml","device":"model-unavailable"},
+      {"id":"grammar-transfer-assistant.real-model-cancel","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.real-model-cancel.yaml","device":"four-generations"}
+    ]
   }
 ]

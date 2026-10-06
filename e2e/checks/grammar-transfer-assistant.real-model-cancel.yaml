@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-transfer-assistant.real-model-cancel
+---
+[{"assertVisible":{"id":"grammar-error-open"}},{"takeScreenshot":"grammar-real-model-cancel"}]

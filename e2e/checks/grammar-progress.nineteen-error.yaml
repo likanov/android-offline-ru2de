@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-progress.nineteen-error
+---
+[{"assertVisible":{"id":"grammar-context"}},{"assertVisible":{"id":"grammar-error-open"}},{"takeScreenshot":"grammar-nineteen-error"}]

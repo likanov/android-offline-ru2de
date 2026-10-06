@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-persistence.sqlite-five-six-upgrade
+---
+[{"assertVisible":{"id":"grammar-context"}},{"takeScreenshot":"grammar-sqlite-five-six-upgrade"}]

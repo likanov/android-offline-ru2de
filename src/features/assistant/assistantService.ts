@@ -7,9 +7,16 @@ import { profileSelectionVersion } from '../profiles/profileRepository';
 import type { ModelFiles } from './modelFiles';
 import type { LanguageRuntime } from './runtimeTypes';
 import type { HelperDraft, HelperRequest, WordRevision } from './assistantTypes';
+import type { ClozePractice, ErrorExplanation, GrammarErrorExplanation, PracticeRequest, PracticeResult } from './practiceTypes';
 import { reference } from '../../data/reference';
 import { buildContext } from './assistantContext';
 import { buildMessages } from './assistantPrompts';
+import { readClozeWords, readErrorContext } from './practiceContext';
+import { buildClozePracticeMessages, buildErrorPracticeMessages } from './practicePrompts';
+import { loadGrammarErrorContext } from './grammarErrorContext';
+import { buildGrammarErrorMessages } from './grammarErrorPrompts';
+import { decodeClozeOutput } from './practiceValidation';
+import { DifficultPracticeRepository } from './difficultPracticeRepository';
 export class AssistantService {
     private epoch = 0;
     private active?: AbortController;
@@ -91,6 +98,102 @@ export class AssistantService {
             const draft: HelperDraft = { requestId, profileId: request.profileId, wordId: request.wordId, mode: request.mode, ruleTopic: request.mode === 'rule' ? request.ruleTopic : null, text, dependencies: context.dependencies, referenceTitle: context.reference?.title ?? null };
             this.issued.set(draft, { epoch, selection, metadata: JSON.stringify({ ...draft, text: undefined }) });
             return draft;
+        }
+        catch (error) {
+            if (!valid())
+                throw new AppError('CANCELLED', 'Запрос отменён', error);
+            throw error;
+        }
+        finally {
+            off?.();
+            signal.removeEventListener('abort', abort);
+            controller.signal.removeEventListener('abort', stop);
+            if (this.active === controller) {
+                this.active = undefined;
+                this.activeDone = undefined;
+            }
+            finish();
+        }
+    }
+    async generatePractice(request: PracticeRequest, signal: AbortSignal, onText: (text: string) => void): Promise<PracticeResult> {
+        request = request.kind === 'error' || request.kind === 'grammar-error' ? { ...request } : { ...request, wordIds: [...request.wordIds] };
+        if (!['error', 'grammar-error', 'cloze', 'difficult'].includes(request.kind))
+            throw new AppError('VALIDATION', 'Этот режим практики ещё не готов');
+        if (signal.aborted)
+            throw new AppError('CANCELLED', 'Запрос отменён');
+        if (this.active)
+            throw new AppError('BUSY', 'Помощник занят');
+        const controller = new AbortController(), epoch = this.epoch, selection = profileSelectionVersion(this.db);
+        this.active = controller;
+        let finish!: () => void;
+        this.activeDone = new Promise<void>(resolve => { finish = resolve; });
+        const abort = () => controller.abort();
+        signal.addEventListener('abort', abort);
+        const stop = () => { void this.runtime.cancel().catch(() => { }); };
+        controller.signal.addEventListener('abort', stop);
+        const valid = () => !controller.signal.aborted && this.epoch === epoch && profileSelectionVersion(this.db) === selection;
+        const check = () => {
+            if (!valid())
+                throw new AppError('CANCELLED', 'Запрос отменён');
+        };
+        let off: undefined | (() => void);
+        let dependencies: WordRevision[] = [];
+        try {
+            await this.draining.catch(() => { });
+            check();
+            if (!await this.activeProfile(this.db, request.profileId))
+                throw new AppError('WRONG_PROFILE', 'Выберите этот профиль');
+            let messages;
+            let maxTokens = 256;
+            let finishResult: (text: string) => PracticeResult;
+            if (request.kind === 'error') {
+                const context = await readErrorContext(this.db, request.profileId, request.attemptId);
+                dependencies = [{ wordId: context.word.id, revision: context.word.revision ?? 1 }];
+                messages = buildErrorPracticeMessages(context);
+                finishResult = text => ({ kind: 'error', profileId: request.profileId, attemptId: request.attemptId, submittedAnswer: context.result.submittedAnswer, expected: context.question.expected, text, referenceTitle: context.reference?.title ?? null } satisfies ErrorExplanation);
+            }
+            else if (request.kind === 'grammar-error') {
+                // Grammar explanations are historical snapshots. In particular,
+                // editing a referenced word must not invalidate the saved error.
+                const context = await loadGrammarErrorContext(this.db, request.profileId, request.attemptId);
+                messages = buildGrammarErrorMessages(context);
+                finishResult = text => ({ kind: 'grammar-error', profileId: request.profileId, attemptId: request.attemptId, text, referenceTitle: context.reference.title } satisfies GrammarErrorExplanation);
+            }
+            else {
+                const words = request.kind === 'difficult' ? await new DifficultPracticeRepository(this.db).select(request.profileId) : await readClozeWords(this.db, request.profileId, request.wordIds);
+                if (!words.length)
+                    throw new AppError('VALIDATION', 'Трудных слов пока нет');
+                if (request.kind === 'difficult' && JSON.stringify(words.map(word => word.id)) !== JSON.stringify(request.wordIds))
+                    throw new AppError('STALE_QUESTION', 'Список трудных слов изменился');
+                dependencies = words.map(word => ({ wordId: word.id, revision: word.revision ?? 1 }));
+                messages = buildClozePracticeMessages(words);
+                maxTokens = 512;
+                finishResult = text => ({ kind: request.kind, profileId: request.profileId, exercises: decodeClozeOutput(text, words), dependencies } satisfies ClozePractice);
+            }
+            check();
+            off = subscribeProfileChanges(request.profileId, () => {
+                void this.owned(this.db, request.profileId, dependencies).then(current => {
+                    if (!current && this.active === controller)
+                        controller.abort();
+                }).catch(() => controller.abort());
+            });
+            const path = await this.files.installedPath();
+            check();
+            if (!path)
+                throw new AppError('MODEL', 'Установите локальную модель для создания подсказок');
+            await this.runtime.load(path);
+            check();
+            const text = await this.runtime.generate({ requestId: randomUUID(), messages, maxTokens }, controller.signal, token => {
+                if (valid())
+                    onText(token);
+            });
+            check();
+            if (!await this.owned(this.db, request.profileId, dependencies))
+                throw new AppError('CANCELLED', 'Карточка изменилась');
+            check();
+            if (!text.trim())
+                throw new AppError('MODEL', 'Модель вернула пустой результат');
+            return finishResult(text);
         }
         catch (error) {
             if (!valid())

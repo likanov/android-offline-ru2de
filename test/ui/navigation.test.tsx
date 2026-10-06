@@ -49,6 +49,7 @@ test("closing_more_preserves_the_current_training_question", async () => {
   const h = await openApp();
   try {
     fireEvent.press(screen.getByRole("button", { name: "Тренировка" }));
+    fireEvent.press(await screen.findByTestId("training-vocabulary-start"));
     await screen.findByRole("button", { name: "Открыть карточку" });
     const profile = (await h.db.first<{ id: string }>(
       "SELECT id FROM profiles",

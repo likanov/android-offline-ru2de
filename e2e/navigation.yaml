@@ -435,8 +435,8 @@ name: navigation.compact-menu
     }
   },
   {
-    "tapOn": {
-      "id": "nav-training"
+    "runFlow": {
+      "file": "helpers/open-vocabulary-training.yaml"
     }
   },
   {

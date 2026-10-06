@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-transfer-assistant.invalid-backup-atomicity
+---
+[{"tapOn":{"id":"nav-more"}},{"assertVisible":"Резервная копия"},{"takeScreenshot":"grammar-invalid-backup-atomicity"}]

@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-persistence.profile-isolation
+---
+[{"assertVisible":{"id":"grammar-context"}},{"takeScreenshot":"grammar-profile-isolation"}]

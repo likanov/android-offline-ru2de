@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-progress.bonus-once-double-submit
+---
+[{"assertVisible":{"id":"grammar-result"}},{"assertVisible":"+60 XP"},{"takeScreenshot":"grammar-bonus-once"}]

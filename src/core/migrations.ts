@@ -6,12 +6,13 @@ import { wordKey } from "../features/dictionary/wordValidation";
 import type { Word } from "../features/learning/learningTypes";
 import { starterWords } from "../data/starterWords";
 import { learningSchema } from "./migrations/003_learning";
+import { grammarSchema, seedGrammarTargets } from './migrations/006_grammar';
 export async function migrate(db: SqlStore): Promise<void> {
   await db.transaction(async (tx) => {
     const version = await tx.first<{ user_version: number }>(
       "PRAGMA user_version",
     );
-    if ((version?.user_version ?? 0) > 5)
+    if ((version?.user_version ?? 0) > 6)
       throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 1) {
       await tx.exec(profilesSchema);
@@ -39,6 +40,11 @@ export async function migrate(db: SqlStore): Promise<void> {
         ALTER TABLE settings ADD COLUMN reminderHour INTEGER NOT NULL DEFAULT 19 CHECK(reminderHour BETWEEN 0 AND 23);
         ALTER TABLE settings ADD COLUMN reminderMinute INTEGER NOT NULL DEFAULT 0 CHECK(reminderMinute BETWEEN 0 AND 59);
         PRAGMA user_version=5;`);
+    }
+    if ((version?.user_version ?? 0) < 6) {
+      await tx.exec(grammarSchema);
+      await seedGrammarTargets(tx);
+      await tx.exec('PRAGMA user_version=6;');
     }
   });
 }

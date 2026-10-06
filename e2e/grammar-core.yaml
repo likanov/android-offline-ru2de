@@ -1,0 +1,9 @@
+appId: com.personal.germanvocabulary
+name: grammar-core
+---
+[
+  {"runFlow":{"file":"helpers/open-grammar-training.yaml"}},
+  {"assertVisible":{"id":"grammar-context"}},
+  {"assertVisible":{"id":"grammar-prompt"}},
+  {"takeScreenshot":"grammar-core"}
+]

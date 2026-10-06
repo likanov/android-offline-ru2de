@@ -6,6 +6,7 @@ import { addDays } from '../../core/calendar';
 import { ReviewRepository } from '../reviews/reviewRepository';
 import { dayStreak } from './dailyStreak';
 import { notifyProfileChanged } from '../../app/refreshBus';
+import { GrammarProgressRepository, type GrammarProgressSummary } from '../grammar/grammarProgressRepository';
 export type ProfileSettings = {
     dailyGoal: number;
 };
@@ -27,9 +28,11 @@ export type ProgressSummary = {
         day: DayKey;
         correct: number;
     }[];
+    grammar: GrammarProgressSummary;
 };
 export class ProgressRepository {
-    constructor(private db: SqlStore) { }
+    private readonly grammar: GrammarProgressRepository;
+    constructor(private db: SqlStore) { this.grammar = new GrammarProgressRepository(db); }
     async settings(profileId: string): Promise<ProfileSettings> {
         const settings = await this.db.first<ProfileSettings>('SELECT dailyGoal FROM settings WHERE profileId=?', [profileId]);
         if (!settings)
@@ -65,6 +68,7 @@ export class ProgressRepository {
         if (!profile)
             throw new NotFoundError('Профиль не найден');
         const settings = await this.settings(profileId);
+        const grammar = await this.grammar.summary(profileId, today);
         const words = await this.db.first<{
             totalWords: number;
             mastered: number;
@@ -81,6 +85,6 @@ export class ProgressRepository {
         const skills: ProgressSummary['skills'] = { translation: { correct: 0, total: 0 }, writing: { correct: 0, total: 0 }, article: { correct: 0, total: 0 }, listening: { correct: 0, total: 0 } };
         for (const row of history)
             skills[row.skill] = { correct: row.correct, total: row.total };
-        return { xp: profile.xp, level: levelForXp(profile.xp), xpToNextLevel: 500 - profile.xp % 500, mastered: words!.mastered, totalWords: words!.totalWords, dueCount: (await new ReviewRepository(this.db).dueWords(profileId, today)).length, todayCorrect: calendar.find(d => d.day === today)?.correct ?? 0, goal: settings.dailyGoal, dayStreak: dayStreak(calendar.filter(d => d.correct > 0).map(d => d.day), today), skills, calendar };
+        return { xp: profile.xp, level: levelForXp(profile.xp), xpToNextLevel: 500 - profile.xp % 500, mastered: words!.mastered, totalWords: words!.totalWords, dueCount: (await new ReviewRepository(this.db).dueWords(profileId, today)).length, todayCorrect: calendar.find(d => d.day === today)?.correct ?? 0, goal: settings.dailyGoal, dayStreak: dayStreak(calendar.filter(d => d.correct > 0).map(d => d.day), today), skills, calendar, grammar };
     }
 }

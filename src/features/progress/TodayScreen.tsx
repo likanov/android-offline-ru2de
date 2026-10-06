@@ -3,17 +3,19 @@ import React, { useEffect, useState } from 'react';
 import { Text } from 'react-native';
 import type { SqlStore } from '../../core/sql';
 import type { TrainingSelection } from '../learning/questionTypes';
+import type { GrammarSelection } from '../grammar/grammarTypes';
 import { getReviewRepository, getTrainingServices } from '../../app/AppServices';
 import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
 import { GoalSettings } from './GoalSettings';
 import { useProgress } from './useProgress';
-export function TodayScreen({ db, profileId, today: override, onStart, onProgress }: {
+export function TodayScreen({ db, profileId, today: override, onStart, onProgress, onGrammar }: {
     db: SqlStore;
     profileId: string;
     today?: string;
     onStart: (selection: TrainingSelection) => void;
     onProgress: () => void;
+    onGrammar?: (selection: GrammarSelection) => void;
 }) {
     const { summary, error, today, repository } = useProgress(db, profileId, override);
     const [busy, setBusy] = useState(false), [actionError, setActionError] = useState(''), [next, setNext] = useState<string | null>(null);
@@ -35,5 +37,5 @@ export function TodayScreen({ db, profileId, today: override, onStart, onProgres
     finally {
         setBusy(false);
     } }
-    return <Screen><Text style={{ fontSize: 28 }}>Сегодня</Text>{error || actionError ? <Text accessibilityRole="alert">{error || actionError}</Text> : null}{summary ? <><Text>Сегодня: {summary.todayCorrect} / {summary.goal}</Text><Text>XP: {summary.xp}</Text><Text>Уровень: {summary.level}</Text><Text>До следующего уровня: {summary.xpToNextLevel} XP</Text><Text>Серия дней: {summary.dayStreak}</Text><Text>Изучено: {summary.mastered} / {summary.totalWords}</Text><Text>К повторению: {summary.dueCount}</Text>{!summary.dueCount ? <Text>На сегодня повторений нет</Text> : null}{next ? <Text>Следующее повторение: {next}</Text> : null}<GoalSettings key={`${profileId}:${summary.goal}`} repository={repository} profileId={profileId} goal={summary.goal}/></> : <Text>Загрузка…</Text>}<Button title="Изучать слова" disabled={busy || !summary || summary.totalWords === summary.mastered} onPress={() => void start('study')}/><Button title="Повторить сегодня" disabled={busy || !summary?.dueCount} onPress={() => void start('review')}/><Button title="Открыть прогресс" onPress={onProgress}/></Screen>;
+    return <Screen><Text style={{ fontSize: 28 }}>Сегодня</Text>{error || actionError ? <Text accessibilityRole="alert">{error || actionError}</Text> : null}{summary ? <><Text>Сегодня: {summary.todayCorrect} / {summary.goal}</Text><Text>XP: {summary.xp}</Text><Text>Уровень: {summary.level}</Text><Text>До следующего уровня: {summary.xpToNextLevel} XP</Text><Text>Серия дней: {summary.dayStreak}</Text><Text>Изучено: {summary.mastered} / {summary.totalWords}</Text><Text>К повторению: {summary.dueCount}</Text>{!summary.dueCount ? <Text>На сегодня повторений нет</Text> : null}{next ? <Text>Следующее повторение: {next}</Text> : null}<GoalSettings key={`${profileId}:${summary.goal}`} repository={repository} profileId={profileId} goal={summary.goal}/></> : <Text>Загрузка…</Text>}<Button title="Изучать слова" disabled={busy || !summary || summary.totalWords === summary.mastered} onPress={() => void start('study')}/><Button title="Повторить сегодня" disabled={busy || !summary?.dueCount} onPress={() => void start('review')}/><Button title="Открыть грамматическую тренировку" testID="today-grammar-start" disabled={!summary || !summary.grammar || (summary.grammar.mastered >= summary.grammar.totalTargets && !summary.grammar.dueCount)} onPress={() => onGrammar?.({ mode: summary?.grammar.dueCount ? 'review' : 'study', lesson: 'mixed' })}/><Button title="Открыть прогресс" onPress={onProgress}/></Screen>;
 }

@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-persistence.force-stop-reboot
+---
+[{"assertVisible":{"id":"grammar-context"}},{"takeScreenshot":"grammar-force-stop-reboot"}]

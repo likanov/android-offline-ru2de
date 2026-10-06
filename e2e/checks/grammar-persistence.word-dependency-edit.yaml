@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-persistence.word-dependency-edit
+---
+[{"assertVisible":{"id":"grammar-context"}},{"takeScreenshot":"grammar-word-dependency-edit"}]

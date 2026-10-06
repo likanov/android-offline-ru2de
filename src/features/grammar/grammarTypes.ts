@@ -1,0 +1,16 @@
+import type { DayKey, LearningState, Word } from '../learning/learningTypes';
+export type PronounId = 'ich'|'du'|'er'|'sie_feminine'|'es'|'wir'|'ihr'|'sie_plural'|'sie_formal';
+export type GrammarKind = 'pronoun-cloze'|'sein-cloze';
+export type SeinForm = 'bin'|'bist'|'ist'|'sind'|'seid';
+export type GrammarTargetId = `${GrammarKind}:${PronounId}`;
+export type GrammarOptionId = PronounId|SeinForm;
+export type GrammarSubmission = {kind:'choice'; optionId:GrammarOptionId}|{kind:'typed'; text:string};
+export type GrammarSelection = {mode:'study'|'review'; lesson:'mixed'|'pronouns'|'sein'; targetIds?:GrammarTargetId[]};
+export type GrammarProgress = {targetId:GrammarTargetId; state:LearningState; attemptCount:number; variantIndex:number};
+export type GrammarTarget = {id:GrammarTargetId; kind:GrammarKind; pronounId:PronounId; labelRu:string; catalogVersion:1};
+export type GrammarOption = {id:GrammarOptionId; label:string};
+export type GrammarWordDependency = {wordId:string; profileId?:string; revision:number; de:string; ru:string; gender:'m'|'f'|'n'; plural:string|null};
+export type GrammarQuestion = {attemptId:string;sessionId:string;profileId:string;targetId:GrammarTargetId;catalogVersion:1;templateId:string;kind:GrammarKind;responseMode:'choice'|'typed';position:'initial'|'internal';contextRu:string;beforeDe:string;afterDe:string;options:GrammarOption[];expected:{optionId:GrammarOptionId;token:string};feedback:{sentenceDe:string;translationRu:string;ruleId:'pronouns-nominative'|'sein-present';explanationRu:string};dependencies:GrammarWordDependency[];reviewStage:number|null;dueDay:DayKey|null};
+export type GrammarQuestionInput = Pick<GrammarQuestion,'attemptId'|'sessionId'|'profileId'|'targetId'|'responseMode'|'reviewStage'|'dueDay'> & {variantIndex:number;words:Word[]};
+export type GrammarAttemptResult = {attemptId:string;targetId:GrammarTargetId;right:boolean;xpDelta:number;state:LearningState;submittedAnswer:GrammarSubmission};
+export type GrammarSession = {id:string;profileId:string;selection:GrammarSelection;targetIds:GrammarTargetId[];cursor:number;currentQuestion:GrammarQuestion|null;result:GrammarAttemptResult|null;status:'active'|'completed'|'cancelled'};

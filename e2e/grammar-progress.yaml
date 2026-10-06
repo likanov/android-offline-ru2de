@@ -1,0 +1,8 @@
+appId: com.personal.germanvocabulary
+name: grammar-progress
+---
+[
+  {"runFlow":{"file":"helpers/open-grammar-training.yaml"}},
+  {"assertVisible":{"id":"grammar-context"}},
+  {"takeScreenshot":"grammar-progress"}
+]

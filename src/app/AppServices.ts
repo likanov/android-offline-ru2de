@@ -18,6 +18,9 @@ import { createLlamaRuntime, inspectModel, } from "../features/assistant/llamaRu
 import type { SetupServices } from "../features/assistant/ModelSetupScreen";
 import type { ModelManifest } from "../features/assistant/runtimeTypes";
 import { localFiles } from "../../modules/german-offline";
+import { GrammarSessionRepository } from '../features/grammar/grammarSessionRepository';
+import { GrammarAnswerService } from '../features/grammar/grammarAnswerService';
+import { GrammarProgressRepository } from '../features/grammar/grammarProgressRepository';
 export type AppServices = {
     db: SqlStore;
     assistant?: AssistantService;
@@ -140,4 +143,14 @@ export function getMemoryAssistant(app: AppServices): AssistantService {
 // Lifecycle cleanup must not instantiate an optional model during dictionary use.
 export async function cancelAssistant(app: AppServices): Promise<void> {
     await (app.assistant ?? memoryAssistants.get(app.db))?.cancelAndRelease();
+}
+
+const grammar = new WeakMap<SqlStore, { sessions: GrammarSessionRepository; answers: GrammarAnswerService; progress: GrammarProgressRepository }>();
+export function getGrammarServices(app: AppServices) {
+  let value = grammar.get(app.db);
+  if (!value) {
+    value = { sessions: new GrammarSessionRepository(app.db), answers: new GrammarAnswerService(app.db), progress: new GrammarProgressRepository(app.db) };
+    grammar.set(app.db, value);
+  }
+  return value;
 }

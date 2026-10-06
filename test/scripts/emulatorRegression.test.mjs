@@ -1,13 +1,13 @@
 import { Buffer } from 'node:buffer';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {completeRegressionReport} from '../../scripts/regression-evidence.mjs';
-import { REQUIRED_SCENARIOS, sha256File, validateRegressionReport } from '../../scripts/regression-report.mjs';
+import { REQUIRED_SCENARIOS, sha256File, validateRegressionReport, validateBlockRegressionReport } from '../../scripts/regression-report.mjs';
 function inputs() {
   const root = mkdtempSync(join(tmpdir(), 'vocabulary-regression-'));
   const apk = join(root, 'app.apk'), modelDir = join(root, 'model'), sdk = join(root, 'sdk');
@@ -37,7 +37,8 @@ function completeReport(f) {
   const scenarios=REQUIRED_SCENARIOS.map(id=>{
     const junit=join(f.root,id+'.xml');
     writeFileSync(junit,`<testsuite tests="1" failures="0"><testcase name="${id}"/></testsuite>`);
-    return {id,status:'passed',junit};
+    const grammarState = id.startsWith('grammar-') && ['grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-progress.twenty-ui-answers','grammar-progress.nineteen-error','grammar-progress.bonus-once-double-submit','grammar-progress.reviews-difficult','grammar-progress.combined-summary','grammar-persistence.profile-isolation','grammar-persistence.force-stop-reboot','grammar-persistence.word-dependency-edit','grammar-persistence.sqlite-five-six-upgrade','grammar-transfer-assistant.v1-v2-roundtrip','grammar-transfer-assistant.invalid-backup-atomicity'].includes(id);
+    return grammarState ? {id,status:'passed',junit,stateEvidence:artifact,stateValidation:{ok:true}} : {id,status:'passed',junit};
   });
   return {status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
     model:{path:join(f.modelDir,'model.gguf'),sha256:f.hash},scenarios,
@@ -162,4 +163,54 @@ test('runner_pulls_exported_backup_from_private_mirror_when_documentsui_path_is_
     '/sdcard/Download/after-restore.json',
     '/data/user/0/com.personal.germanvocabulary/files/last-export.json',
   ]);
+});
+
+
+test('scenario selection exposes exact block membership', async () => {
+  const { scenarioIdsForBlock, BLOCK_IDS } = await import('../../scripts/regression-report.mjs');
+  assert.ok(BLOCK_IDS.includes('dictionary'));
+  assert.deepEqual(scenarioIdsForBlock('dictionary'), [
+    'dictionary',
+    'dictionary.noun-adjective-edit',
+    'dictionary.search-nfc-nfd',
+    'dictionary.lexical-reset',
+    'dictionary.cosmetic-preserve',
+  ]);
+});
+
+test('grammar_block_report_requires_state_junit_and_model_evidence', async () => {
+ const {scenarioIdsForBlock}=await import('../../scripts/regression-report.mjs');
+ const ids=scenarioIdsForBlock('grammar-progress');
+ const report={status:'passed',block:'grammar-progress',scenarios:ids.map(id=>({id,status:'passed',junit:'/tmp/does-not-exist.xml'})),apk:{sha256:'a'.repeat(64)},model:{sha256:'b'.repeat(64)}};
+ const result=validateBlockRegressionReport(report,'grammar-progress');
+ assert.equal(result.ok,false);
+ assert.ok(result.errors.some(error=>error.includes('JUNIT_MISSING')));
+ assert.ok(result.errors.includes('STATE_EVIDENCE_MISSING:grammar-progress.twenty-ui-answers'));
+});
+
+test('runner_accepts_separate_v2_grammar_fixture_and_v5_upgrade_inputs', () => {
+ const source=readFileSync('scripts/emulator-regression.mjs','utf8');
+ assert.match(source,/grammar-fixture/);
+ assert.match(source,/grammar-previous-apk/);
+ assert.match(source,/options\['grammar-fixture'\]/);
+ assert.match(source,/options\['grammar-previous-apk'\]/);
+});
+
+test('runner_rejects_unknown_block_before_adb_preflight', () => {
+  const f = inputs();
+  try {
+    const result = spawnSync(process.execPath, [
+      'scripts/emulator-regression.mjs',
+      '--preflight',
+      '--block', 'unknown-block',
+      '--sdk-root', f.sdk,
+      '--apk', f.apk,
+      '--model-dir', f.modelDir,
+      '--avd', 'GermanVocabulary_API36',
+      '--report-dir', join(f.root, 'block-report'),
+    ], {encoding:'utf8'});
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /BLOCK_INVALID:unknown-block/);
+    assert.doesNotMatch(result.stderr, /ADB_MISSING/);
+  } finally { rmSync(f.root,{recursive:true,force:true}); }
 });

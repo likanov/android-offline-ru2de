@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-progress.reviews-difficult
+---
+[{"assertVisible":{"id":"grammar-result"}},{"assertVisible":"Освоение сохранено"},{"takeScreenshot":"grammar-reviews-difficult"}]

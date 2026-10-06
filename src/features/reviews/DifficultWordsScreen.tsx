@@ -8,11 +8,11 @@ import { type DifficultWord } from './reviewRepository';
 import { localDay } from '../../core/calendar';
 import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
-export function DifficultWordsScreen({ db, profileId, today = localDay(new Date()), onStart }: {
-    db: SqlStore; profileId: string; today?: DayKey; onStart: (selection: TrainingSelection) => void;
+export function DifficultWordsScreen({ db, profileId, today = localDay(new Date()), onStart, onPractice }: {
+    db: SqlStore; profileId: string; today?: DayKey; onStart: (selection: TrainingSelection) => void; onPractice?: (wordIds: string[]) => void;
 }) {
     const reviews = useMemo(() => getReviewRepository({ db }), [db]);
-    const [words, setWords] = useState<DifficultWord[]>([]), [busy, setBusy] = useState(true), [error, setError] = useState('');
+    const [words, setWords] = useState<DifficultWord[]>([]), [busy, setBusy] = useState(true), [error, setError] = useState(''), [preview, setPreview] = useState(false);
     useEffect(() => {
         let alive = true;
         void reviews.difficultWords(profileId, today).then(rows => { if (alive) { setWords(rows); setBusy(false); } }).catch(e => { if (alive) { setError(String(e)); setBusy(false); } });
@@ -20,6 +20,7 @@ export function DifficultWordsScreen({ db, profileId, today = localDay(new Date(
     }, [reviews, profileId, today]);
     const study = words.filter(row => row.eligible && row.dueDay === null);
     const due = words.filter(row => row.eligible && row.dueDay !== null);
+    const practice = words.slice(0, 5);
     async function start(mode: 'study' | 'review') {
         const pool = mode === 'study' ? study : due;
         if (busy || !pool.length) return;
@@ -35,6 +36,8 @@ export function DifficultWordsScreen({ db, profileId, today = localDay(new Date(
         {words.map(row => <View key={row.word.id}><Text>{row.word.de} — {row.word.ru}</Text>
             <Text>{row.dueDay ? `Следующее повторение: ${row.dueDay}` : 'Первоначальное изучение'}</Text>
             {!row.eligible ? <Text>Повторение пока недоступно</Text> : null}</View>)}
+        {preview ? <><Text>Практика без XP и изменения серии</Text><Text>Выбрано: {practice.map(row => row.word.de).join(', ')}</Text><Button title="Начать практику" onPress={() => onPractice?.(practice.map(row => row.word.id))}/></> : null}
+        {onPractice ? <Button title="Практика с помощником" disabled={busy || !practice.length} onPress={() => setPreview(true)}/> : null}
         <Button title="Изучать трудные слова" disabled={busy || !study.length} onPress={() => void start('study')}/>
         <Button title="Повторить трудные слова" disabled={busy || !due.length} onPress={() => void start('review')}/>
     </Screen>;
