@@ -127,6 +127,7 @@ test('training_helper_cancels_question_opens_same_word_and_back_returns_to_train
     const view = render(<AppServicesContext.Provider value={{ db: h.db, assistant: h.assistant }}><ActiveProfileProvider><Navigation /></ActiveProfileProvider></AppServicesContext.Provider>);
     await screen.findByText('Активный профиль: A');
     fireEvent.press(screen.getByRole('button', { name: 'Тренировка' }));
+    fireEvent.press(await screen.findByTestId('training-vocabulary-start'));
     await screen.findByRole('button', { name: 'Помощник' });
     const targetId = (await h.sessions.resume(p.id))!.currentQuestion!.wordId;
     const target = await h.words.get(p.id, targetId);

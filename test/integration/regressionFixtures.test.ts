@@ -61,7 +61,7 @@ test('legacy_regression_fixture_remains_v1_and_readable_by_legacy_validator', as
   const backup = await createRegressionBackup('2026-10-06');
   expect(backup.version).toBe(1);
   expect(() => validateBackupV1(backup)).not.toThrow();
-  expect((backup.profiles as Array<{grammar?: unknown}>).every(profile => !('grammar' in profile))).toBe(true);
+  expect((backup.profiles as {grammar?: unknown}[]).every(profile => !('grammar' in profile))).toBe(true);
 });
 
 test('write_requested_grammar_fixture', async () => {
