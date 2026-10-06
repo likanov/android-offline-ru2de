@@ -19,7 +19,7 @@ export function GrammarTrainingScreen({ db, profileId, selection, today: injecte
     if (!session) { setQuestion(null); setResult(null); setSessionId(null); return; }
     let q = session.currentQuestion;
     let notice = '';
-    if (!q && !session.result) {
+    if (!session.result) {
       try { q = await services.sessions.next(profileId, session.id, today); } catch (e) { if (e instanceof GrammarSessionError && e.code === 'GRAMMAR_QUESTION_STALE') { notice = 'Пример обновлён. Продолжим с новым заданием'; q = await services.sessions.next(profileId, session.id, today); } else throw e; }
     }
     setSessionId(session.id); setQuestion(q); setResult(session.result); setError(notice);
