@@ -25,7 +25,7 @@ test('dictionary_count_has_stable_target_before_long_filter_and_word_lists',asyn
  expect(await screen.findByTestId('dictionary-count')).toHaveTextContent('Найдено: 40');
  expect(await screen.findByTestId('dictionary-search')).toBeTruthy();
  const text=collectText(view.toJSON());
- expect(text.indexOf('Найдено: ')).toBeLessThan(text.indexOf('Тема: '));
+ expect(text.indexOf('Найдено: ')).toBeLessThan(text.indexOf('Фильтры'));
  }finally{h.close();}
 });
 
@@ -38,7 +38,7 @@ test('editor_assigns_multiple_topics_and_dictionary_filters_them',async()=>{
  fireEvent.changeText(screen.getByLabelText('Немецкое слово'),'Kissen');fireEvent.changeText(screen.getByLabelText('Перевод'),'подушка');fireEvent.press(screen.getByRole('button',{name:'das — средний род'}));fireEvent.press(screen.getByRole('button',{name:'Сохранить слово'}));
  await waitFor(()=>expect(saved).not.toBe(''));expect((await h.topics.wordTopics(p.id,saved)).map((t)=>t.name).sort()).toEqual(['Предметы и комната','Транспорт']);view.unmount();
  render(<DictionaryScreen db={h.db} profileId={p.id} onOpen={()=>{}} onCreate={()=>{}}/>);
- fireEvent.press(await screen.findByRole('button',{name:'Тема: Транспорт'}));await screen.findByText('Найдено: 3');expect(screen.queryByRole('button',{name:'der Stuhl — стул'})).toBeNull();expect(screen.getByRole('button',{name:'das Kissen — подушка'})).toBeTruthy();
+ fireEvent.press(await screen.findByRole('button',{name:'Фильтры'}));fireEvent.press(await screen.findByRole('button',{name:'Транспорт'}));await screen.findByText('Найдено: 3');expect(screen.queryByRole('button',{name:'der Stuhl — стул'})).toBeNull();expect(screen.getByRole('button',{name:'das Kissen — подушка'})).toBeTruthy();
  }finally{h.close();}
 });
 

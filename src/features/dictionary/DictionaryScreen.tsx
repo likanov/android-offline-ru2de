@@ -1,37 +1,30 @@
-import { TopicRepository, type Topic } from '../topics/topicRepository';
-import React, { useState, useEffect, useMemo } from 'react';
-import { Text, TextInput, Switch, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FlatList, KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
 import type { SqlStore } from '../../core/sql';
-import type { Word } from '../learning/learningTypes';
-import { WordRepository, type WordFilter } from './wordRepository';
-import { displayGerman } from './wordValidation';
-import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
+import { theme } from '../../ui/theme';
+import type { DictionaryEntry } from './dictionaryTypes';
+import { filterDictionaryEntries } from './dictionaryRepository';
+import { DictionaryEmptyState } from './DictionaryEmptyState';
+import { DictionaryFilters } from './DictionaryFilters';
+import { DictionaryRow } from './DictionaryRow';
+import { useDictionaryData } from './useDictionaryData';
 import type { DictionaryViewState } from './dictionaryViewState';
-export function DictionaryScreen({ db, profileId, profileName, viewState, onViewStateChange, onOpen, onCreate }: {
-    db: SqlStore;
-    profileId: string;
-    profileName: string;
-    viewState: DictionaryViewState;
-    onViewStateChange: (value: DictionaryViewState) => void;
-    onOpen: (id: string) => void;
-    onCreate: () => void;
-}) {
-    const repository = useMemo(() => new WordRepository(db), [db]);
-    const topics=useMemo(()=>new TopicRepository(db),[db]);
-    const [topicRows,setTopicRows]=useState<Topic[]>([]);
-    const [words, setWords] = useState<Word[]>([]), [error, setError] = useState('');
-    const filter = viewState.filter;
-    const setFilter = (next: WordFilter) => onViewStateChange({ ...viewState, filter: next, scrollOffset: 0 });
-    useEffect(()=>{let alive=true;void topics.list(profileId).then(rows=>{if(alive)setTopicRows(rows);}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false;};},[topics,profileId]);
-    useEffect(() => { let alive = true; void repository.list(profileId, filter).then(w => { if (alive)
-        setWords(w); }).catch(e => { if (alive)
-        setError(e.message); }); return () => { alive = false; }; }, [repository, profileId, filter]);
-    return <Screen><Text style={{ fontSize: 28, fontWeight: '700' }}>Словарь</Text><Text>Профиль: {profileName}</Text><TextInput testID="dictionary-search" accessibilityLabel="Поиск слов" placeholder="Немецкое слово или перевод" value={filter.query ?? ''} onChangeText={query => setFilter({ ...filter, query })} style={{ borderWidth: 1, padding: 12, borderRadius: 10 }}/>
- <Text testID="dictionary-count">Найдено: {words.length}</Text>
- <Text>Фильтр: {filter.state === 'mastered' ? 'Изученные' : filter.state === 'learning' ? 'В процессе' : 'Все'}</Text>
- {([['all', 'Все'], ['learning', 'В процессе'], ['mastered', 'Изученные']] as const).map(([state, title]) => <Button key={state} title={title} onPress={() => setFilter({ ...filter, state })}/>)}
- <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Text>Только трудные</Text><Switch accessibilityLabel="Только трудные" value={filter.difficult === true} onValueChange={value => setFilter({ ...filter, difficult: value ? true : undefined })}/></View>
- <Text>Тема: {topicRows.find(t=>t.id===filter.topicId)?.name ?? 'Все темы'}</Text><Button title="Все темы" onPress={()=>setFilter({...filter,topicId:undefined})}/>{topicRows.map(topic=><Button key={topic.id} title={`Тема: ${topic.name}`} onPress={()=>setFilter({...filter,topicId:topic.id})}/>)}
- <Button title="Добавить слово" onPress={onCreate}/>{error ? <Text>{error}</Text> : null}{words.map(word => <Button key={word.id} title={`${displayGerman(word)} — ${word.ru}`} onPress={() => onOpen(word.id)}/>)}</Screen>;
+import { initialDictionaryViewState } from './dictionaryViewState';
+
+export function DictionaryScreen({ db, profileId, profileName = '', viewState: controlledViewState, onViewStateChange: controlledOnViewStateChange, onOpen, onCreate }: { db: SqlStore; profileId: string; profileName?: string; viewState?: DictionaryViewState; onViewStateChange?: (value: DictionaryViewState) => void; onOpen: (id: string) => void; onCreate: () => void }) {
+  const [localViewState, setLocalViewState] = useState(controlledViewState ?? initialDictionaryViewState());
+  const viewState = controlledViewState ?? localViewState;
+  const onViewStateChange = controlledOnViewStateChange ?? setLocalViewState;
+  const { snapshot, status, error } = useDictionaryData(db, profileId);
+  const list = useRef<FlatList<DictionaryEntry>>(null);
+  const offset = useRef(viewState.scrollOffset);
+  const entries = snapshot ? filterDictionaryEntries(snapshot, viewState.filter) : [];
+  const hasFilters = !!viewState.filter.topicId || viewState.filter.difficult === true || viewState.filter.state !== 'all';
+  const updateFilter = useCallback((filter: typeof viewState.filter) => { offset.current = 0; onViewStateChange({ ...viewState, filter, scrollOffset: 0 }); }, [onViewStateChange, viewState]);
+  useEffect(() => { offset.current = viewState.scrollOffset; }, [viewState.scrollOffset]);
+  useEffect(() => { if (snapshot && viewState.scrollOffset > 0) list.current?.scrollToOffset({ offset: viewState.scrollOffset, animated: false }); }, [snapshot, viewState.scrollOffset]);
+  const open = (id: string) => { onViewStateChange({ ...viewState, scrollOffset: offset.current }); onOpen(id); };
+  const header = <View style={{ gap: 8 }}><Text style={{ fontSize: 28, fontWeight: '700', color: theme.foreground }}>Словарь</Text><Text>Профиль: {profileName}</Text><Text>Поиск</Text><TextInput testID="dictionary-search" accessibilityLabel="Поиск слов" placeholder="Слово или перевод" value={viewState.filter.query ?? ''} onChangeText={query => updateFilter({ ...viewState.filter, query })} style={{ borderWidth: 1, borderColor: theme.muted, padding: 12, borderRadius: 10, backgroundColor: '#fff', minHeight: 48 }}/><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}><Text testID="dictionary-count">Найдено: {entries.length}</Text><Button testID="dictionary-add" title="Добавить слово" onPress={onCreate}/></View><DictionaryFilters filter={viewState.filter} topics={snapshot?.topics ?? []} expanded={viewState.filtersExpanded} onChange={updateFilter} onExpandedChange={filtersExpanded => onViewStateChange({ ...viewState, filtersExpanded })}/>{viewState.filter.query ? <Button testID="dictionary-clear-search" title="Очистить поиск" onPress={() => updateFilter({ ...viewState.filter, query: '' })}/> : null}{hasFilters ? <Button testID="dictionary-reset-filters" title="Сбросить фильтры" onPress={() => updateFilter({ ...viewState.filter, state: 'all', topicId: undefined, difficult: undefined })}/> : null}</View>;
+  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><FlatList ref={list} testID="dictionary-list" data={entries} keyExtractor={entry => entry.id} ListHeaderComponent={header} ListEmptyComponent={<DictionaryEmptyState loading={status === 'loading'} error={error} hasWords={(snapshot?.entries.length ?? 0) > 0} query={viewState.filter.query ?? ''} hasFilters={hasFilters} onClearSearch={() => updateFilter({ ...viewState.filter, query: '' })} onResetFilters={() => updateFilter({ ...viewState.filter, state: 'all', topicId: undefined, difficult: undefined })}/>} renderItem={({ item }) => <DictionaryRow entry={item} onOpen={open}/>} contentContainerStyle={{ padding: 24, paddingTop: 48, paddingBottom: 120 }} keyboardShouldPersistTaps="handled" onScroll={event => { offset.current = event.nativeEvent.contentOffset.y; }} scrollEventThrottle={100} onContentSizeChange={() => { if (viewState.scrollOffset > 0) list.current?.scrollToOffset({ offset: viewState.scrollOffset, animated: false }); }}/></KeyboardAvoidingView>;
 }

@@ -23,9 +23,9 @@ export type NavigationDestination =
   | "transfer"
   | "model";
 const primary = [
-  { screen: "today", label: "Сегодня", icon: "⌂" },
-  { screen: "dictionary", label: "Словарь", icon: "▤" },
-  { screen: "training", label: "Тренировка", icon: "▷" },
+  { screen: "today", label: "Сегодня", accessibilityLabel: "Сегодня", icon: "⌂" },
+  { screen: "dictionary", label: "Словарь", accessibilityLabel: "Словарь", icon: "▤" },
+  { screen: "training", label: "Учёба", accessibilityLabel: "Тренировка", icon: "▷" },
 ] as const;
 const secondary = [
   { screen: "profiles", label: "Профили", requiresProfile: false },
@@ -79,7 +79,7 @@ export function NavigationMenu({
               key={item.screen}
               testID={`nav-${item.screen}`}
               accessibilityRole="button"
-              accessibilityLabel={item.label}
+              accessibilityLabel={item.accessibilityLabel ?? item.label}
               accessibilityState={{
                 selected: active === item.screen,
                 disabled: !hasProfile,
@@ -103,7 +103,6 @@ export function NavigationMenu({
               </Text>
               <Text
                 accessible={false}
-                maxFontSizeMultiplier={1.4}
                 style={[
                   styles.label,
                   active === item.screen && styles.selectedText,
@@ -133,7 +132,6 @@ export function NavigationMenu({
             </Text>
             <Text
               accessible={false}
-              maxFontSizeMultiplier={1.4}
               style={styles.label}
             >
               Ещё
