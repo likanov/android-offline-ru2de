@@ -15,7 +15,13 @@ export function reviewRegressionReport(report, observations) {
   require(typeof observations?.audioAudible === 'boolean', 'AUDIO_OBSERVATION_MISSING');
   require(observations?.languageQuality === 'reviewed' && typeof observations?.languageNotes === 'string' && observations.languageNotes.trim().length > 0, 'LANGUAGE_OBSERVATION_MISSING');
   require(['absent-tested', 'offline-tested'].includes(observations?.tts), 'TTS_NOT_VERIFIED');
+  const reportArtifacts = new Set([
+    ...(report?.scenarios ?? []).flatMap(row => [row.junit, row.screenshot, row.stateEvidence, row.restoreEvidence]),
+    ...(report?.generations ?? []).flatMap(row => [row.screenshot, row.hierarchy]),
+    ...(report?.deviceLogs ?? []).map(row => row.path), report?.logcat,
+  ].filter(Boolean));
   require(Array.isArray(observations?.artifacts) && observations.artifacts.length > 0 && observations.artifacts.every(artifact), 'OBSERVATION_ARTIFACTS_MISSING');
+  if (Array.isArray(observations?.artifacts)) for (const path of observations.artifacts) require(reportArtifacts.has(path), 'OBSERVATION_ARTIFACT_NOT_IN_REPORT');
   const merged = { ...report, observations };
   if (report?.status === 'failed' || report?.scenarios?.some(row => row.status === 'failed')) errors.push('FAILED_SCENARIO_CANNOT_BE_OVERRIDDEN');
   const validation = report?.runMode?.type === 'block'
