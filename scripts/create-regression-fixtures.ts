@@ -8,11 +8,16 @@ import { SessionRepository } from '../src/features/learning/sessionRepository';
 import { AnswerService } from '../src/features/learning/answerService';
 import { BackupService } from '../src/features/transfer/backupService';
 import { validateBackup } from '../src/features/transfer/backupValidation';
+import { validateBackupV1 } from '../src/features/transfer/backupValidation';
+import { GrammarSessionRepository } from '../src/features/grammar/grammarSessionRepository';
+import { GrammarAnswerService } from '../src/features/grammar/grammarAnswerService';
+import { grammarTargets } from '../src/features/grammar/grammarCatalog';
+import type { GrammarQuestion, GrammarSubmission } from '../src/features/grammar/grammarTypes';
 import type { DayKey } from '../src/features/learning/learningTypes';
-import type { BackupV2 } from '../src/features/transfer/backupTypes';
+import type { BackupV1, BackupV2 } from '../src/features/transfer/backupTypes';
 // Host-only generator. It is never imported by the Android application.
 // Every learning state comes from persisted real questions and AnswerService.
-export async function createRegressionBackup(today: DayKey): Promise<BackupV2> {
+async function createRegressionBackupV2(today: DayKey): Promise<BackupV2> {
   addDays(today, 0);
   const { db, close } = openTestDb();
   try {
@@ -69,4 +74,56 @@ export async function createRegressionBackup(today: DayKey): Promise<BackupV2> {
     await sessions.next(active.p.id,s.id,today);
     return validateBackup(await new BackupService(db).exportAll());
   } finally { close(); }
+}
+
+/** The legacy runner deliberately receives a v1 file. Keep grammar out of it
+ * so the old APK can prove that its import path remains readable. */
+export async function createRegressionBackup(today: DayKey): Promise<BackupV1> {
+  const v2 = await createRegressionBackupV2(today);
+  const v1 = { ...v2, version: 1 as const, profiles: v2.profiles.map(({ grammar: _grammar, ...profile }) => profile) };
+  return validateBackupV1(v1);
+}
+
+function grammarAnswer(question: GrammarQuestion, right: boolean): GrammarSubmission {
+  if (!right) return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.options.find(option => option.id !== question.expected.optionId)!.id } : { kind: 'typed', text: 'falsch' };
+  return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: question.expected.token };
+}
+
+/** Host-only v2 fixture. Every grammar row is created by the repositories and
+ * answer service; no progress, attempt, XP or backup row is hand-written. */
+export async function createGrammarRegressionBackup(today: DayKey): Promise<BackupV2> {
+  addDays(today, 0);
+  const source = openTestDb();
+  try {
+    await migrate(source.db);
+    const profile = await createProfile(source.db, 'Грамматика — 18 целей');
+    const sessions = new GrammarSessionRepository(source.db), answers = new GrammarAnswerService(source.db);
+    async function respond(profileId: string, targetId: typeof grammarTargets[number]['id'], count: number, day: DayKey, right = true, mode: 'study'|'review' = 'study') {
+      const session = (await sessions.start(profileId, { mode, lesson: 'mixed', targetIds: [targetId] }, day))!;
+      for (let index = 0; index < count; index++) {
+        const question = (await sessions.next(profileId, session.id, day))!;
+        await answers.submit(profileId, session.id, question.attemptId, grammarAnswer(question, right), day);
+      }
+    }
+    for (const target of grammarTargets) await respond(profile.id, target.id, 1, today);
+
+    const errors = await createProfile(source.db, 'Грамматика — ошибка 19');
+    await respond(errors.id, 'pronoun-cloze:ich', 19, today, false);
+
+    const reviews = await createProfile(source.db, 'Грамматика — повторение');
+    await respond(reviews.id, 'sein-cloze:sie_formal', 20, addDays(today, -1));
+    await respond(reviews.id, 'sein-cloze:sie_formal', 1, today, true, 'review');
+    // Leave an unanswered question in a second session to verify resume data.
+    const resumable = (await sessions.start(reviews.id, { mode: 'study', lesson: 'mixed', targetIds: ['pronoun-cloze:du'] }, today))!;
+    await sessions.next(reviews.id, resumable.id, today);
+
+    const exported = await new BackupService(source.db).exportAll();
+    const target = openTestDb();
+    try {
+      await migrate(target.db);
+      const service = new BackupService(target.db);
+      await service.restore(service.preview(JSON.stringify(exported)));
+      return validateBackup(await service.exportAll());
+    } finally { target.close(); }
+  } finally { source.close(); }
 }

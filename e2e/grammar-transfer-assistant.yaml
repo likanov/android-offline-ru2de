@@ -1,0 +1,9 @@
+appId: com.personal.germanvocabulary
+name: grammar-transfer-assistant
+---
+[
+  {"tapOn":{"id":"nav-training"}},
+  {"tapOn":{"id":"training-grammar"}},
+  {"assertVisible":{"id":"grammar-reference-open"}},
+  {"takeScreenshot":"grammar-transfer-assistant"}
+]

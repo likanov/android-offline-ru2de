@@ -1,0 +1,12 @@
+appId: com.personal.germanvocabulary
+name: grammar-import-fixture
+---
+[
+  {"runFlow":{"file":"helpers/open-navigation.yaml","env":{"NAV_TARGET":"nav-transfer"}}},
+  {"tapOn":{"id":"nav-transfer"}},
+  {"tapOn":"Выбрать резервную копию"},
+  {"runFlow":{"file":"helpers/picker.yaml","env":{"FILE":"${BACKUP_FILE}"}}},
+  {"assertVisible":"Профилей:"},
+  {"tapOn":"Восстановить новые профили"},
+  {"takeScreenshot":"grammar-fixture-imported"}
+]

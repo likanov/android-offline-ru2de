@@ -1,0 +1,9 @@
+appId: com.personal.germanvocabulary
+name: grammar-progress
+---
+[
+  {"tapOn":{"id":"nav-training"}},
+  {"tapOn":{"id":"training-grammar"}},
+  {"assertVisible":{"id":"grammar-streak"}},
+  {"takeScreenshot":"grammar-progress"}
+]

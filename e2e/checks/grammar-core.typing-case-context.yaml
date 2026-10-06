@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-core.typing-case-context
+---
+[{"assertVisible":{"id":"grammar-context"}},{"assertVisible":{"id":"grammar-answer-input"}},{"tapOn":{"id":"grammar-answer-input"}},{"inputText":"Sie"},{"tapOn":{"id":"grammar-submit"}},{"takeScreenshot":"grammar-typing-case-context"}]

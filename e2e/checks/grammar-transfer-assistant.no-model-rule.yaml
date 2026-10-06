@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-transfer-assistant.no-model-rule
+---
+[{"assertVisible":{"id":"grammar-error-open"}},{"tapOn":{"id":"grammar-error-open"}},{"assertVisible":"Пояснение"},{"takeScreenshot":"grammar-no-model-rule"}]

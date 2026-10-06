@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-core.pronouns-sein-choice
+---
+[{"assertVisible":{"id":"grammar-option-ich"}},{"tapOn":{"id":"grammar-option-ich"}},{"assertVisible":{"id":"grammar-result"}},{"takeScreenshot":"grammar-pronouns-sein-choice"}]

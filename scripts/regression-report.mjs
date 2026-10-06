@@ -4,7 +4,45 @@ import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { fileURLToPath } from 'node:url';
 export const MATRIX = JSON.parse(readFileSync(new URL('../e2e/matrix.json',import.meta.url),'utf8'));
+export const BLOCK_IDS = MATRIX.map(row=>row.id);
 export const REQUIRED_SCENARIOS = MATRIX.flatMap(row=>[row.id,...row.checks.map(check=>check.id)]);
+export function matrixRowForBlock(block) {
+  const row = MATRIX.find(candidate => candidate.id === block);
+  if (!row) throw new Error(`BLOCK_INVALID:${block}`);
+  return row;
+}
+export function scenarioIdsForBlock(block) {
+  const row = matrixRowForBlock(block);
+  return [row.id, ...row.checks.map(check => check.id)];
+}
+export function validateBlockRegressionReport(report, block) {
+  const errors=[];
+  let row;
+  try { row=matrixRowForBlock(block); } catch(error) { return {ok:false,errors:[String(error.message??error)]}; }
+  const require=(condition,message)=>{if(!condition)errors.push(message);};
+  const artifact=path=>typeof path==='string'&&existsSync(path)&&statSync(path).isFile()&&statSync(path).size>0;
+  require(report?.status==='passed','RUN_NOT_COMPLETE');
+  require(report?.runMode?.type==='block'&&report.runMode.block===block,'BLOCK_RUN_MODE_MISSING');
+  require(artifact(report?.apk?.path)&&/^[a-f0-9]{64}$/.test(report?.apk?.sha256??'')&&sha256File(report.apk.path)===report.apk.sha256,'APK_EVIDENCE_MISSING');
+  require(artifact(report?.model?.path)&&/^[a-f0-9]{64}$/.test(report?.model?.sha256??'')&&sha256File(report.model.path)===report.model.sha256,'MODEL_EVIDENCE_MISSING');
+  const scenarios=Array.isArray(report?.scenarios)?report.scenarios:[];
+  for(const check of [{id:row.id,state:false}, ...row.checks]){
+    const id=check.id, matches=scenarios.filter(item=>item.id===id);
+    require(matches.length===1,`SCENARIO_MISSING_OR_DUPLICATE:${id}`);
+    const item=matches[0];
+    require(item?.status==='passed',`SCENARIO_NOT_PASSED:${id}`);
+    require(artifact(item?.junit),`JUNIT_MISSING:${id}`);
+    if(artifact(item?.junit)){
+      const xml=readFileSync(item.junit,'utf8');
+      require(/<testcase\b/.test(xml)&&!/<(?:failure|error|skipped)\b/.test(xml),`JUNIT_NOT_PASSED:${id}`);
+      require(xml.includes(`name="${id}"`),`JUNIT_ID_MISSING:${id}`);
+    }
+    if(check.state)require(artifact(item?.stateEvidence)&&item?.stateValidation?.ok===true,`STATE_EVIDENCE_MISSING:${id}`);
+    if(check.device==='four-generations')require(Array.isArray(report?.generations)&&report.generations.some(g=>g.mode==='grammar-error'&&g.modelSha256===report?.model?.sha256&&typeof g.text==='string'&&g.text.trim()&&artifact(g.screenshot)&&artifact(g.hierarchy)),`REAL_GENERATION_MISSING:grammar-error`);
+  }
+  require((report?.crashCount??0)===0&&(report?.anrCount??0)===0,'CRASH_ANR_NOT_VERIFIED');
+  return {ok:errors.length===0,errors};
+}
 export function sha256File(path) { const hash=createHash('sha256'), fd=openSync(path,'r'), buffer=Buffer.alloc(1024*1024); try { let n; while ((n=readSync(fd,buffer,0,buffer.length,null))>0) hash.update(buffer.subarray(0,n)); } finally { closeSync(fd); } return hash.digest('hex'); }
 // These reports are evidence manifests, not a replacement for inspecting artifacts.
 export function validateRegressionReport(report) {

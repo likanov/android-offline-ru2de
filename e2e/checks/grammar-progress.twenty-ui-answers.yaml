@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-progress.twenty-ui-answers
+---
+[{"assertVisible":{"id":"grammar-context"}},{"repeat":{"times":20,"commands":[{"tapOn":{"id":"grammar-option-ich"}},{"tapOn":{"id":"grammar-next"}}]}},{"takeScreenshot":"grammar-twenty-ui-answers"}]

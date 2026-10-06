@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-core.keyboard-320dp
+---
+[{"assertVisible":{"id":"grammar-answer-input"}},{"tapOn":{"id":"grammar-answer-input"}},{"takeScreenshot":"grammar-keyboard-320dp"}]

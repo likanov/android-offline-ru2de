@@ -1,0 +1,10 @@
+appId: com.personal.germanvocabulary
+name: grammar-core
+---
+[
+  {"tapOn":{"id":"nav-training"}},
+  {"tapOn":{"id":"training-grammar"}},
+  {"assertVisible":{"id":"grammar-context"}},
+  {"assertVisible":{"id":"grammar-prompt"}},
+  {"takeScreenshot":"grammar-core"}
+]

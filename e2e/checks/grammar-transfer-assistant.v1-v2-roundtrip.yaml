@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-transfer-assistant.v1-v2-roundtrip
+---
+[{"tapOn":{"id":"nav-more"}},{"tapOn":{"id":"backup-import"}},{"takeScreenshot":"grammar-v1-v2-roundtrip"}]

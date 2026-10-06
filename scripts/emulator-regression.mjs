@@ -4,9 +4,10 @@ import { resolve, dirname, join, basename } from 'node:path';
 import { arch, totalmem } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
+import { randomUUID } from 'node:crypto';
 import {appendDeviceLog,generationFromHierarchy,completeRegressionReport,offlineRadioState,rootVerified,applicationAlarmEpochs,alarmMatchesLocalTime,maestroOutcome} from './regression-evidence.mjs';
 import {verifyScenarioState} from './regression-state.mjs';
-import { MATRIX, REQUIRED_SCENARIOS, sha256File, validateRegressionReport } from './regression-report.mjs';
+import { MATRIX, REQUIRED_SCENARIOS, sha256File, validateRegressionReport, validateBlockRegressionReport, matrixRowForBlock, scenarioIdsForBlock } from './regression-report.mjs';
 const appRoot=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const taskRoot=resolve(appRoot,'../..');
 const workRoot=join(taskRoot,'work/android-regression');
@@ -15,11 +16,12 @@ const applicationId='com.personal.germanvocabulary';
 const previousCommit='19b2e0c1cf36eda73159aff9bb2d94b757d24144';
 class Unavailable extends Error { constructor(message) { super(message); this.exitCode=2; } }
 const options={};
-const report={version:1,status:'not-verified',startedAt:new Date().toISOString(),scenarios:REQUIRED_SCENARIOS.map(id=>({id,status:'not-verified',reason:'NOT_RUN'})),generations:[],blockers:[],commands:[]};
+const report={version:1,runId:randomUUID(),status:'not-verified',startedAt:new Date().toISOString(),scenarios:REQUIRED_SCENARIOS.map(id=>({id,status:'not-verified',reason:'NOT_RUN'})),generations:[],blockers:[],commands:[]};
+let selectedBlockScenarios=null;
 let reportDir, adb, emulator, maestro, processHandle, serial='emulator-5580', settingsSnapshot;
 const env={...process.env,ANDROID_AVD_HOME:avdRoot,ANDROID_USER_HOME:join(workRoot,'android-user'),EXPO_NO_TELEMETRY:'1',MAESTRO_CLI_NO_ANALYTICS:'1',MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED:'true',JAVA_OPTS:`${process.env.JAVA_OPTS??''} -Duser.home=${join(workRoot,'maestro-user')}`};
-const execute=(command,args=[],{allowFailure=false,timeout=60000,binary=false}={})=>{
-  const r=spawnSync(command,args,{cwd:appRoot,env,encoding:binary?undefined:'utf8',timeout,maxBuffer:32*1024*1024});
+const execute=(command,args=[],{allowFailure=false,timeout=60000,binary=false,maxBuffer=32*1024*1024}={})=>{
+  const r=spawnSync(command,args,{cwd:appRoot,env,encoding:binary?undefined:'utf8',timeout,maxBuffer});
   const number=report.commands.length;
   const stdout=join(reportDir,`command-${number}.stdout${binary?'.bin':'.log'}`), stderr=join(reportDir,`command-${number}.stderr.log`);
   writeFileSync(stdout,r.stdout ?? ''); writeFileSync(stderr,r.stderr ?? '');
@@ -30,10 +32,20 @@ const execute=(command,args=[],{allowFailure=false,timeout=60000,binary=false}={
 const shell=(...args)=>execute(adb,['-s',serial,'shell',...args]);
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 function commandPath(name) { const r=spawnSync('/usr/bin/which',[name],{encoding:'utf8',env}); return r.status===0?r.stdout.trim():null; }
+function nativeHostArch() {
+  const r=spawnSync('/usr/bin/arch',[],{encoding:'utf8',env});
+  return r.status===0?r.stdout.trim():arch();
+}
+function androidHostAbi() {
+  const native=nativeHostArch();
+  if(native==='arm64'||arch()==='arm64')return 'arm64-v8a';
+  if(native==='i386'||native==='x86_64'||arch()==='x64')return 'x86_64';
+  return null;
+}
 function artifact(path) { return path && existsSync(path) && statSync(path).isFile(); }
 async function preflight() {
   const sdk=resolve(options['sdk-root'] ?? process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT ?? join(taskRoot,'work/toolchains/android-sdk'));
-  report.environment={hostAbi:arch(),sdkRoot:sdk,avd:options.avd,avdHome:avdRoot,ramBytes:totalmem(),freeBytes:Number(statfsSync(workRoot).bavail)*Number(statfsSync(workRoot).bsize)};
+  report.environment={hostAbi:arch(),nativeHostArch:nativeHostArch(),sdkRoot:sdk,avd:options.avd,avdHome:avdRoot,ramBytes:totalmem(),freeBytes:Number(statfsSync(workRoot).bavail)*Number(statfsSync(workRoot).bsize)};
   adb=join(sdk,'platform-tools/adb'); emulator=join(sdk,'emulator/emulator');
   if (!artifact(adb)) throw new Unavailable('ADB_MISSING');
   if (!artifact(options.apk)) throw new Unavailable('APK_MISSING');
@@ -63,7 +75,9 @@ async function preflight() {
   const config=join(avdRoot,'GermanVocabulary_API36.avd/config.ini');
   if (!artifact(config)) blockers.push('AVD_MISSING:run npm run prepare:android:emulator');
   else { report.environment.avdConfig=readFileSync(config,'utf8'); writeFileSync(join(reportDir,'avd-config.ini'),report.environment.avdConfig); if(!/hw.ramSize\s*=\s*8192/.test(report.environment.avdConfig)|| !/disk.dataPartition.size\s*=\s*(12G|12884901888)/.test(report.environment.avdConfig)) blockers.push('AVD_RESOURCES_INVALID'); }
-  const abi=arch()==='arm64'?'arm64-v8a':arch()==='x64'?'x86_64':null;
+  const configuredAbi=report.environment.avdConfig?.match(/^abi\.type=(.+)$/m)?.[1];
+  const abi=configuredAbi ?? androidHostAbi();
+  report.environment.androidHostAbi=abi;
   report.environment.image=`system-images;android-36;google_apis;${abi}`;
   if(!abi || !existsSync(join(sdk,'system-images/android-36/google_apis',abi))) blockers.push('SYSTEM_IMAGE_MISSING');
   if(report.environment.ramBytes<12*1024**3) blockers.push('HOST_RAM_INSUFFICIENT_OR_UNVERIFIED');
@@ -96,6 +110,8 @@ async function preflight() {
       else { const provenance=JSON.parse(readFileSync(provenancePath,'utf8'));if(provenance.commit!==previousCommit||provenance.sha256!==previousHash||provenance.sourceMapVerified!==true)blockers.push('UPGRADE_PROVENANCE_MISMATCH');else report.upgrade={previousCommit,apk:resolve(options['previous-apk']),apkSha256:previousHash,provenancePath}; }
     }
     if (!artifact(options.fixture)) blockers.push('REGRESSION_FIXTURE_MISSING');
+    if (!artifact(options['grammar-fixture'])) blockers.push('GRAMMAR_FIXTURE_MISSING');
+    if (!artifact(options['grammar-previous-apk'])) blockers.push('GRAMMAR_PREVIOUS_APK_MISSING');
     // Audibility/language observations are collected against this run's artifacts.
     // Missing observations must not prevent generating the evidence to review.
   }
@@ -106,7 +122,7 @@ async function boot(name,wipe) {
   const devices=execute(adb,['devices']).stdout;
   if(devices.includes(serial)) throw new Unavailable('DEDICATED_PORT_BUSY');
   const stdout=openSync(join(reportDir,`${name}-emulator.stdout.log`),'a'),stderr=openSync(join(reportDir,`${name}-emulator.stderr.log`),'a');
-  processHandle=spawn(emulator,['-avd',name,'-port','5580','-memory','8192','-partition-size','12288','-no-snapshot',...(wipe?['-wipe-data']:[])],{env,stdio:['ignore',stdout,stderr]});
+  processHandle=spawn(emulator,['-avd',name,'-port','5580','-memory','8192','-partition-size','12288','-no-snapshot','-no-window','-gpu','swiftshader_indirect',...(wipe?['-wipe-data']:[])],{env,stdio:['ignore',stdout,stderr]});
   closeSync(stdout);closeSync(stderr);
   let launchError; processHandle.once('error',error=>{launchError=error;});
   const deadline=Date.now()+180000;
@@ -151,18 +167,27 @@ function flow(id,file,extra={}) {
   const r=execute(maestro,args,{allowFailure:true,timeout:20*60*1000});
   const outcome=maestroOutcome(r.status,artifact(junit)?readFileSync(junit,'utf8'):'');
   const row=report.scenarios.find(s=>s.id===id);
-  if(row) Object.assign(row,{junit,screenshot:screenshot(id),status:outcome.status,reason:outcome.reason});
+  if(row) {
+    Object.assign(row,{junit,status:outcome.status,reason:outcome.reason});
+    try{row.screenshot=screenshot(id);}catch(error){row.screenshotWarning='SCREENSHOT_UNAVAILABLE:'+error.message;}
+  }
   if(outcome.exitCode===2)throw new Unavailable(`MAESTRO_DEVICE_UNAVAILABLE:${id}`);
   if(outcome.exitCode===1)throw Error(`SCENARIO_FAILED:${id}`);
 }
 let latestBackup,persistenceBaseline,devicePhase='primary',modelOriginal,modelPath,disabledTts=[];
 let fixtureDay;
 function captureDeviceLog(phase) {
- const r=execute(adb,['-s',serial,'logcat','-d','-v','threadtime'],{allowFailure:true});
- if(r.status!==0)throw new Unavailable('LOGCAT_UNAVAILABLE:'+phase);
- const path=join(reportDir,`logcat-${phase}-${report.deviceLogs?.length??0}.txt`);writeFileSync(path,r.stdout);
- appendDeviceLog(report,{phase,path,text:r.stdout});shell('logcat','-c');
- report.logcat=join(reportDir,'logcat.txt');writeFileSync(report.logcat,(report.deviceLogs??[]).map(row=>readFileSync(row.path,'utf8')).join('\n'));
+ const index=report.deviceLogs?.length??0;
+ const devicePath=`/sdcard/regression-logcat-${phase}-${index}.txt`;
+ const path=join(reportDir,`logcat-${phase}-${index}.txt`);
+ const capture=execute(adb,['-s',serial,'shell','logcat','-d','-v','threadtime','-f',devicePath],{allowFailure:true,timeout:60000});
+ if(capture.status!==0||capture.error)throw new Unavailable('LOGCAT_UNAVAILABLE:'+phase);
+ const pulled=execute(adb,['-s',serial,'pull',devicePath,path],{allowFailure:true,timeout:60000});
+ execute(adb,['-s',serial,'shell','rm','-f',devicePath],{allowFailure:true,timeout:10000});
+ if(pulled.status!==0||pulled.error||!artifact(path))throw new Unavailable('LOGCAT_UNAVAILABLE:'+phase);
+ const text=readFileSync(path,'utf8');
+ appendDeviceLog(report,{phase,path,text});shell('logcat','-c');
+ report.logcat=join(reportDir,'logcat.txt');writeFileSync(report.logcat,(report.deviceLogs??[]).map(row=>`${row.phase}: ${row.path}`).join('\n'));
  if(report.crashCount||report.anrCount)throw Error('CRASH_ANR_DETECTED:'+phase);
 }
 function hierarchy(name) {
@@ -225,13 +250,15 @@ async function beforeCheck(check) {
  if(check.device==='display') {shell('wm','size','960x1920');shell('wm','density','480');shell('settings','put','system','font_scale','1.5');const size=shell('wm','size').stdout;if(!size.includes('960x1920'))throw new Unavailable('DISPLAY_SIZE_NOT_ACCEPTED');}
  if(check.device==='reminder-reboot-zone') {await rebootDevice();setClock(fixtureDay+'T12:00:00Z','America/New_York');}
  if(check.device==='dst') {
-  setClock('2026-10-25T00:30:00Z');const before=shell('date','+%Y-%m-%d %H:%M %z').stdout.trim();
-  setClock('2026-10-25T01:30:00Z');const after=shell('date','+%Y-%m-%d %H:%M %z').stdout.trim();
-  if(!before.includes('02:30 +0200')||!after.includes('02:30 +0100'))throw new Unavailable('DST_NOT_ACCEPTED');report.dst={before,after};
+  setClock('2026-10-25T00:30:00Z');const before=shell('date','+%Y-%m-%dT%H:%M%z').stdout.trim();
+  setClock('2026-10-25T01:30:00Z');const after=shell('date','+%Y-%m-%dT%H:%M%z').stdout.trim();
+  if(!before.includes('02:30+0200')||!after.includes('02:30+0100'))throw new Unavailable('DST_NOT_ACCEPTED');report.dst={before,after};
  }
  if(check.id==='reminders.reminder-profile'){flow('inactive-reminder','helpers/inactive-reminder.yaml');alarmEvidence('inactive-profile',false);}
  if(check.device==='four-generations') {
-  for(const [mode,title]of [['association','Ассоциация'],['example','Пример'],['text','Короткий текст'],['rule','Правило']]) {
+  const modes=[['association','Ассоциация'],['example','Пример'],['text','Короткий текст'],['rule','Правило']];
+  if(check.id.startsWith('grammar-'))modes.push(['grammar-error','Пояснение ошибки']);
+  for(const [mode,title]of modes) {
    flow('generation-'+mode,'assistant-generation.yaml',{MODE_TITLE:title});
    const xml=hierarchy('generation-'+mode),text=generationFromHierarchy(readFileSync(xml,'utf8'));
    if(!text)throw Error('REAL_GENERATION_EMPTY_OR_UNFINISHED:'+mode);
@@ -282,21 +309,30 @@ async function group(row,baseline) {
  }
  flow(row.id,row.flow,{FIXTURE_DAY:fixtureDay,GROUP_ID:row.id});
 }
-async function run() {
+async function preparePrimaryDevice() {
  await boot(options.avd,true);snapshotSettings();await deviceRoot();offline();
  execute(adb,['-s',serial,'install',options.apk]);setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
  shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
- for(const path of [report.model.path,report.model.manifestPath,options.fixture,join(appRoot,'e2e/fixtures/vocabulary.csv')])execute(adb,['-s',serial,'push',path,'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
+ for(const path of [report.model.path,report.model.manifestPath])execute(adb,['-s',serial,'push',path,'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
+ execute(adb,['-s',serial,'push',options.fixture,'/sdcard/Download/GermanVocabulary/regression-backup.json'],{timeout:180000});
+ execute(adb,['-s',serial,'push',options['grammar-fixture'],'/sdcard/Download/GermanVocabulary/grammar-backup-v2.json'],{timeout:180000});
+ execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/vocabulary.csv'),'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/invalid-backup.json'),'/sdcard/Download/GermanVocabulary/']);
- await group(MATRIX.find(row=>row.id==='first-launch'));
- flow('import-fixture','import-fixture.yaml');latestBackup=captureState('imported-fixture');
- for(const row of MATRIX.filter(row=>row.phase==='main'))await group(row);
- flow('persistence-before','persistence-before.yaml');persistenceBaseline=captureState('persistence-baseline');
- shell('am','force-stop',applicationId);await group(MATRIX.find(row=>row.phase==='force-stop'),persistenceBaseline);
- await rebootDevice();await group(MATRIX.find(row=>row.phase==='reboot'),persistenceBaseline);
- captureDeviceLog('primary-final');restoreSettings();execute(adb,['-s',serial,'emu','kill']);await delay(3000);
+}
+async function importRegressionFixture(grammar=false) {
+ const file=grammar?'grammar-backup-v2.json':'regression-backup.json';
+ flow(grammar?'import-grammar-fixture':'import-fixture',grammar?'grammar-import-fixture.yaml':'import-fixture.yaml',{BACKUP_FILE:file});latestBackup=captureState(grammar?'imported-grammar-fixture':'imported-fixture');
+}
+async function setupBlockPrerequisites() {
+ flow('first-launch.clean-40-words','checks/first-launch.clean-40-words.yaml');
+ flow('first-launch.model-picker','checks/first-launch.model-picker.yaml',{MODEL_FILENAME:report.model.manifest.fileName});
+}
+async function seedPersistencePrerequisite() {
+ flow('learning.twenty-ui-answers','checks/learning.twenty-ui-answers.yaml');
+}
+async function runUpgradePhase() {
  devicePhase='upgrade';
- const prepare=execute(join(appRoot,'scripts/prepare-avd.sh'),['--upgrade'],{allowFailure:true});if(prepare.status!==0)throw new Unavailable('UPGRADE_AVD_PREPARE_FAILED');
+ const prepare=execute('/bin/sh',[join(appRoot,'scripts/prepare-avd.sh'),'--upgrade'],{allowFailure:true});if(prepare.status!==0)throw new Unavailable('UPGRADE_AVD_PREPARE_FAILED');
  await boot('GermanVocabulary_API36_Upgrade',true);snapshotSettings();await deviceRoot();offline();
  execute(adb,['-s',serial,'install',options['previous-apk']]);setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
  flow('upgrade-before','upgrade-before.yaml');hierarchy('upgrade-before');screenshot('upgrade-before');
@@ -304,22 +340,62 @@ async function run() {
  execute(adb,['-s',serial,'install','-r',options.apk]);shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
  latestBackup=captureState('upgrade-baseline');await group(MATRIX.find(row=>row.phase==='upgrade'),latestBackup);
  captureDeviceLog('upgrade-final');
+}
+async function runBlock(block) {
+ report.runMode={type:'block',block};
+ const row=matrixRowForBlock(block);
+ if(row.phase==='upgrade') { await runUpgradePhase(); return; }
+ await preparePrimaryDevice();
+ if(block==='first-launch') { await group(row); captureDeviceLog('primary-block-'+block); return; }
+ await setupBlockPrerequisites();
+ await importRegressionFixture(block.startsWith('grammar-'));
+ if(row.phase==='force-stop'||row.phase==='reboot') {
+  await seedPersistencePrerequisite();
+  flow('persistence-before','persistence-before.yaml');persistenceBaseline=captureState('persistence-baseline');
+  if(row.phase==='force-stop')shell('am','force-stop',applicationId);
+  else await rebootDevice();
+  await group(row,persistenceBaseline);
+ } else {
+  await group(row);
+ }
+ captureDeviceLog('primary-block-'+block);
+}
+async function run() {
+ await preparePrimaryDevice();
+ await group(MATRIX.find(row=>row.id==='first-launch'));
+ await importRegressionFixture();
+ for(const row of MATRIX.filter(row=>row.phase==='main'&&!row.id.startsWith('grammar-')))await group(row);
+ await importRegressionFixture(true);
+ for(const row of MATRIX.filter(row=>row.id.startsWith('grammar-')))await group(row);
+ flow('persistence-before','persistence-before.yaml');persistenceBaseline=captureState('persistence-baseline');
+ shell('am','force-stop',applicationId);await group(MATRIX.find(row=>row.phase==='force-stop'),persistenceBaseline);
+ await rebootDevice();await group(MATRIX.find(row=>row.phase==='reboot'),persistenceBaseline);
+ captureDeviceLog('primary-final');restoreSettings();execute(adb,['-s',serial,'emu','kill']);await delay(3000);
+ await runUpgradePhase();
  if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
  else report.blockers.push('OBSERVATIONS_MISSING:review generated text and audible playback');
+}
+function completeBlockRegressionReport(block) {
+ const ids=scenarioIdsForBlock(block), validation=validateBlockRegressionReport(report,block), errors=[...validation.errors];
+ if(report.blockers.length)errors.push(...report.blockers);
+ const failed=ids.some(id=>report.scenarios.find(s=>s.id===id)?.status==='failed')||(report.crashCount??0)!==0||(report.anrCount??0)!==0;
+ return {exitCode:errors.length?(failed?1:2):0,status:errors.length?(failed?'failed':'not-verified'):'passed',errors};
 }
 async function main() {
  let exitCode=2;
  try {
    const argv=process.argv.slice(2);
-   const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','fixture','observations']);
+   const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','grammar-previous-apk','fixture','grammar-fixture','observations','block']);
    for(let i=0;i<argv.length;i++){const key=argv[i].replace(/^--/,'');if(!argv[i].startsWith('--')||!allowed.has(key))throw new Unavailable(`ARGUMENT_INVALID:${argv[i]}`);if(key==='preflight')options[key]=true;else {if(!argv[i+1]||argv[i+1].startsWith('--'))throw new Unavailable(`ARGUMENT_VALUE_MISSING:${key}`);options[key]=argv[++i];}}
+   if(options.block){try{selectedBlockScenarios=scenarioIdsForBlock(options.block);}catch(error){throw new Unavailable(error.message);}}
    reportDir=resolve(options['report-dir'] ?? join(workRoot,`reports/${new Date().toISOString().replace(/[:.]/g,'-')}`));
    mkdirSync(reportDir,{recursive:true});mkdirSync(workRoot,{recursive:true});
    await preflight();
    if(options.preflight)throw new Unavailable('PREFLIGHT_ONLY:full regression not run');
-   try{fixtureDay=JSON.parse(readFileSync(options.fixture,'utf8')).profiles.find(p=>p.profile.name==='Регрессия — изучено').attempts[0].day;}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
-   await run();
-   const completion=completeRegressionReport(report);exitCode=completion.exitCode;report.status=completion.status;report.blockers.push(...completion.errors);
+   try{const fixturePath=options.block?.startsWith('grammar-')?options['grammar-fixture']:options.fixture;const parsed=JSON.parse(readFileSync(fixturePath,'utf8'));fixtureDay=parsed.profiles.find(p=>p.profile.name==='Регрессия — изучено')?.attempts?.[0]?.day??parsed.profiles.flatMap(p=>[...(p.attempts??[]),...(p.grammar?.attempts??[])]).map(a=>a.day).find(Boolean);}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
+   if(options.block)await runBlock(options.block);
+   else await run();
+   const completion=options.block?completeBlockRegressionReport(options.block):completeRegressionReport(report);exitCode=completion.exitCode;report.status=completion.status;report.blockers.push(...completion.errors);
  } catch(error) {
    exitCode=error.exitCode ?? 1;report.status=exitCode===2?'not-verified':'failed';report.blockers.push(error.message);console.error(error.message);
  } finally {
@@ -331,7 +407,7 @@ async function main() {
        try{restoreSettings();}catch(error){report.blockers.push(error.message);exitCode=exitCode||2;report.status='not-verified';}
        execute(adb,['-s',serial,'emu','kill'],{allowFailure:true});processHandle.kill('SIGTERM');
      }
-     report.completedAt=new Date().toISOString();report.exitCode=exitCode;report.validation=validateRegressionReport(report);
+     report.completedAt=new Date().toISOString();report.exitCode=exitCode;report.validation=options.block?{ok:exitCode===0,block:options.block,scenarios:selectedBlockScenarios}:validateRegressionReport(report);
      writeFileSync(join(reportDir,'report.json'),JSON.stringify(report,null,2)+'\n');
      writeFileSync(join(reportDir,'summary.md'),`# Android regression\n\nStatus: ${report.status}; exit ${exitCode}.\n\n${report.blockers.map(s=>`- ${s}`).join('\n')}\n\n${report.scenarios.map(s=>`- ${s.id}: ${s.status} (${s.reason})`).join('\n')}\n`);
      console.log(`Report: ${join(reportDir,'report.json')}`);

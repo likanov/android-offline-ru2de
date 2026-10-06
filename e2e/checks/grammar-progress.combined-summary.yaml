@@ -1,0 +1,4 @@
+appId: com.personal.germanvocabulary
+name: grammar-progress.combined-summary
+---
+[{"tapOn":{"id":"nav-progress"}},{"assertVisible":"Местоимения и sein"},{"takeScreenshot":"grammar-combined-summary"}]
