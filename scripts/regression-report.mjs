@@ -15,6 +15,42 @@ export function scenarioIdsForBlock(block) {
   const row = matrixRowForBlock(block);
   return [row.id, ...row.checks.map(check => check.id)];
 }
+const DICTIONARY_UX_CHECKS = [
+  'dictionary.viewport-keyboard',
+  'dictionary.context-return',
+  'dictionary.search-variants',
+  'dictionary.empty-status-accessibility',
+  'dictionary.large-font',
+  'dictionary.large-profile',
+];
+export function validateDictionaryUxEvidence(report) {
+  const errors = [];
+  const require = (condition, message) => { if (!condition) errors.push(message); };
+  const artifact = path => typeof path === 'string' && existsSync(path) && statSync(path).isFile() && statSync(path).size > 0;
+  const apkSha256 = report?.apk?.sha256;
+  require(/^[a-f0-9]{64}$/.test(apkSha256 ?? ''), 'DICTIONARY_APK_SHA256_MISSING');
+  const ux = report?.dictionaryUx;
+  for (const id of DICTIONARY_UX_CHECKS) {
+    const item = ux?.[id];
+    require(item && item.apkSha256 === apkSha256, `DICTIONARY_APK_SHA256_MISMATCH:${id}`);
+    const captures = Array.isArray(item?.captures) ? item.captures : [];
+    require(captures.length > 0, `DICTIONARY_CAPTURES_MISSING:${id}`);
+    for (const capture of captures) {
+      require(artifact(capture?.screenshot) && artifact(capture?.hierarchy), `DICTIONARY_CAPTURE_ARTIFACT_MISSING:${id}`);
+    }
+    const observations = item?.observations ?? {};
+    if (id === 'dictionary.viewport-keyboard') {
+      require(captures.some(capture => capture.step === 'keyboard-closed') && captures.some(capture => capture.step === 'keyboard-open'), 'DICTIONARY_VIEWPORT_CAPTURES_MISSING');
+      require(observations.twoRowsVisible === true && observations.addVisible === true && observations.resultTappable === true, 'DICTIONARY_VIEWPORT_OBSERVATION_MISSING');
+    }
+    if (id === 'dictionary.context-return') require(observations.contextPreserved === true && observations.profilesIsolated === true, 'DICTIONARY_CONTEXT_OBSERVATION_MISSING');
+    if (id === 'dictionary.search-variants') require(observations.searchVariants === true, 'DICTIONARY_SEARCH_OBSERVATION_MISSING');
+    if (id === 'dictionary.empty-status-accessibility') require(observations.emptyStatesReviewed === true && observations.talkBackReviewed === true && observations.selectedAnnounced === true, 'DICTIONARY_EMPTY_ACCESSIBILITY_OBSERVATION_MISSING');
+    if (id === 'dictionary.large-font') require(observations.labelsReadable === true && observations.actionsReachable === true, 'DICTIONARY_LARGE_FONT_OBSERVATION_MISSING');
+    if (id === 'dictionary.large-profile') require(observations.wordCount === 10000 && Array.isArray(observations.samplesMs) && observations.samplesMs.length === 20 && Number.isFinite(observations.p95Ms) && observations.p95Ms <= 300, 'DICTIONARY_LARGE_PROFILE_MEASUREMENT_MISSING');
+  }
+  return { ok: errors.length === 0, errors };
+}
 export function validateBlockRegressionReport(report, block) {
   const errors=[];
   let row;
@@ -41,6 +77,7 @@ export function validateBlockRegressionReport(report, block) {
     if(check.device==='four-generations')require(Array.isArray(report?.generations)&&report.generations.some(g=>g.mode==='grammar-error'&&g.modelSha256===report?.model?.sha256&&typeof g.text==='string'&&g.text.trim()&&artifact(g.screenshot)&&artifact(g.hierarchy)),`REAL_GENERATION_MISSING:grammar-error`);
   }
   require((report?.crashCount??0)===0&&(report?.anrCount??0)===0,'CRASH_ANR_NOT_VERIFIED');
+  if (block === 'dictionary') errors.push(...validateDictionaryUxEvidence(report).errors);
   return {ok:errors.length===0,errors};
 }
 export function sha256File(path) { const hash=createHash('sha256'), fd=openSync(path,'r'), buffer=Buffer.alloc(1024*1024); try { let n; while ((n=readSync(fd,buffer,0,buffer.length,null))>0) hash.update(buffer.subarray(0,n)); } finally { closeSync(fd); } return hash.digest('hex'); }
@@ -94,6 +131,7 @@ export function validateRegressionReport(report) {
     let provenance;try{provenance=JSON.parse(readFileSync(report.upgrade.provenancePath,'utf8'));}catch{}
     require(provenance?.commit===report.upgrade.previousCommit && provenance.sha256===report.upgrade.apkSha256 && provenance.sourceMapVerified===true,'UPGRADE_PROVENANCE_INVALID');
   }
+  if (report?.dictionaryUx) errors.push(...validateDictionaryUxEvidence(report).errors);
   return {ok:errors.length===0,errors};
 }
 if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {

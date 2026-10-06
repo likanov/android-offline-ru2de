@@ -90,6 +90,39 @@
         "status": "implemented-unverified",
         "flow": "checks/dictionary.cosmetic-preserve.yaml",
         "state": true
+      },
+      {
+        "id": "dictionary.viewport-keyboard",
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.viewport-keyboard.yaml",
+        "device": "dictionary-viewport"
+      },
+      {
+        "id": "dictionary.context-return",
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.context-return.yaml",
+        "device": "dictionary-context"
+      },
+      {
+        "id": "dictionary.search-variants",
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.search-variants.yaml"
+      },
+      {
+        "id": "dictionary.empty-status-accessibility",
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.empty-status-accessibility.yaml"
+      },
+      {
+        "id": "dictionary.large-font",
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.large-font.yaml",
+        "device": "display"
+      },
+      {
+        "id": "dictionary.large-profile",
+        "status": "implemented-unverified",
+        "flow": "checks/dictionary.large-profile.yaml"
       }
     ]
   },

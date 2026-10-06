@@ -1,0 +1,23 @@
+appId: com.personal.germanvocabulary
+name: dictionary.context-return
+---
+[
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия UI"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"tapOn":{"id":"dictionary-search"}},
+  {"inputText":"Buch"},
+  {"assertVisible":{"text":"Найдено: 1"}},
+  {"tapOn":{"text":"das Buch — книга"}},
+  {"assertVisible":{"text":"Слово"}},
+  {"tapOn":{"text":"Назад в словарь"}},
+  {"assertVisible":{"id":"dictionary-search"}},
+  {"assertVisible":{"text":"Buch"}},
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия UI B"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"tapOn":{"id":"dictionary-search"}},
+  {"inputText":"Buch"},
+  {"assertVisible":{"text":"Найдено: 0"}},
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия UI"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"assertVisible":{"text":"Найдено: 1"}}
+]

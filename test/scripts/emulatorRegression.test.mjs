@@ -175,6 +175,12 @@ test('scenario selection exposes exact block membership', async () => {
     'dictionary.search-nfc-nfd',
     'dictionary.lexical-reset',
     'dictionary.cosmetic-preserve',
+    'dictionary.viewport-keyboard',
+    'dictionary.context-return',
+    'dictionary.search-variants',
+    'dictionary.empty-status-accessibility',
+    'dictionary.large-font',
+    'dictionary.large-profile',
   ]);
 });
 

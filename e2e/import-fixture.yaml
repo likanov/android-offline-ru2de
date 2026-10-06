@@ -98,14 +98,14 @@ name: import-fixture
     "runFlow": {
       "file": "helpers/picker.yaml",
       "env": {
-        "FILE": "regression-backup.json"
+        "FILE": "${BACKUP_FILE}"
       }
     }
   },
   {
     "repeat": {
       "while": {
-        "notVisible": "Профилей: 13.*"
+        "notVisible": "Профилей: ${PROFILE_COUNT}.*"
       },
       "times": 18,
       "commands": [
@@ -124,7 +124,7 @@ name: import-fixture
   {
     "repeat": {
       "while": {
-        "notVisible": "Профилей: 13.*"
+        "notVisible": "Профилей: ${PROFILE_COUNT}.*"
       },
       "times": 18,
       "commands": [
@@ -141,7 +141,7 @@ name: import-fixture
     }
   },
   {
-    "assertVisible": "Профилей: 13.*"
+    "assertVisible": "Профилей: ${PROFILE_COUNT}.*"
   },
   {
     "repeat": {
@@ -225,7 +225,7 @@ name: import-fixture
   {
     "repeat": {
       "while": {
-        "notVisible": "Восстановлено профилей: 13"
+        "notVisible": "Восстановлено профилей: ${PROFILE_COUNT}"
       },
       "times": 18,
       "commands": [
@@ -244,7 +244,7 @@ name: import-fixture
   {
     "repeat": {
       "while": {
-        "notVisible": "Восстановлено профилей: 13"
+        "notVisible": "Восстановлено профилей: ${PROFILE_COUNT}"
       },
       "times": 18,
       "commands": [
@@ -261,6 +261,6 @@ name: import-fixture
     }
   },
   {
-    "assertVisible": "Восстановлено профилей: 13"
+    "assertVisible": "Восстановлено профилей: ${PROFILE_COUNT}"
   }
 ]

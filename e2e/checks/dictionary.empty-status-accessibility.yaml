@@ -1,0 +1,15 @@
+appId: com.personal.germanvocabulary
+name: dictionary.empty-status-accessibility
+---
+[
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия UI"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"tapOn":{"id":"dictionary-search"}},
+  {"inputText":"zzzz-not-a-word"},
+  {"assertVisible":{"text":"По вашему запросу ничего не найдено."}},
+  {"tapOn":{"id":"dictionary-clear-search"}},
+  {"tapOn":{"id":"dictionary-filters-toggle"}},
+  {"tapOn":{"text":"Не изучены"}},
+  {"assertVisible":{"text":"Не изучены"}},
+  {"takeScreenshot":"dictionary-empty-status-accessibility"}
+]

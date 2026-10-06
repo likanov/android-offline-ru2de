@@ -2,58 +2,9 @@ appId: com.personal.germanvocabulary
 name: dictionary
 ---
 [
-  {
-    "runFlow": {
-      "file": "helpers/open-navigation.yaml",
-      "env": {
-        "NAV_TARGET": "nav-profiles"
-      }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "nav-profiles"
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "Профили"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "DOWN",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": "Профили"
-      },
-      "times": 18,
-      "commands": [
-        {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 400
-          }
-        }
-      ]
-    }
-  },
-  {
-    "assertVisible": "Профили"
-  }
+  {"runFlow":{"file":"helpers/open-navigation.yaml","env":{"NAV_TARGET":"nav-dictionary"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"assertVisible":{"id":"dictionary-search"}},
+  {"assertVisible":{"id":"dictionary-add"}},
+  {"assertVisible":{"id":"dictionary-list"}}
 ]

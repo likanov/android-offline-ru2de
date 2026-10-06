@@ -79,7 +79,7 @@ export function NavigationMenu({
               key={item.screen}
               testID={`nav-${item.screen}`}
               accessibilityRole="button"
-              accessibilityLabel={item.accessibilityLabel ?? item.label}
+              accessibilityLabel={item.accessibilityLabel}
               accessibilityState={{
                 selected: active === item.screen,
                 disabled: !hasProfile,

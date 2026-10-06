@@ -112,6 +112,10 @@ async function preflight() {
     if (!artifact(options.fixture)) blockers.push('REGRESSION_FIXTURE_MISSING');
     if (!artifact(options['grammar-fixture'])) blockers.push('GRAMMAR_FIXTURE_MISSING');
     if (!artifact(options['grammar-previous-apk'])) blockers.push('GRAMMAR_PREVIOUS_APK_MISSING');
+    if (!options.block || options.block === 'dictionary') {
+      if (!artifact(options['dictionary-fixture'])) blockers.push('DICTIONARY_FIXTURE_MISSING');
+      if (!artifact(options['dictionary-large-fixture'])) blockers.push('DICTIONARY_LARGE_FIXTURE_MISSING');
+    }
     // Audibility/language observations are collected against this run's artifacts.
     // Missing observations must not prevent generating the evidence to review.
   }
@@ -194,6 +198,22 @@ function hierarchy(name) {
  shell('uiautomator','dump','/sdcard/regression-hierarchy.xml');
  const path=join(reportDir,name+'.xml');execute(adb,['-s',serial,'pull','/sdcard/regression-hierarchy.xml',path]);return path;
 }
+function recordDictionaryUxEvidence(check) {
+ if(!check.id.startsWith('dictionary.'))return;
+ const scenario=report.scenarios.find(row=>row.id===check.id);
+ const observations=report.observations?.dictionaryUx?.[check.id] ?? {};
+ const captures=[];
+ if(check.id==='dictionary.viewport-keyboard') {
+  const openScreenshot=scenario?.screenshot ?? screenshot(check.id+'-keyboard-open');
+  captures.push({step:'keyboard-open',screenshot:openScreenshot,hierarchy:hierarchy(check.id+'-keyboard-open')});
+  shell('input','keyevent','111');
+  captures.push({step:'keyboard-closed',screenshot:screenshot(check.id+'-keyboard-closed'),hierarchy:hierarchy(check.id+'-keyboard-closed')});
+ } else {
+  captures.push({step:'review',screenshot:scenario?.screenshot ?? screenshot(check.id),hierarchy:hierarchy(check.id)});
+ }
+ report.dictionaryUx ??={};
+ report.dictionaryUx[check.id]={apkSha256:report.apk.sha256,captures,observations};
+}
 export function exportedBackupCandidates(filename) {
  return ['/sdcard/Download/GermanVocabulary/'+filename, '/sdcard/Download/'+filename, '/data/user/0/'+applicationId+'/files/last-export.json'];
 }
@@ -248,6 +268,7 @@ async function beforeCheck(check) {
  if(check.device==='tts-disabled') {const names=shell('pm','list','packages').stdout.split('\n').filter(x=>/tts|texttospeech/.test(x)).map(x=>x.replace('package:','').trim());for(const p of names){shell('pm','disable-user','--user','0',p);disabledTts.push(p);}}
  if(check.device==='tts-restored') {for(const p of disabledTts)shell('pm','enable',p);disabledTts=[];const path=join(reportDir,'tts-engine.txt');writeFileSync(path,shell('dumpsys','texttospeech').stdout);report.ttsEngine=path;}
  if(check.device==='display') {shell('wm','size','960x1920');shell('wm','density','480');shell('settings','put','system','font_scale','1.5');const size=shell('wm','size').stdout;if(!size.includes('960x1920'))throw new Unavailable('DISPLAY_SIZE_NOT_ACCEPTED');}
+ if(check.device==='dictionary-viewport') {shell('wm','size','1080x1920');shell('wm','density','420');const size=shell('wm','size').stdout;if(!size.includes('1080x1920'))throw new Unavailable('DICTIONARY_VIEWPORT_SIZE_NOT_ACCEPTED');}
  if(check.device==='reminder-reboot-zone') {await rebootDevice();setClock(fixtureDay+'T12:00:00Z','America/New_York');}
  if(check.device==='dst') {
   setClock('2026-10-25T00:30:00Z');const before=shell('date','+%Y-%m-%dT%H:%M%z').stdout.trim();
@@ -271,7 +292,7 @@ async function beforeCheck(check) {
  }
 }
 async function afterCheck(check) {
- if(check.device==='display'){shell('wm','size','reset');shell('wm','density','reset');shell('settings','put','system','font_scale',settingsSnapshot.font);}
+ if(check.device==='display'||check.device==='dictionary-viewport'){shell('wm','size','reset');shell('wm','density','reset');if(check.device==='display')shell('settings','put','system','font_scale',settingsSnapshot.font);}
  if(check.device==='model-unavailable') {
   const corrupt=join(reportDir,'corrupt.gguf');writeFileSync(corrupt,'corrupted GGUF input');execute(adb,['-s',serial,'push',corrupt,modelPath]);
   flow('corrupt-model',check.flow);shell('rm',modelPath);shell('mv',modelOriginal,modelPath);modelOriginal=undefined;
@@ -291,6 +312,7 @@ async function group(row,baseline) {
   await beforeCheck(check);
   const extra={FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:check.id+'-operation.json',RESTORE_CHECKPOINT_NAME:check.id+'-restored.json'};
   flow(check.id,check.flow,extra);
+  recordDictionaryUxEvidence(check);
   await afterCheck(check);
   if(check.state) {
    const after=captureState(check.id+'-after'),today=shell('date','+%Y-%m-%d').stdout.trim();
@@ -314,14 +336,21 @@ async function preparePrimaryDevice() {
  execute(adb,['-s',serial,'install',options.apk]);setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
  shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
  for(const path of [report.model.path,report.model.manifestPath])execute(adb,['-s',serial,'push',path,'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
+ const dictionaryFixture=options['dictionary-fixture'] ?? options.fixture;
+ if(dictionaryFixture)execute(adb,['-s',serial,'push',dictionaryFixture,'/sdcard/Download/GermanVocabulary/dictionary-backup.json'],{timeout:180000});
  execute(adb,['-s',serial,'push',options.fixture,'/sdcard/Download/GermanVocabulary/regression-backup.json'],{timeout:180000});
+ if(options['dictionary-large-fixture'])execute(adb,['-s',serial,'push',options['dictionary-large-fixture'],'/sdcard/Download/GermanVocabulary/dictionary-large-backup.json'],{timeout:180000});
  execute(adb,['-s',serial,'push',options['grammar-fixture'],'/sdcard/Download/GermanVocabulary/grammar-backup-v2.json'],{timeout:180000});
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/vocabulary.csv'),'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/invalid-backup.json'),'/sdcard/Download/GermanVocabulary/']);
 }
 async function importRegressionFixture(grammar=false) {
  const file=grammar?'grammar-backup-v2.json':'regression-backup.json';
- flow(grammar?'import-grammar-fixture':'import-fixture',grammar?'grammar-import-fixture.yaml':'import-fixture.yaml',{BACKUP_FILE:file});latestBackup=captureState(grammar?'imported-grammar-fixture':'imported-fixture');
+ flow(grammar?'import-grammar-fixture':'import-fixture',grammar?'grammar-import-fixture.yaml':'import-fixture.yaml',{BACKUP_FILE:file,PROFILE_COUNT:grammar?'4':'13'});latestBackup=captureState(grammar?'imported-grammar-fixture':'imported-fixture');
+}
+async function importDictionaryFixtures() {
+ if(options['dictionary-fixture']) { flow('import-dictionary-fixture','import-fixture.yaml',{BACKUP_FILE:'dictionary-backup.json',PROFILE_COUNT:'2'}); latestBackup=captureState('imported-dictionary-fixture'); }
+ if(options['dictionary-large-fixture']) { flow('import-dictionary-large-fixture','import-fixture.yaml',{BACKUP_FILE:'dictionary-large-backup.json',PROFILE_COUNT:'1'}); latestBackup=captureState('imported-dictionary-large-fixture'); }
 }
 async function setupBlockPrerequisites() {
  flow('first-launch.clean-40-words','checks/first-launch.clean-40-words.yaml');
@@ -349,6 +378,7 @@ async function runBlock(block) {
  if(block==='first-launch') { await group(row); captureDeviceLog('primary-block-'+block); return; }
  await setupBlockPrerequisites();
  await importRegressionFixture(block.startsWith('grammar-'));
+ if(block==='dictionary')await importDictionaryFixtures();
  if(row.phase==='force-stop'||row.phase==='reboot') {
   await seedPersistencePrerequisite();
   flow('persistence-before','persistence-before.yaml');persistenceBaseline=captureState('persistence-baseline');
@@ -364,6 +394,7 @@ async function run() {
  await preparePrimaryDevice();
  await group(MATRIX.find(row=>row.id==='first-launch'));
  await importRegressionFixture();
+ await importDictionaryFixtures();
  for(const row of MATRIX.filter(row=>row.phase==='main'&&!row.id.startsWith('grammar-')))await group(row);
  await importRegressionFixture(true);
  for(const row of MATRIX.filter(row=>row.id.startsWith('grammar-')))await group(row);
@@ -372,7 +403,7 @@ async function run() {
  await rebootDevice();await group(MATRIX.find(row=>row.phase==='reboot'),persistenceBaseline);
  captureDeviceLog('primary-final');restoreSettings();execute(adb,['-s',serial,'emu','kill']);await delay(3000);
  await runUpgradePhase();
- if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
+   if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
  else report.blockers.push('OBSERVATIONS_MISSING:review generated text and audible playback');
 }
 function completeBlockRegressionReport(block) {
@@ -385,14 +416,15 @@ async function main() {
  let exitCode=2;
  try {
    const argv=process.argv.slice(2);
-   const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','grammar-previous-apk','fixture','grammar-fixture','observations','block']);
+   const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','grammar-previous-apk','fixture','grammar-fixture','dictionary-fixture','dictionary-large-fixture','observations','block']);
    for(let i=0;i<argv.length;i++){const key=argv[i].replace(/^--/,'');if(!argv[i].startsWith('--')||!allowed.has(key))throw new Unavailable(`ARGUMENT_INVALID:${argv[i]}`);if(key==='preflight')options[key]=true;else {if(!argv[i+1]||argv[i+1].startsWith('--'))throw new Unavailable(`ARGUMENT_VALUE_MISSING:${key}`);options[key]=argv[++i];}}
    if(options.block){try{selectedBlockScenarios=scenarioIdsForBlock(options.block);}catch(error){throw new Unavailable(error.message);}}
    reportDir=resolve(options['report-dir'] ?? join(workRoot,`reports/${new Date().toISOString().replace(/[:.]/g,'-')}`));
    mkdirSync(reportDir,{recursive:true});mkdirSync(workRoot,{recursive:true});
    await preflight();
    if(options.preflight)throw new Unavailable('PREFLIGHT_ONLY:full regression not run');
-   try{const fixturePath=options.block?.startsWith('grammar-')?options['grammar-fixture']:options.fixture;const parsed=JSON.parse(readFileSync(fixturePath,'utf8'));fixtureDay=parsed.profiles.find(p=>p.profile.name==='Регрессия — изучено')?.attempts?.[0]?.day??parsed.profiles.flatMap(p=>[...(p.attempts??[]),...(p.grammar?.attempts??[])]).map(a=>a.day).find(Boolean);}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
+   if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
+   try{const fixturePath=options.block?.startsWith('grammar-')?options['grammar-fixture']:options.fixture;const parsed=JSON.parse(readFileSync(fixturePath,'utf8'));fixtureDay=parsed.profiles.find(p=>p.profile.name==='Регрессия — изучено')?.attempts?.[0]?.day??parsed.profiles.flatMap(p=>[...(p.attempts??[]),...(p.grammar?.attempts??[])]).map(a=>a.day).find(Boolean)??'2026-10-06';}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
    if(options.block)await runBlock(options.block);
    else await run();
    const completion=options.block?completeBlockRegressionReport(options.block):completeRegressionReport(report);exitCode=completion.exitCode;report.status=completion.status;report.blockers.push(...completion.errors);

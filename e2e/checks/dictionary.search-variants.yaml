@@ -1,0 +1,22 @@
+appId: com.personal.germanvocabulary
+name: dictionary.search-variants
+---
+[
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия UI"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"tapOn":{"id":"dictionary-search"}},
+  {"inputText":"das Buch"},
+  {"assertVisible":{"text":"Найдено: 1"}},
+  {"tapOn":{"id":"dictionary-clear-search"}},
+  {"inputText":"Bücher"},
+  {"assertVisible":{"text":"Найдено: 1"}},
+  {"tapOn":{"id":"dictionary-clear-search"}},
+  {"inputText":"ребенок"},
+  {"assertVisible":{"text":"Найдено: 1"}},
+  {"tapOn":{"id":"dictionary-clear-search"}},
+  {"inputText":"gruen"},
+  {"assertVisible":{"text":"Найдено: 1"}},
+  {"tapOn":{"id":"dictionary-clear-search"}},
+  {"inputText":"Strasse"},
+  {"assertVisible":{"text":"Найдено: 1"}}
+]

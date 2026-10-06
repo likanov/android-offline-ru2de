@@ -24,6 +24,8 @@ export function useDictionaryData(db: SqlStore, profileId: string): DictionaryDa
     let alive = true;
     const request = ++requestVersion.current;
     const repository = new DictionaryRepository(db);
+    // The effect owns the external SQLite request; reset its visible state before awaiting it.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStatus('loading');
     setError(null);
     void repository.load(profileId).then(value => {

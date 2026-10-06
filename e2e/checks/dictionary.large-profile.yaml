@@ -1,0 +1,12 @@
+appId: com.personal.germanvocabulary
+name: dictionary.large-profile
+---
+[
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия 10000"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"assertVisible":{"id":"dictionary-search"}},
+  {"tapOn":{"id":"dictionary-search"}},
+  {"inputText":"Wort-05000"},
+  {"assertVisible":{"text":"Найдено: 1"}},
+  {"takeScreenshot":"dictionary-large-profile"}
+]

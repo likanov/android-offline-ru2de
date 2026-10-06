@@ -1,0 +1,15 @@
+appId: com.personal.germanvocabulary
+name: dictionary.viewport-keyboard
+---
+[
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия UI"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"assertVisible":{"id":"dictionary-search"}},
+  {"assertVisible":{"id":"dictionary-add"}},
+  {"assertVisible":{"id":"dictionary-list"}},
+  {"takeScreenshot":"dictionary-viewport-closed"},
+  {"tapOn":{"id":"dictionary-search"}},
+  {"inputText":"Buch"},
+  {"assertVisible":{"text":"Найдено: 1"}},
+  {"takeScreenshot":"dictionary-viewport-open"}
+]

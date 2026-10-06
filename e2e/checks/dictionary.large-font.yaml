@@ -1,0 +1,11 @@
+appId: com.personal.germanvocabulary
+name: dictionary.large-font
+---
+[
+  {"runFlow":{"file":"../helpers/select-profile.yaml","env":{"PROFILE":"Регрессия UI"}}},
+  {"tapOn":{"id":"nav-dictionary"}},
+  {"assertVisible":{"id":"dictionary-search"}},
+  {"assertVisible":{"id":"dictionary-add"}},
+  {"assertVisible":{"id":"dictionary-filters-toggle"}},
+  {"takeScreenshot":"dictionary-large-font"}
+]
