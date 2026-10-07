@@ -15,6 +15,13 @@ test('training_home_opens_both_blocks_and_resumes', async () => {
   expect(screen.getByTestId('training-grammar-start')).toBeTruthy();
   view.unmount(); h.close();
 });
+test('grammar_saved_streak_is_visible_before_submit', async () => {
+  const h = await createGrammarHarness();
+  const profile = await createProfile(h.db, 'A');
+  await h.db.run("INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?,?,1,7,0,0,0,NULL,0,0,0,0,0,0)", [profile.id, 'pronoun-cloze:ich']);
+  const view = render(<GrammarTrainingScreen db={h.db} profileId={profile.id} profileName={profile.name} today="2026-10-03" selection={{ mode: 'study', lesson: 'pronouns', targetIds: ['pronoun-cloze:ich'] }} onReference={jest.fn()} onExplainError={jest.fn()} />);
+  try { expect(await screen.findByText('Серия: 7/20')).toBeTruthy(); expect(screen.queryByText(`Профиль: ${profile.id}`)).toBeNull(); } finally { view.unmount(); h.close(); }
+});
 
 test('feedback_hides_expected_before_submit_and_keyboard_submit_and_feedback_visible', async () => {
   const h = await createGrammarHarness();

@@ -27,7 +27,7 @@ test('practice_reveals_sentence_only_after_submit', async () => {
         fireEvent.press(await screen.findByRole('button', { name: 'Практика с пропуском' }));
 
         await screen.findByText('Практика без XP и изменения серии');
-        await screen.findByText('Вставьте немецкое слово');
+        await screen.findByText('Введите только пропущенное слово');
         await screen.findByText('Der ___ ist klein.');
         expect(screen.queryByText('Der Stuhl ist klein.')).toBeNull();
         expect(screen.queryByText('Стул маленький.')).toBeNull();

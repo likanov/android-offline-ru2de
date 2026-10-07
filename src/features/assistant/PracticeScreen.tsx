@@ -60,7 +60,7 @@ export function PracticeScreen({ profileId, request, assistant, onBack }: {
         {busy ? <ActivityIndicator accessibilityLabel="Помощник работает"/> : null}
         {status ? <Text testID="practice-summary">{status}</Text> : null}
         {exercise ? <>
-            <Text>Вставьте немецкое слово</Text>
+            <Text>Введите только пропущенное слово</Text>
             <Text>{answer ? exercise.sentenceDe : `${exercise.before}___${exercise.after}`}</Text>
             {answer ? <><Text>{answer.right ? 'Верно' : 'Ошибка'}</Text><Text>Ответ: {exercise.expected.join(' / ')}</Text><Text>{exercise.translationRu}</Text><Button title="Дальше" testID="practice-next" onPress={next}/></> : <TypedAnswer onSubmit={submit}/>}
         </> : null}
