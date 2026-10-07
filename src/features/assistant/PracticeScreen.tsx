@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text } from 'react-native';
 import type { SqlStore } from '../../core/sql';
-import { Screen } from '../../ui/Screen';
+import { QuestionScreen } from '../../ui/QuestionScreen';
 import { Button } from '../../ui/Button';
 import { TypedAnswer } from '../learning/TypedAnswer';
 import type { AssistantService } from './assistantService';
@@ -54,7 +54,7 @@ export function PracticeScreen({ profileId, request, assistant, onBack }: {
         else
             setStatus('Практика завершена');
     }
-    return <Screen>
+    return <QuestionScreen>
         <Text accessibilityRole="header">Практика с пропуском</Text>
         <Text>Практика без XP и изменения серии</Text>
         {busy ? <ActivityIndicator accessibilityLabel="Помощник работает"/> : null}
@@ -65,5 +65,5 @@ export function PracticeScreen({ profileId, request, assistant, onBack }: {
             {answer ? <><Text>{answer.right ? 'Верно' : 'Ошибка'}</Text><Text>Ответ: {exercise.expected.join(' / ')}</Text><Text>{exercise.translationRu}</Text><Button title="Дальше" testID="practice-next" onPress={next}/></> : <TypedAnswer onSubmit={submit}/>}
         </> : null}
         <Button title="К карточке" onPress={onBack}/>
-    </Screen>;
+    </QuestionScreen>;
 }

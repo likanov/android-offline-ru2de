@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Text } from 'react-native';
+import { Text } from 'react-native';
 import type { SqlStore } from '../../core/sql';
 import { localDay } from '../../core/calendar';
 import { useCurrentDay } from '../../app/useCurrentDay';
-import { Screen } from '../../ui/Screen';
+import { QuestionScreen } from '../../ui/QuestionScreen';
 import { getGrammarServices } from '../../app/AppServices';
 import { GrammarSessionError } from './grammarSessionRepository';
 import { GrammarAnswerError } from './grammarAnswerService';
@@ -29,5 +29,5 @@ export function GrammarTrainingScreen({ db, profileId, selection, today: injecte
   useEffect(() => { let alive = true; void load().catch(e => { if (alive) setError(String(e)); }).finally(() => { if (alive) setBusy(false); }); return () => { alive = false; }; }, [db, profileId, selection.mode, selection.lesson, today]);
   async function submit(answer: GrammarSubmission) { if (lock.current || !sessionId || !question || result) return; lock.current = true; setBusy(true); setError(''); try { const saved = await services.answers.submit(profileId, sessionId, question.attemptId, answer, currentDay()); setResult(saved); } catch (e) { if (e instanceof GrammarAnswerError && e.code === 'GRAMMAR_QUESTION_STALE') { setError('Пример обновлён. Продолжим с новым заданием'); await load(); } else setError(String(e)); } finally { lock.current = false; setBusy(false); } }
   async function next() { if (lock.current || !sessionId) return; lock.current = true; setBusy(true); try { const q = await services.sessions.next(profileId, sessionId, currentDay()); setQuestion(q); setResult(null); } catch (e) { if (e instanceof GrammarSessionError && e.code === 'GRAMMAR_QUESTION_STALE') { setError('Пример обновлён. Продолжим с новым заданием'); const q = await services.sessions.next(profileId, sessionId, currentDay()); setQuestion(q); setResult(null); } else setError(String(e)); } finally { lock.current = false; setBusy(false); } }
-  return <KeyboardAvoidingView style={{ flex: 1 }} behavior="height"><Screen><Text accessibilityRole="header" style={{ fontSize: 28 }}>Местоимения и sein</Text><Text>Профиль: {profileId}</Text>{error ? <Text accessibilityRole="alert">{error}</Text> : null}{question ? <><Text>Серия: {result?.state.streak ?? 0}/20</Text><GrammarQuestionView question={question} result={result} busy={busy} onSubmit={answer => void submit(answer)} onNext={() => void next()} onExplainError={() => onExplainError(question.attemptId)} onReference={onReference} /></> : <Text>{busy ? 'Загрузка…' : 'Занятие завершено'}</Text>}</Screen></KeyboardAvoidingView>;
+  return <QuestionScreen><Text accessibilityRole="header" style={{ fontSize: 28 }}>Местоимения и sein</Text><Text>Профиль: {profileId}</Text>{error ? <Text accessibilityRole="alert">{error}</Text> : null}{question ? <><Text>Серия: {result?.state.streak ?? 0}/20</Text><GrammarQuestionView question={question} result={result} busy={busy} onSubmit={answer => void submit(answer)} onNext={() => void next()} onExplainError={() => onExplainError(question.attemptId)} onReference={onReference} /></> : <Text>{busy ? 'Загрузка…' : 'Занятие завершено'}</Text>}</QuestionScreen>;
 }

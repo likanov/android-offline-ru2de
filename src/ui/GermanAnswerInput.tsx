@@ -3,6 +3,7 @@ import { Text, TextInput, View, StyleSheet, type NativeSyntheticEvent, type Text
 import { Button } from './Button';
 import { theme } from './theme';
 import { insertGermanCharacter, type GermanCharacter } from './insertGermanCharacter';
+import { useQuestionInputReveal } from './QuestionScreen';
 
 export type GermanAnswerInputProps = {
   onSubmit: (answer: string) => void;
@@ -18,6 +19,8 @@ export const GermanAnswerInput = forwardRef<View, GermanAnswerInputProps>(functi
   const [value, setValue] = useState('');
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const inputRef = useRef<TextInput>(null);
+  const answerGroupRef = useRef<View | null>(null);
+  const reveal = useQuestionInputReveal();
   const submit = () => {
     const answer = value.trim();
     if (!disabled && answer) onSubmit(value);
@@ -33,8 +36,15 @@ export const GermanAnswerInput = forwardRef<View, GermanAnswerInputProps>(functi
     setSelection(event.nativeEvent.selection);
   };
 
+  const setGroupRef = (node: View | null) => {
+    answerGroupRef.current = node;
+    if (typeof groupRef === 'function') groupRef(node);
+    else if (groupRef) groupRef.current = node;
+    reveal(node);
+  };
+
   return (
-    <View ref={groupRef} style={styles.group}>
+    <View ref={setGroupRef} onLayout={() => { if (answerGroupRef.current) reveal(answerGroupRef.current); }} style={styles.group}>
       <Text style={styles.label}>Ответ на немецком</Text>
       <TextInput
         ref={inputRef}
@@ -56,6 +66,7 @@ export const GermanAnswerInput = forwardRef<View, GermanAnswerInputProps>(functi
         returnKeyType="done"
         returnKeyLabel="Проверить"
         onSubmitEditing={submit}
+        onFocus={() => { if (answerGroupRef.current) reveal(answerGroupRef.current); }}
         style={[styles.input, disabled && styles.disabled]}
       />
       <View style={styles.characters}>
