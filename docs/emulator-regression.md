@@ -16,6 +16,16 @@ Checked-in implementation status is **implemented, device verification pending**
 only a completed run and actual audio/language observations establish a pass.
 Maestro 2.11.0 is prepared under the task's local `work/toolchains/maestro/`.
 
+The question-screen UX block is covered by host tests and the
+`validateQuestionUiEvidence` contract in `scripts/regression-report.mjs`. It
+requires five scenario manifests (`question-ui.word-typing`,
+`question-ui.grammar-typing`, `question-ui.practice-typing`,
+`question-ui.error-help-return`, and `question-ui.large-font-background`) with
+closed-keyboard, open-keyboard, and after-submit captures bound to the current
+APK hash. The block remains **not-verified** until a real fixed IME capture
+shows the input and submit button above the keyboard; host evidence alone does
+not certify an Android run. See [question-screen-ux-verification.md](question-screen-ux-verification.md).
+
 ## Toolchain and isolated AVD
 
 Use the installed SDK through `./scripts/toolchain.sh`. `prepare-avd.sh` detects

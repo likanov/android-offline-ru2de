@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from 'react-native';
 import type { SqlStore } from '../../core/sql';
 import type { TrainingSelection, Session, Question, AttemptResult } from './questionTypes';
-import { SessionRepository } from './sessionRepository';
+import { SessionRepository, readState } from './sessionRepository';
 import { AnswerService } from './answerService';
 import { QuestionScreen } from '../../ui/QuestionScreen';
 import { Button } from '../../ui/Button';
@@ -13,7 +13,6 @@ import { useCurrentDay } from '../../app/useCurrentDay';
 import { localDay } from '../../core/calendar';
 import { genderPresentation } from '../dictionary/wordValidation';
 import type { Word, LearningState } from './learningTypes';
-import { readState } from './sessionRepository';
 import { trainingInstruction } from './trainingPresentation';
 import { QuestionHeader } from '../../ui/QuestionHeader';
 export function TrainingScreen({ db, profileId, selection, today: injectedDay, onReveal, onHelper, onExplainError, audio: providedAudio, profileName }: {
