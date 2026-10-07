@@ -16,13 +16,14 @@ export type AssistantScreenProps = {
     assistant: AssistantService;
     onModelSetup(): void;
     onBack(): void;
+    backLabel?: string;
 };
 const modes: [
     HelpMode,
     string
 ][] = [['association', 'Ассоциация'], ['example', 'Пример'], ['text', 'Короткий текст'], ['rule', 'Правило']];
 export function AssistantScreen(props: AssistantScreenProps) { return <Workspace key={`${props.profileId}:${props.wordId}`} {...props}/>; }
-function Workspace({ db, profileId, wordId, assistant, onModelSetup, onBack }: AssistantScreenProps) {
+function Workspace({ db, profileId, wordId, assistant, onModelSetup, onBack, backLabel = 'К карточке' }: AssistantScreenProps) {
     const repository = useMemo(() => new WordRepository(db), [db]);
     const [words, setWords] = useState<Word[]>([]), [mode, setMode] = useState<HelpMode>('association'), [topic, setTopic] = useState<RuleTopic>('gender');
     const [selected, setSelected] = useState<string[]>([wordId]), [draft, setDraft] = useState<HelperDraft | null>(null), [text, setText] = useState('');
@@ -108,6 +109,6 @@ function Workspace({ db, profileId, wordId, assistant, onModelSetup, onBack }: A
   {modelError ? <Button title="Установить локальную модель" onPress={onModelSetup}/> : null}
   <TextInput testID="assistant-result" accessibilityLabel="Результат помощника" multiline value={text} editable={!!draft && !busy && !saved} onChangeText={setText} style={{ minHeight: 140, borderWidth: 1, borderColor: '#667085', borderRadius: 12, padding: 16, fontSize: 18, color: '#182230' }}/>
   <Button title="Сохранить в карточку" disabled={busy || !draft || !text.trim() || saved} onPress={() => void save()}/>
-  <Button title="К карточке" onPress={onBack}/>
+  <Button title={backLabel} variant="ghost" onPress={onBack}/>
  </Screen>;
 }

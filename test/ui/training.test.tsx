@@ -37,7 +37,7 @@ test('hardware_back_leaves_training_after_card_return_and_cancels_question', asy
         fireEvent.press(screen.getByRole('button', { name: 'Тренировка' }));
         fireEvent.press(await screen.findByTestId('training-vocabulary-start'));
         fireEvent.press(await screen.findByRole('button', { name: 'Открыть карточку' }));
-        fireEvent.press(await screen.findByRole('button', { name: 'Назад в словарь' }));
+        fireEvent.press(await screen.findByRole('button', { name: 'Вернуться к тренировке' }));
         await screen.findByRole('button', { name: 'Открыть карточку' });
         const session = (await h.sessions.resume(p.id))!;
         const q = session.currentQuestion!;

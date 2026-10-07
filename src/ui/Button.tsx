@@ -24,7 +24,7 @@ export function Button({
       onPress={onPress}
       style={[styles.button, styles[variant], disabled && styles.disabled]}
     >
-      <Text style={styles.text}>{title}</Text>
+      <Text style={[styles.text, styles[`${variant}Text`]]}>{title}</Text>
     </Pressable>
   );
 }
@@ -42,5 +42,8 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: theme.muted },
   ghost: { backgroundColor: "transparent", borderWidth: 1, borderColor: theme.muted },
   text: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  primaryText: { color: "#fff" },
+  secondaryText: { color: "#fff" },
+  ghostText: { color: theme.foreground },
   disabled: { opacity: 0.45 },
 });

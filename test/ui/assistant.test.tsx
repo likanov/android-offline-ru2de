@@ -137,8 +137,7 @@ test('training_helper_cancels_question_opens_same_word_and_back_returns_to_train
     const session = (await h.sessions.resume(p.id))!;
     expect(session.currentQuestion).toBeNull();
     expect((await h.profile(p.id))!.xp).toBe(0);
-    fireEvent.press(screen.getByRole('button', { name: 'К карточке' }));
-    fireEvent.press(await screen.findByRole('button', { name: 'Назад в словарь' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Вернуться к тренировке' }));
     await screen.findByRole('button', { name: 'Открыть карточку' });
     expect((await h.sessions.resume(p.id))!.currentQuestion).not.toBeNull();
     view.unmount();

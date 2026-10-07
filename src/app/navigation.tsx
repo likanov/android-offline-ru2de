@@ -72,6 +72,8 @@ function NavigationRoutes({ dictionaryViewState, onDictionaryViewStateChange }: 
             void navigate({ screen: 'grammar-training', grammarSelection: route.grammarSelection, grammarAttemptId: route.grammarAttemptId });
         } else if (route.screen === 'grammar-training' || route.screen === 'training-home') {
             void navigate({ screen: 'training-home' });
+        } else if (route.screen === 'assistant' && route.wordId && route.fromTraining) {
+            void navigate({ screen: 'training', mode: route.mode, wordIds: route.wordIds });
         } else if (route.screen === 'assistant' && route.wordId) {
             void navigate({ ...route, screen: 'card' });
         } else if (route.screen === 'editor' && route.wordId) {
@@ -104,7 +106,7 @@ function NavigationRoutes({ dictionaryViewState, onDictionaryViewStateChange }: 
     else if (!profile)
         content = <Text>Сначала выберите профиль</Text>;
     else if (route.screen === 'assistant')
-        content = <AssistantScreen db={db} profileId={profile.id} wordId={route.wordId!} assistant={getMemoryAssistant(app)} onModelSetup={() => void navigate({screen:'model'})} onBack={back}/>;
+        content = <AssistantScreen db={db} profileId={profile.id} wordId={route.wordId!} assistant={getMemoryAssistant(app)} backLabel={route.fromTraining ? 'Вернуться к тренировке' : 'К карточке'} onModelSetup={() => void navigate({screen:'model'})} onBack={back}/>;
     else if (route.screen === 'error-explanation')
         content = <ErrorExplanationScreen profileId={profile.id} attemptId={route.attemptId!} assistant={getMemoryAssistant(app)} onModelSetup={() => void navigate({screen:'model'})} onBack={back}/>;
     else if (route.screen === 'grammar-explanation')
@@ -136,7 +138,7 @@ function NavigationRoutes({ dictionaryViewState, onDictionaryViewStateChange }: 
     else if (route.screen === 'editor')
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
-        content = <WordCardScreen db={db} profileId={profile.id} profileName={profile.name} wordId={route.wordId!} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', practiceKind: 'cloze', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
+        content = <WordCardScreen db={db} profileId={profile.id} profileName={profile.name} wordId={route.wordId!} backLabel={route.fromTraining ? 'Вернуться к тренировке' : 'Назад в словарь'} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', practiceKind: 'cloze', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
     const active = ['card', 'editor', 'assistant', 'error-explanation', 'grammar-explanation', 'practice'].includes(route.screen)
         ? route.fromTraining ? 'training' : 'dictionary'
         : (['training-home', 'grammar-training', 'grammar-reference'].includes(route.screen) ? 'training' : route.screen as React.ComponentProps<typeof NavigationMenu>['active']);
