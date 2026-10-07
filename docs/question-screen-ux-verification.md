@@ -1,6 +1,6 @@
 # Проверка UX экрана вопроса
 
-Изменения реализованы в ветке `question-screen-ux` на commit `9edf814`.
+Изменения реализованы в ветке `question-screen-ux` на commit `143a3a2`.
 
 Проверено на host:
 
