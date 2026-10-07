@@ -51,6 +51,42 @@ export function validateDictionaryUxEvidence(report) {
   }
   return { ok: errors.length === 0, errors };
 }
+const QUESTION_UI_SCENARIOS = [
+  'question-ui.word-typing',
+  'question-ui.grammar-typing',
+  'question-ui.practice-typing',
+  'question-ui.error-help-return',
+  'question-ui.large-font-background',
+];
+export function validateQuestionUiEvidence(report) {
+  const errors = [];
+  const require = (condition, message) => { if (!condition) errors.push(message); };
+  const artifact = path => typeof path === 'string' && existsSync(path) && statSync(path).isFile() && statSync(path).size > 0;
+  const apkSha256 = report?.apk?.sha256;
+  require(/^[a-f0-9]{64}$/.test(apkSha256 ?? ''), 'QUESTION_UI_APK_SHA256_MISSING');
+  for (const id of QUESTION_UI_SCENARIOS) {
+    const item = report?.questionUi?.[id];
+    require(item && item.apkSha256 === apkSha256, `QUESTION_UI_APK_SHA256_MISMATCH:${id}`);
+    const captures = Array.isArray(item?.captures) ? item.captures : [];
+    for (const step of ['keyboard-closed', 'keyboard-open', 'after-submit']) {
+      const matches = captures.filter(capture => capture?.step === step);
+      require(matches.length === 1, `QUESTION_UI_CAPTURE_MISSING:${id}:${step}`);
+      const capture = matches[0];
+      if (!capture) continue;
+      require(artifact(capture.screenshot) && artifact(capture.hierarchy), `QUESTION_UI_ARTIFACT_MISSING:${id}:${step}`);
+      require(Number.isFinite(capture.viewport?.top) && Number.isFinite(capture.viewport?.bottom), `QUESTION_UI_VIEWPORT_MISSING:${id}:${step}`);
+      require(capture.submit && Number.isFinite(capture.submit.top) && Number.isFinite(capture.submit.bottom), `QUESTION_UI_SUBMIT_GEOMETRY_MISSING:${id}:${step}`);
+      if (step === 'keyboard-open') {
+        require(capture.keyboard?.visible === true && Number.isFinite(capture.keyboard?.top), `QUESTION_UI_KEYBOARD_MISSING:${id}`);
+        require(capture.input && Number.isFinite(capture.input.top) && Number.isFinite(capture.input.bottom), `QUESTION_UI_INPUT_MISSING:${id}`);
+        if (capture.input && Number.isFinite(capture.keyboard?.top)) require(capture.input.bottom <= capture.keyboard.top, `QUESTION_UI_INPUT_OVERLAPS_KEYBOARD:${id}`);
+        if (capture.submit && Number.isFinite(capture.keyboard?.top)) require(capture.submit.bottom <= capture.keyboard.top, `QUESTION_UI_SUBMIT_OVERLAPS_KEYBOARD:${id}`);
+      }
+      if (step === 'after-submit') require(capture.keyboard?.visible !== true || !Number.isFinite(capture.keyboard?.top) || capture.submit.bottom <= capture.keyboard.top, `QUESTION_UI_RESULT_OVERLAPS_KEYBOARD:${id}`);
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
 export function validateBlockRegressionReport(report, block) {
   const errors=[];
   let row;
@@ -78,6 +114,7 @@ export function validateBlockRegressionReport(report, block) {
   }
   require((report?.crashCount??0)===0&&(report?.anrCount??0)===0,'CRASH_ANR_NOT_VERIFIED');
   if (block === 'dictionary') errors.push(...validateDictionaryUxEvidence(report).errors);
+  if (block === 'question-ui') errors.push(...validateQuestionUiEvidence(report).errors);
   return {ok:errors.length===0,errors};
 }
 export function sha256File(path) { const hash=createHash('sha256'), fd=openSync(path,'r'), buffer=Buffer.alloc(1024*1024); try { let n; while ((n=readSync(fd,buffer,0,buffer.length,null))>0) hash.update(buffer.subarray(0,n)); } finally { closeSync(fd); } return hash.digest('hex'); }
@@ -132,6 +169,7 @@ export function validateRegressionReport(report) {
     require(provenance?.commit===report.upgrade.previousCommit && provenance.sha256===report.upgrade.apkSha256 && provenance.sourceMapVerified===true,'UPGRADE_PROVENANCE_INVALID');
   }
   if (report?.dictionaryUx) errors.push(...validateDictionaryUxEvidence(report).errors);
+  if (report?.questionUi) errors.push(...validateQuestionUiEvidence(report).errors);
   return {ok:errors.length===0,errors};
 }
 if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
