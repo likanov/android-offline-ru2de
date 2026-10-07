@@ -6,20 +6,23 @@ export function Button({
   testID,
   onPress,
   disabled = false,
+  variant = "primary",
 }: {
   title: string;
   testID?: string;
   onPress(): void;
   disabled?: boolean;
+  variant?: "primary" | "secondary" | "ghost";
 }) {
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={title}
+      accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
-      style={[styles.button, disabled && styles.disabled]}
+      style={[styles.button, styles[variant], disabled && styles.disabled]}
     >
       <Text style={styles.text}>{title}</Text>
     </Pressable>
@@ -27,11 +30,17 @@ export function Button({
 }
 const styles = StyleSheet.create({
   button: {
+    minHeight: 48,
+    justifyContent: "center",
     backgroundColor: theme.primary,
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderRadius: 12,
     marginVertical: 4,
   },
+  primary: { backgroundColor: theme.primary },
+  secondary: { backgroundColor: theme.muted },
+  ghost: { backgroundColor: "transparent", borderWidth: 1, borderColor: theme.muted },
   text: { color: "#fff", fontSize: 16, fontWeight: "600" },
   disabled: { opacity: 0.45 },
 });
