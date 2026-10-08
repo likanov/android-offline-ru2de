@@ -24,5 +24,14 @@ export function validateLektion2Question(question:Lektion2ClozeQuestion|GrammarS
  const variantIndex=templates.findIndex(t=>t.id===question.templateId);
  if(variantIndex<0) throw new Error('GRAMMAR_QUESTION_INVALID');
  const trusted=makeLektion2Question({...question,variantIndex,words:[]});
- if(JSON.stringify(Object.entries(question).sort(([a],[b])=>a.localeCompare(b)))!==JSON.stringify(Object.entries(trusted).sort(([a],[b])=>a.localeCompare(b)))) throw new Error('GRAMMAR_QUESTION_INVALID');
+ // Persisted choice order is part of the learner's snapshot. UUID remapping
+ // changes the factory shuffle seed, so compare trusted options independent of order.
+ const canonical=(q:Lektion2ClozeQuestion|GrammarSentenceQuestion)=>{
+  if(q.presentation==='cloze'){
+   if(!Array.isArray(q.options)) throw new Error('GRAMMAR_QUESTION_INVALID');
+   return {...q,options:[...q.options].sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))};
+  }
+  return q;
+ };
+ if(JSON.stringify(Object.entries(canonical(question)).sort(([a],[b])=>a.localeCompare(b)))!==JSON.stringify(Object.entries(canonical(trusted)).sort(([a],[b])=>a.localeCompare(b)))) throw new Error('GRAMMAR_QUESTION_INVALID');
 }

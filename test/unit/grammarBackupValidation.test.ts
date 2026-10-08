@@ -53,3 +53,9 @@ test('v2_cannot_smuggle_catalog2', () => {
   value.grammar.progress.push({ profileId, targetId: lektion2Targets[0].id as never, state: { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 }, attemptCount: 0, variantIndex: 0 });
   expect(() => validateGrammarProfile(value)).toThrow();
 });
+
+test.each(['professions-pronoun', 'professions-sein', 'demonstrative-statement', 'yesno-transform', 'yesno-translation'] as const)('v2_rejects_empty_catalog2_lesson_%s', lesson => {
+ const value=part();
+ value.grammar.sessions.push({id:'00000000-0000-4000-8000-000000000003',profileId,selection:{mode:'study',lesson:lesson as never,targetIds:[]},targetIds:[],cursor:0,currentQuestion:null,result:null,status:'cancelled'});
+ expect(()=>validateGrammarProfile(value)).toThrow();
+});

@@ -27,3 +27,13 @@ test('new_choices_are_german_only_and_distractors_are_wrong',()=>{
   }
  }
 });
+
+test('saved_cloze_option_permutations_remain_valid_after_attempt_remap', () => {
+ const q=makeGrammarQuestion({...input,responseMode:'choice',targetId:'professions-pronoun:ich',variantIndex:0});
+ if(q.catalogVersion!==2 || q.presentation!=='cloze') throw new Error('Expected cloze');
+ const saved={...q,attemptId:'restored-attempt',options:[...q.options].reverse()};
+ expect(()=>validateGrammarQuestion(saved)).not.toThrow();
+ for(const options of [saved.options.map((o,i)=>i===0?{...o,label:'Falsch'}:o),saved.options.map((o,i)=>i===0?{...o,id:'seid' as const}:o),[saved.options[0],saved.options[0],...saved.options.slice(2)]]) {
+  expect(()=>validateGrammarQuestion({...saved,options})).toThrow('GRAMMAR_QUESTION_INVALID');
+ }
+});

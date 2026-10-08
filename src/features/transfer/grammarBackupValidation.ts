@@ -88,6 +88,7 @@ export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2, 
     if (session.status === 'active' && session.currentQuestion === null && session.result !== null) invalid();
     if (session.currentQuestion === null && session.result !== null) invalid();
     const lesson = session.selection.lesson;
+    if (!context.catalogVersions.includes(2) && !['mixed', 'pronouns', 'sein'].includes(lesson)) invalid();
     for (const id of [...session.targetIds, ...(session.selection.targetIds ?? [])]) {
       const target = getGrammarTarget(id);
       if (lesson === 'mixed' ? target.catalogVersion !== 1 : target.kind !== (lesson === 'pronouns' ? 'pronoun-cloze' : lesson === 'sein' ? 'sein-cloze' : lesson)) invalid();

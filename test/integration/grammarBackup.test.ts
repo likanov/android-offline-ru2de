@@ -1,3 +1,5 @@
+import type * as crypto from 'expo-crypto';
+import { makeGrammarQuestion } from '../../src/features/grammar/grammarQuestionFactory';
 import { validateBackupV2 } from '../../src/features/transfer/backupValidation';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import type { GrammarQuestion, GrammarSubmission } from '../../src/features/grammar/grammarTypes';
@@ -189,4 +191,49 @@ test('v2_cannot_smuggle_catalog2_even_with_legacy_container', async () => {
     expect(() => h.backup.preview(JSON.stringify(legacy))).toThrow();
     expect((await h.backup.exportAll()).profiles).toHaveLength(1);
   } finally { h.close(); }
+});
+
+
+test('mixed_catalog_graph_roundtrips_active_cloze_and_sentence_with_deterministic_uuid_remap', async () => {
+ const {h,backup:sentenceBackup}=await mixedCatalogFixture();
+ let spy: jest.SpyInstance | undefined;
+ try {
+  const clozeProfile=await createProfile(h.db,'Выбор профессии');
+  const session=(await h.grammarSessions.start(clozeProfile.id,{mode:'study',lesson:'professions-pronoun',targetIds:['professions-pronoun:ich']},day))!;
+  const cloze=(await h.grammarSessions.next(clozeProfile.id,session.id,day))!;
+  if(cloze.catalogVersion!==2 || cloze.presentation!=='cloze') throw new Error('Expected cloze');
+  const backup=await h.backup.exportAll();
+  expect(backup.profiles[0]).toEqual(sentenceBackup.profiles[0]);
+  const sourceIds=[...new Set(backup.profiles.flatMap(p=>[p.profile.id,...p.words.map(w=>w.id),...p.topics.map(t=>t.id),...p.aids.map(a=>a.id),...p.sessions.map(s=>s.id),...p.questions.map(q=>q.attemptId),...p.attempts.map(a=>a.attemptId),...p.grammar.sessions.map(s=>s.id),...p.grammar.questions.map(q=>q.question.attemptId),...p.grammar.attempts.map(a=>a.result.attemptId)]))];
+  const originalOptions=cloze.options;
+  let counter=1000;
+  function retainsOriginalShuffle(attemptId: string): boolean {
+   const q=makeGrammarQuestion({...cloze,attemptId,variantIndex:0,words:[]});
+   return q.catalogVersion===2 && q.presentation==='cloze' && JSON.stringify(q.options)===JSON.stringify(originalOptions);
+  }
+  const mapped=sourceIds.map(id=>{
+   let replacement: string;
+   do { replacement=`00000000-0000-4000-8000-${String(counter++).padStart(12,'0')}`; }
+   while(id===cloze.attemptId && retainsOriginalShuffle(replacement));
+   return replacement;
+  });
+  let call=0;
+  spy=jest.spyOn(jest.requireMock('expo-crypto') as typeof crypto,'randomUUID').mockImplementation(()=>mapped[call++] as ReturnType<typeof crypto.randomUUID>);
+  const restored=await h.backup.restore(h.backup.preview(JSON.stringify(backup)));
+  spy.mockRestore(); spy=undefined;
+  const all=await h.backup.exportAll();
+  const restoredParts=restored.profileIds.map(id=>all.profiles.find(p=>p.profile.id===id)!);
+  expect(withoutRemappedIds(restoredParts)).toEqual(withoutRemappedIds(backup.profiles));
+  const resumed=(await h.grammarSessions.resume(restored.profileIds[1]))!;
+  const restoredCloze=resumed.currentQuestion!;
+  if(restoredCloze.catalogVersion!==2 || restoredCloze.presentation!=='cloze') throw new Error('Expected cloze');
+  expect(restoredCloze.attemptId).toBe(mapped[sourceIds.indexOf(cloze.attemptId)]);
+  expect(restoredCloze.options).toEqual(cloze.options);
+  const shuffled=makeGrammarQuestion({...restoredCloze,variantIndex:0,words:[]});
+  if(shuffled.catalogVersion!==2 || shuffled.presentation!=='cloze') throw new Error('Expected cloze');
+  expect(shuffled.options).not.toEqual(cloze.options);
+  await h.db.run('UPDATE app_settings SET activeProfileId=? WHERE id=1',[restored.profileIds[1]]);
+  const result=await h.grammarAnswers.submit(restored.profileIds[1],resumed.id,restoredCloze.attemptId,answer(restoredCloze),day);
+  expect(result.right).toBe(true);
+ } finally {spy?.mockRestore();h.close();}
 });
