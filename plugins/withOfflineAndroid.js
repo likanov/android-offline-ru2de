@@ -1,6 +1,12 @@
-const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
+const { withAndroidManifest, withDangerousMod, withGradleProperties } = require('expo/config-plugins');
 // Expo restores alarms at boot, but does not listen for timezone/time changes.
 module.exports = function withOfflineAndroid(config) {
+  config = withGradleProperties(config, config => {
+    const properties = config.modResults.filter(item => item.key !== 'rnllamaBuildFromSource');
+    properties.push({ type: 'property', key: 'rnllamaBuildFromSource', value: 'true' });
+    config.modResults = properties;
+    return config;
+  });
   config = withDangerousMod(config, ['android', async config => {
     const fs = require('node:fs/promises');
     const path = require('node:path');

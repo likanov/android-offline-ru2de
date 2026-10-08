@@ -39,7 +39,7 @@ export function inspectApk(path) {
   const assets = tool('python3', ['-c', `import sys,zipfile,hashlib,json
 with zipfile.ZipFile(sys.argv[1]) as z:
  names=z.namelist()
- print(json.dumps({'jsBundle':'assets/index.android.bundle' in names,'audioSha256':[hashlib.sha256(z.read(n)).hexdigest() for n in names if n.endswith('.wav')]}))`, path]);
+ print(json.dumps({'jsBundle':'assets/index.android.bundle' in names,'nativeLibraries':[n for n in names if n.startswith('lib/') and n.endswith('.so')],'audioSha256':[hashlib.sha256(z.read(n)).hexdigest() for n in names if n.endswith('.wav')]}))`, path]);
   const errors = [];
   if (signature.status !== 0) errors.push('APK_SIGNATURE_INVALID');
   if (permissions.status !== 0 || badging.status !== 0 || assets.status !== 0) errors.push('APK_INSPECTION_INVALID');
@@ -106,6 +106,10 @@ export function verifyRelease(bundle, { expectedModel = EXPECTED_MODEL, inspectA
     require(inspection.certificateSha256 === EXPECTED_CERTIFICATE, 'APK_CERTIFICATE_MISMATCH');
     require(inspection.applicationId === 'com.personal.germanvocabulary', 'APK_APPLICATION_ID_MISMATCH');
     require(inspection.abi?.includes('arm64-v8a'), 'APK_PIXEL_ABI_MISSING');
+    for (const abi of inspection.abi ?? []) for (const name of ['librnllama.so', 'librnllama_jni.so']) {
+      const path = `lib/${abi}/${name}`;
+      require(inspection.nativeLibraries?.includes(path), 'APK_MODEL_NATIVE_LIBRARY_MISSING:' + path);
+    }
     require(!inspection.permissions?.includes('android.permission.INTERNET'), 'APK_HAS_INTERNET');
     require(inspection.jsBundle === true, 'APK_JS_MISSING');
     require(inspection.audioSha256?.length === 40 && expectedAudio.recordings.every(row => inspection.audioSha256.filter(hash => hash === row.sha256).length === 1), 'APK_AUDIO_MISMATCH');

@@ -54,7 +54,7 @@ function fixture(t) {
   ].map(([command, log]) => { put(dir, log, 'Synthetic successful host command: ' + command); return { command, exitCode: 0, log }; }) };
   const audio = JSON.parse(readFileSync(join(dir, 'audio/manifest.json')));
   // Native Android tools are the external boundary; these tests exercise real filesystem/hash/report validation.
-  const inspection = { certificateSha256: certificate, applicationId: manifest.applicationId, versionName: '0.1.0', versionCode: '1', abi: ['arm64-v8a'], signedV2: true, permissions: [], jsBundle: true, audioSha256: audio.recordings.map(row => row.sha256) };
+  const inspection = { certificateSha256: certificate, applicationId: manifest.applicationId, versionName: '0.1.0', versionCode: '1', abi: ['arm64-v8a'], nativeLibraries: ['lib/arm64-v8a/librnllama.so', 'lib/arm64-v8a/librnllama_jni.so'], signedV2: true, permissions: [], jsBundle: true, audioSha256: audio.recordings.map(row => row.sha256) };
   function save() {
     put(dir, 'regression/report.json', report); put(dir, 'device-acceptance.json', acceptance); put(dir, 'verification/report.json', host);
     const walk = path => readdirSync(path, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(join(path, entry.name)) : [join(path, entry.name)]);
@@ -210,3 +210,6 @@ test('fresh host checks cannot certify an older successful APK and regression ag
   assert.ok(result.errors.includes('APK_BUILD_COMMIT_MISMATCH'));
   assert.equal(JSON.parse(readFileSync(join(output, 'release-manifest.json'))).status, 'blocked');
 });
+
+test('rejects arm64 APK with no llama engine even when React Native libraries exist', t => { const f = fixture(t); f.inspection.nativeLibraries = ['lib/arm64-v8a/libreactnative.so']; rejects(f, 'APK_MODEL_NATIVE_LIBRARY_MISSING:lib/arm64-v8a/librnllama.so'); });
+test('rejects arm64 APK with engine but missing JNI fallback', t => { const f = fixture(t); f.inspection.nativeLibraries = ['lib/arm64-v8a/librnllama.so']; rejects(f, 'APK_MODEL_NATIVE_LIBRARY_MISSING:lib/arm64-v8a/librnllama_jni.so'); });

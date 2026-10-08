@@ -35,6 +35,12 @@ ASSET_LIST=$(mktemp "${TMPDIR:-/tmp}/vocabulary-assets.XXXXXX")
 trap 'rm -f "$BADGING_FILE" "$ASSET_LIST"' EXIT INT HUP TERM
 "$TOOLS/aapt" list "$APK" > "$ASSET_LIST"
 grep -qx 'assets/index.android.bundle' "$ASSET_LIST" || { echo 'RELEASE_JS_MISSING' >&2; exit 1; }
+for LIB_ABI in $(printf '%s' "${VOCABULARY_ABI:-$ABI}" | tr ',' ' '); do
+  for LIB_NAME in librnllama.so librnllama_jni.so; do
+    LIB_PATH="lib/$LIB_ABI/$LIB_NAME"
+    grep -Fqx "$LIB_PATH" "$ASSET_LIST" || { echo "RELEASE_MODEL_NATIVE_LIBRARY_MISSING:$LIB_PATH" >&2; exit 1; }
+  done
+done
 WAV_COUNT=$(grep -c '\.wav$' "$ASSET_LIST" || true)
 if [ "$WAV_COUNT" -ne 40 ]; then echo "EXPECTED_40_WAV_GOT_$WAV_COUNT" >&2; exit 1; fi
 SHA256=$(openssl dgst -sha256 -r "$APK" | awk '{print $1}')
