@@ -1,8 +1,10 @@
+import { getGrammarServices } from '../../src/app/AppServices';
+import { GrammarAnswerError } from '../../src/features/grammar/grammarAnswerService';
 import { makeGrammarQuestion } from "../../src/features/grammar/grammarQuestionFactory";
 import { GrammarQuestionView } from "../../src/features/grammar/GrammarQuestionView";
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { createGrammarHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import { TrainingHomeScreen } from '../../src/features/learning/TrainingHomeScreen';
@@ -147,4 +149,47 @@ test('german_only_options_before_feedback',()=>{
   expect(screen.queryByText(question.feedback.translationRu)).toBeNull();
   expect(screen.queryByTestId('grammar-result')).toBeNull();
  } finally {view.unmount();}
+});
+
+
+test('stale_submit_recovery_reenables_new_question_without_old_feedback', async () => {
+ const h=await createGrammarHarness(); const p=await createProfile(h.db,'A');
+ const services=getGrammarServices({db:h.db});
+ let rejectSubmit!:(error:Error)=>void;
+ const submit=jest.spyOn(services.answers,'submit').mockImplementationOnce(()=>new Promise((_resolve,reject)=>{rejectSubmit=reject;}));
+ const view=render(<GrammarTrainingScreen db={h.db} profileId={p.id} today="2026-10-08" selection={{mode:'study',lesson:'yesno-transform',targetIds:['yesno-transform:noun']}} onReference={jest.fn()} onExplainError={jest.fn()} />);
+ try {
+  fireEvent.changeText(await screen.findByTestId('grammar-answer-input'),'Ist das Buch neu?');
+  const old=(await services.sessions.resume(p.id))!;
+  fireEvent.press(screen.getByTestId('grammar-submit'));
+  expect(screen.getByTestId('grammar-answer-input')).toHaveProp('editable',false);
+  await services.sessions.cancelQuestion(p.id,old.id);
+  await act(async()=>{rejectSubmit(new GrammarAnswerError('GRAMMAR_QUESTION_STALE','stale'));});
+  await waitFor(()=>expect(screen.getByTestId('grammar-answer-input')).toHaveProp('editable',true));
+  expect(screen.queryByTestId('grammar-result')).toBeNull();
+  expect(screen.getByTestId('grammar-answer-input')).toHaveProp('value','');
+  expect((await services.sessions.resume(p.id))!.currentQuestion!.attemptId).not.toBe(old.currentQuestion!.attemptId);
+  fireEvent.changeText(screen.getByTestId('grammar-answer-input'),'Ist das Buch neu?');
+  fireEvent.press(screen.getByTestId('grammar-submit')); await screen.findByTestId('grammar-result');
+  expect(submit).toHaveBeenCalledTimes(2);
+ } finally {view.unmount();submit.mockRestore();h.close();}
+});
+
+test.each(['profile','day'] as const)('pending_submit_does_not_leak_feedback_after_%s_change',async change=>{
+ const h=await createGrammarHarness();const a=await createProfile(h.db,'A'); const services=getGrammarServices({db:h.db});
+ let resolveSubmit!:(value:Awaited<ReturnType<typeof services.answers.submit>>)=>void;
+ const submit=jest.spyOn(services.answers,'submit').mockImplementationOnce(()=>new Promise(resolve=>{resolveSubmit=resolve;}));
+ const props={db:h.db,selection:{mode:'study' as const,lesson:'yesno-transform' as const,targetIds:['yesno-transform:noun' as const]},onReference:jest.fn(),onExplainError:jest.fn()};
+ const view=render(<GrammarTrainingScreen {...props} profileId={a.id} today="2026-10-08" />);
+ try {
+  fireEvent.changeText(await screen.findByTestId('grammar-answer-input'),'Ist das Buch neu?');
+  const old=(await services.sessions.resume(a.id))!.currentQuestion!;
+  fireEvent.press(screen.getByTestId('grammar-submit'));
+  const b=change==='profile'?await createProfile(h.db,'B'):a;
+  view.rerender(<GrammarTrainingScreen {...props} profileId={b.id} today={change==='day'?'2026-10-09':'2026-10-08'} />);
+  await waitFor(()=>expect(screen.getByTestId('grammar-answer-input')).toHaveProp('editable',true));
+  await act(async()=>resolveSubmit({attemptId:old.attemptId,targetId:old.targetId,right:true,xpDelta:10,submittedAnswer:{kind:'typed',text:'Ist das Buch neu?'},state:{streak:1,mastered:false,masteryBonusGranted:false,reviewStage:0,dueDay:null,difficult:false,totalErrors:0,recoveryErrors:0,recoveryCorrect:0}}));
+  expect(screen.queryByTestId('grammar-result')).toBeNull();
+  expect(screen.getByTestId('grammar-answer-input')).toHaveProp('editable',true);
+ } finally {view.unmount();submit.mockRestore();h.close();}
 });
