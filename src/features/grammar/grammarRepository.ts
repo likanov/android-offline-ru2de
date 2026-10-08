@@ -1,3 +1,4 @@
+import { allGrammarTargets, getGrammarTarget, getGrammarVariantCount } from './grammarCatalog';
 import type { SqlExecutor, SqlStore } from '../../core/sql';
 import type { LearningState } from '../learning/learningTypes';
 import type { GrammarProgress, GrammarTargetId } from './grammarTypes';
@@ -31,7 +32,8 @@ type ProgressRow = {
 async function requireProfileAndTarget(tx: SqlExecutor, profileId: string, targetId: GrammarTargetId): Promise<void> {
   if (!await tx.first('SELECT id FROM profiles WHERE id=?', [profileId]))
     throw new GrammarRepositoryError('WRONG_PROFILE', 'Профиль не найден');
-  if (!await tx.first('SELECT id FROM grammar_targets WHERE id=? AND catalogVersion=1', [targetId]))
+  const target=allGrammarTargets.find(item=>item.id===targetId);
+  if (!target || !await tx.first('SELECT id FROM grammar_targets WHERE id=? AND catalogVersion=?', [targetId, target.catalogVersion]))
     throw new GrammarRepositoryError('NOT_FOUND', 'Грамматическая цель не найдена');
 }
 
@@ -44,11 +46,12 @@ export async function readGrammarProgress(tx: SqlExecutor, profileId: string, ta
 
 export async function writeGrammarProgress(tx: SqlExecutor, profileId: string, progress: GrammarProgress): Promise<void> {
   await requireProfileAndTarget(tx, profileId, progress.targetId);
+  if (!Number.isInteger(progress.variantIndex) || progress.variantIndex<0 || progress.variantIndex>=getGrammarVariantCount(progress.targetId)) throw new GrammarRepositoryError('VALIDATION', 'Некорректный вариант');
   const s = progress.state;
   await tx.run(`INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex)
-    VALUES (?,?,1,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(profileId,targetId) DO UPDATE SET catalogVersion=excluded.catalogVersion,streak=excluded.streak,mastered=excluded.mastered,masteryBonusGranted=excluded.masteryBonusGranted,reviewStage=excluded.reviewStage,dueDay=excluded.dueDay,difficult=excluded.difficult,totalErrors=excluded.totalErrors,recoveryErrors=excluded.recoveryErrors,recoveryCorrect=excluded.recoveryCorrect,attemptCount=excluded.attemptCount,variantIndex=excluded.variantIndex`,
-  [profileId,progress.targetId,s.streak,s.mastered?1:0,s.masteryBonusGranted?1:0,s.reviewStage,s.dueDay,s.difficult?1:0,s.totalErrors,s.recoveryErrors,s.recoveryCorrect,progress.attemptCount,progress.variantIndex]);
+  [profileId,progress.targetId,getGrammarTarget(progress.targetId).catalogVersion,s.streak,s.mastered?1:0,s.masteryBonusGranted?1:0,s.reviewStage,s.dueDay,s.difficult?1:0,s.totalErrors,s.recoveryErrors,s.recoveryCorrect,progress.attemptCount,progress.variantIndex]);
 }
 
 export class GrammarRepository {

@@ -2,23 +2,28 @@ import { NotFoundError } from '../../core/errors';
 import { addDays } from '../../core/calendar';
 import type { SqlStore } from '../../core/sql';
 import type { DayKey } from '../learning/learningTypes';
-import type { GrammarKind } from './grammarTypes';
+import type { GrammarTarget } from './grammarTypes';
 
 export type GrammarProgressSummary = {
   mastered: number;
   totalTargets: number;
   dueCount: number;
   difficultCount: number;
-  skills: Record<GrammarKind, { correct: number; errors: number }>;
+  skills: Record<GrammarTarget['kind'], { correct: number; errors: number }>;
 };
 
 type CountRow = { mastered: number; dueCount: number; difficultCount: number };
-type SkillRow = { kind: GrammarKind; correct: number; errors: number };
+type SkillRow = { kind: GrammarTarget['kind']; correct: number; errors: number };
 
 function emptySkills(): GrammarProgressSummary['skills'] {
   return {
     'pronoun-cloze': { correct: 0, errors: 0 },
     'sein-cloze': { correct: 0, errors: 0 },
+    'professions-pronoun': { correct: 0, errors: 0 },
+    'professions-sein': { correct: 0, errors: 0 },
+    'demonstrative-statement': { correct: 0, errors: 0 },
+    'yesno-transform': { correct: 0, errors: 0 },
+    'yesno-translation': { correct: 0, errors: 0 },
   };
 }
 
@@ -31,7 +36,7 @@ export class GrammarProgressRepository {
       throw new NotFoundError('Профиль не найден');
     }
     const targets = await this.db.first<{ totalTargets: number }>(
-      'SELECT COUNT(*) AS totalTargets FROM grammar_targets WHERE catalogVersion=1',
+      'SELECT COUNT(*) AS totalTargets FROM grammar_targets',
     );
     const counts = await this.db.first<CountRow>(
       `SELECT
@@ -48,7 +53,7 @@ export class GrammarProgressRepository {
               COALESCE(SUM(CASE WHEN a.right=1 THEN 1 ELSE 0 END),0) AS correct,
               COALESCE(SUM(CASE WHEN a.right=0 THEN 1 ELSE 0 END),0) AS errors
        FROM grammar_attempts a
-       JOIN grammar_targets t ON t.id=a.targetId AND t.catalogVersion=1
+       JOIN grammar_targets t ON t.id=a.targetId
        WHERE a.profileId=?
        GROUP BY t.kind`,
       [profileId],

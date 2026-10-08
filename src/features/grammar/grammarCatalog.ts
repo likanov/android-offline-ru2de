@@ -42,8 +42,9 @@ export const lektion2Targets: readonly Lektion2Target[] = [
   {"id": "yesno-translation:sie_formal", "kind": "yesno-translation", "pronounId": "sie_formal", "labelRu": "Вежливое обращение.", "catalogVersion": 2},
   {"id": "yesno-translation:noun", "kind": "yesno-translation", "pronounId": null, "labelRu": "Вопрос с существительным", "catalogVersion": 2},
  ];
+export const allGrammarTargets: readonly GrammarTarget[] = [...grammarTargets, ...lektion2Targets];
 export function getGrammarTarget(id:GrammarTargetId):GrammarTarget {
-  const target = [...grammarTargets, ...lektion2Targets].find(t=>t.id===id);
+  const target = allGrammarTargets.find(t=>t.id===id);
   if (!target) throw new Error('GRAMMAR_TARGET_INVALID');
   return target;
 }

@@ -1,3 +1,4 @@
+import { getGrammarTarget, getGrammarVariantCount } from './grammarCatalog';
 import { notifyProfileChanged } from '../../app/refreshBus';
 import type { SqlExecutor, SqlStore } from '../../core/sql';
 import { applyAnswer } from '../learning/learningRules';
@@ -104,7 +105,7 @@ export class GrammarAnswerService {
         && question.profileId===profileId
         && question.sessionId===sessionId
         && session.targetIds.includes(question.targetId)
-        && !!target;
+        && !!target && question.catalogVersion===getGrammarTarget(question.targetId).catalogVersion;
       if (!questionMatches || !await dependenciesAreFresh(tx,question)) {
         await cancelStale(tx,sessionId,attemptId);
         return {kind:'stale'};
@@ -134,7 +135,7 @@ export class GrammarAnswerService {
         ...progress,
         state:transition.state,
         attemptCount:progress.attemptCount+1,
-        variantIndex:(progress.variantIndex+1)%3,
+        variantIndex:(progress.variantIndex+1)%getGrammarVariantCount(question.targetId),
       };
       const result:GrammarAttemptResult={
         attemptId,

@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { addDays } from '../../core/calendar';
 import type { SqlExecutor, SqlStore } from '../../core/sql';
-import { grammarTargets } from './grammarCatalog';
+import { allGrammarTargets, getGrammarTarget } from './grammarCatalog';
 import { grammarResponseMode, makeGrammarQuestion } from './grammarQuestionFactory';
 import { readGrammarProgress, writeGrammarProgress } from './grammarRepository';
 import type { DayKey, Word } from '../learning/learningTypes';
@@ -29,15 +29,20 @@ async function ownedSession(tx: SqlExecutor, profileId: string, sessionId: strin
   return decodeSession(row);
 }
 
+export function sameGrammarSelection(a: GrammarSelection, b: GrammarSelection): boolean {
+  return a.mode===b.mode && a.lesson===b.lesson && (a.targetIds===undefined || b.targetIds===undefined ? a.targetIds===b.targetIds : new Set(a.targetIds).size===new Set(b.targetIds).size && a.targetIds.every(id=>b.targetIds!.includes(id)));
+}
+
 function validateSelection(selection: GrammarSelection): void {
-  if (!selection || !['study','review'].includes(selection.mode) || !['mixed','pronouns','sein'].includes(selection.lesson))
+  if (!selection || !['study','review'].includes(selection.mode) || !['mixed','pronouns','sein',...allGrammarTargets.filter(t=>t.catalogVersion===2).map(t=>t.kind)].includes(selection.lesson))
     throw new GrammarSessionError('VALIDATION','Неизвестный режим занятия');
   if (selection.targetIds && new Set(selection.targetIds).size!==selection.targetIds.length)
     throw new GrammarSessionError('VALIDATION','Грамматические цели повторяются');
 }
 
 function inLesson(targetId: GrammarTargetId, lesson: GrammarSelection['lesson']): boolean {
-  return lesson==='mixed' || (lesson==='pronouns' && targetId.startsWith('pronoun-cloze:')) || (lesson==='sein' && targetId.startsWith('sein-cloze:'));
+  const target=getGrammarTarget(targetId);
+  return lesson==='mixed' ? target.catalogVersion===1 : lesson==='pronouns' ? target.kind==='pronoun-cloze' : lesson==='sein' ? target.kind==='sein-cloze' : target.kind===lesson;
 }
 
 function eligible(mode: GrammarSelection['mode'], state: Awaited<ReturnType<typeof readGrammarProgress>>['state'], today: DayKey): boolean {
@@ -45,7 +50,7 @@ function eligible(mode: GrammarSelection['mode'], state: Awaited<ReturnType<type
 }
 
 async function questionIsFresh(tx: SqlExecutor, question: GrammarQuestion): Promise<boolean> {
-  if (question.catalogVersion!==1 || !await tx.first('SELECT id FROM grammar_targets WHERE id=? AND catalogVersion=?',[question.targetId,question.catalogVersion])) return false;
+  if (question.catalogVersion!==getGrammarTarget(question.targetId).catalogVersion || !await tx.first('SELECT id FROM grammar_targets WHERE id=? AND catalogVersion=?',[question.targetId,question.catalogVersion])) return false;
   for (const dependency of question.dependencies) {
     const word = await tx.first<Word>('SELECT * FROM words WHERE id=? AND profileId=?',[dependency.wordId,question.profileId]);
     if (!word || (word.revision??1)!==dependency.revision || word.de!==dependency.de || word.ru!==dependency.ru || word.gender!==dependency.gender || word.plural!==dependency.plural) return false;
@@ -61,10 +66,10 @@ export class GrammarSessionRepository {
     return this.db.transaction(async tx => {
       if (!await tx.first('SELECT id FROM profiles WHERE id=?',[profileId])) throw new GrammarSessionError('WRONG_PROFILE','Профиль не найден');
       const requested = selection.targetIds;
-      if (requested?.some(id=>!grammarTargets.some(target=>target.id===id))) throw new GrammarSessionError('NOT_FOUND','Грамматическая цель не найдена');
-      const candidates = grammarTargets.filter(target=>inLesson(target.id,selection.lesson) && (!requested || requested.includes(target.id)));
+      if (requested?.some(id=>!allGrammarTargets.some(target=>target.id===id))) throw new GrammarSessionError('NOT_FOUND','Грамматическая цель не найдена');
+      const candidates = allGrammarTargets.filter(target=>inLesson(target.id,selection.lesson) && (!requested || requested.includes(target.id)));
       const progress = await Promise.all(candidates.map(target=>readGrammarProgress(tx,profileId,target.id)));
-      const order = new Map(grammarTargets.map((target,index)=>[target.id,index]));
+      const order = new Map(allGrammarTargets.map((target,index)=>[target.id,index]));
       const chosen = progress.filter(item=>eligible(selection.mode,item.state,today)).sort((a,b)=>selection.mode==='study'
         ? a.attemptCount-b.attemptCount || order.get(a.targetId)!-order.get(b.targetId)!
         : a.state.dueDay!.localeCompare(b.state.dueDay!) || order.get(a.targetId)!-order.get(b.targetId)!).slice(0,5);

@@ -26,12 +26,12 @@ async function fixture(db:SqlStore) {
 }
 async function snapshot(db:SqlStore) {
  const tables=await db.all<{name:string}>("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
- const rows:Record<string,unknown[]>={};for(const {name} of tables)rows[name]=await db.all(`SELECT * FROM ${name} ORDER BY rowid`);return rows;
+ const rows:Record<string,unknown[]>={};for(const {name} of tables)rows[name]=await db.all(`SELECT * FROM ${name}${name==='grammar_targets'?' WHERE catalogVersion=1':''} ORDER BY rowid`);return rows;
 }
 test('migration_preserves_v6_graph',async()=>{
  const {db,close}=openTestDb();try {
   await fixture(db);const before=await snapshot(db);await migrate(db);
-  expect(await db.first('PRAGMA user_version')).toEqual({user_version:7});
+  expect(await db.first('PRAGMA user_version')).toEqual({user_version:8});
   expect(await snapshot(db)).toEqual(before);expect(await db.all('PRAGMA foreign_key_check')).toEqual([]);
   await migrate(db);expect(await snapshot(db)).toEqual(before);
   const p=(await db.first<{id:string}>('SELECT id FROM profiles'))!;
@@ -50,6 +50,6 @@ test('migration_rolls_back_after_copy_and_rejects_newer_schema',async()=>{
   const failing:SqlStore={...db,schemaTransaction:work=>db.schemaTransaction(tx=>work({...tx,exec:async sql=>{await tx.exec(sql);if(sql.includes('ALTER TABLE words_v7 RENAME'))throw new Error('failure after copy');}}))};
   await expect(migrate(failing)).rejects.toThrow('failure after copy');
   expect(await snapshot(db)).toEqual(before);expect(await db.first('PRAGMA user_version')).toEqual({user_version:6});expect(await db.first('PRAGMA foreign_keys')).toEqual({foreign_keys:1});
-  await db.exec('PRAGMA user_version=8');await expect(migrate(db)).rejects.toThrow('Unsupported');expect(await snapshot(db)).toEqual(before);
+  await db.exec('PRAGMA user_version=9');await expect(migrate(db)).rejects.toThrow('Unsupported');expect(await snapshot(db)).toEqual(before);
  }finally{close();}
 });

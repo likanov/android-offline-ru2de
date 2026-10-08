@@ -46,7 +46,7 @@ test('grammar_summary_is_profile_scoped', async () => {
     expect(await h.progress.summary(first.id, '2026-10-03')).toMatchObject({
       grammar: {
         mastered: 1,
-        totalTargets: 18,
+        totalTargets: 42,
         dueCount: 1,
         difficultCount: 1,
         skills: {
@@ -56,7 +56,7 @@ test('grammar_summary_is_profile_scoped', async () => {
       },
     });
     expect(await h.progress.summary(second.id, '2026-10-03')).toMatchObject({
-      grammar: { mastered: 0, totalTargets: 18, dueCount: 0, difficultCount: 0 },
+      grammar: { mastered: 0, totalTargets: 42, dueCount: 0, difficultCount: 0 },
     });
   } finally {
     h.close();
@@ -75,7 +75,7 @@ test('word_mastery_does_not_include_grammar', async () => {
     expect(after.mastered).toBe(before.mastered + 1);
     expect(after.totalWords).toBe(before.totalWords);
     expect(after.grammar.mastered).toBe(1);
-    expect(after.grammar.totalTargets).toBe(18);
+    expect(after.grammar.totalTargets).toBe(42);
   } finally {
     h.close();
   }
