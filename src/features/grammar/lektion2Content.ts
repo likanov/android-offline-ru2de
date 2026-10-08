@@ -12,7 +12,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ich ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Ich bin Lehrer.",
-    "translationRu": "Я рассказываю о себе. Профессия: учитель.",
+    "translationRu": "Я учитель.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -29,7 +29,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Du ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Du bist Lehrer.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: учитель.",
+    "translationRu": "Ты учитель.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -46,7 +46,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Er ist Lehrer.",
-    "translationRu": "Речь об одном мужчине. Профессия: учитель.",
+    "translationRu": "Он учитель.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -63,7 +63,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Wir sind Lehrer.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: учитель.",
+    "translationRu": "Мы учителя.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -80,7 +80,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Ihr seid Lehrer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: учитель.",
+    "translationRu": "Вы учителя.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -97,7 +97,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Sie sind Lehrer.",
-    "translationRu": "Речь о группе: они. Профессия: учитель.",
+    "translationRu": "Они учителя.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -114,7 +114,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Sie sind Lehrer.",
-    "translationRu": "Вежливое обращение. Профессия: учитель.",
+    "translationRu": "Вы учитель.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -131,7 +131,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ich ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Ich bin Programmierer.",
-    "translationRu": "Я рассказываю о себе. Профессия: программист.",
+    "translationRu": "Я программист.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -148,7 +148,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Du ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Du bist Programmierer.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: программист.",
+    "translationRu": "Ты программист.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -165,7 +165,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Er ist Programmierer.",
-    "translationRu": "Речь об одном мужчине. Профессия: программист.",
+    "translationRu": "Он программист.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -182,7 +182,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Wir sind Programmierer.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: программист.",
+    "translationRu": "Мы программисты.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -199,7 +199,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Ihr seid Programmierer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: программист.",
+    "translationRu": "Вы программисты.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -216,7 +216,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Sie sind Programmierer.",
-    "translationRu": "Речь о группе: они. Профессия: программист.",
+    "translationRu": "Они программисты.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -233,7 +233,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Sie sind Programmierer.",
-    "translationRu": "Вежливое обращение. Профессия: программист.",
+    "translationRu": "Вы программист.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -250,7 +250,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ich ",
     "afterDe": " Designer.",
     "sentenceDe": "Ich bin Designer.",
-    "translationRu": "Я рассказываю о себе. Профессия: дизайнер.",
+    "translationRu": "Я дизайнер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -267,7 +267,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Du ",
     "afterDe": " Designer.",
     "sentenceDe": "Du bist Designer.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: дизайнер.",
+    "translationRu": "Ты дизайнер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -284,7 +284,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Designer.",
     "sentenceDe": "Er ist Designer.",
-    "translationRu": "Речь об одном мужчине. Профессия: дизайнер.",
+    "translationRu": "Он дизайнер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -301,7 +301,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Designer.",
     "sentenceDe": "Wir sind Designer.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: дизайнер.",
+    "translationRu": "Мы дизайнеры.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -318,7 +318,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Designer.",
     "sentenceDe": "Ihr seid Designer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: дизайнер.",
+    "translationRu": "Вы дизайнеры.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -335,7 +335,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Designer.",
     "sentenceDe": "Sie sind Designer.",
-    "translationRu": "Речь о группе: они. Профессия: дизайнер.",
+    "translationRu": "Они дизайнеры.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -352,7 +352,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Designer.",
     "sentenceDe": "Sie sind Designer.",
-    "translationRu": "Вежливое обращение. Профессия: дизайнер.",
+    "translationRu": "Вы дизайнер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -369,7 +369,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ich ",
     "afterDe": " Manager.",
     "sentenceDe": "Ich bin Manager.",
-    "translationRu": "Я рассказываю о себе. Профессия: менеджер.",
+    "translationRu": "Я менеджер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -386,7 +386,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Du ",
     "afterDe": " Manager.",
     "sentenceDe": "Du bist Manager.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: менеджер.",
+    "translationRu": "Ты менеджер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -403,7 +403,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Manager.",
     "sentenceDe": "Er ist Manager.",
-    "translationRu": "Речь об одном мужчине. Профессия: менеджер.",
+    "translationRu": "Он менеджер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -420,7 +420,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Manager.",
     "sentenceDe": "Wir sind Manager.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: менеджер.",
+    "translationRu": "Мы менеджеры.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -437,7 +437,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Manager.",
     "sentenceDe": "Ihr seid Manager.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: менеджер.",
+    "translationRu": "Вы менеджеры.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -454,7 +454,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Manager.",
     "sentenceDe": "Sie sind Manager.",
-    "translationRu": "Речь о группе: они. Профессия: менеджер.",
+    "translationRu": "Они менеджеры.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -471,7 +471,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Manager.",
     "sentenceDe": "Sie sind Manager.",
-    "translationRu": "Вежливое обращение. Профессия: менеджер.",
+    "translationRu": "Вы менеджер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -488,7 +488,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ich ",
     "afterDe": " Sportler.",
     "sentenceDe": "Ich bin Sportler.",
-    "translationRu": "Я рассказываю о себе. Профессия: спортсмен.",
+    "translationRu": "Я спортсмен.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -505,7 +505,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Du ",
     "afterDe": " Sportler.",
     "sentenceDe": "Du bist Sportler.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: спортсмен.",
+    "translationRu": "Ты спортсмен.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -522,7 +522,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Sportler.",
     "sentenceDe": "Er ist Sportler.",
-    "translationRu": "Речь об одном мужчине. Профессия: спортсмен.",
+    "translationRu": "Он спортсмен.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -539,7 +539,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Sportler.",
     "sentenceDe": "Wir sind Sportler.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: спортсмен.",
+    "translationRu": "Мы спортсмены.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -556,7 +556,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Sportler.",
     "sentenceDe": "Ihr seid Sportler.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: спортсмен.",
+    "translationRu": "Вы спортсмены.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -573,7 +573,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Sportler.",
     "sentenceDe": "Sie sind Sportler.",
-    "translationRu": "Речь о группе: они. Профессия: спортсмен.",
+    "translationRu": "Они спортсмены.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -590,7 +590,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Sportler.",
     "sentenceDe": "Sie sind Sportler.",
-    "translationRu": "Вежливое обращение. Профессия: спортсмен.",
+    "translationRu": "Вы спортсмен.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -607,7 +607,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ich ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Ich bin Arbeiter.",
-    "translationRu": "Я рассказываю о себе. Профессия: рабочий.",
+    "translationRu": "Я рабочий.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -624,7 +624,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Du ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Du bist Arbeiter.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: рабочий.",
+    "translationRu": "Ты рабочий.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -641,7 +641,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Er ist Arbeiter.",
-    "translationRu": "Речь об одном мужчине. Профессия: рабочий.",
+    "translationRu": "Он рабочий.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -658,7 +658,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Wir sind Arbeiter.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: рабочий.",
+    "translationRu": "Мы рабочие.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -675,7 +675,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Ihr seid Arbeiter.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: рабочий.",
+    "translationRu": "Вы рабочие.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -692,7 +692,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Sie sind Arbeiter.",
-    "translationRu": "Речь о группе: они. Профессия: рабочий.",
+    "translationRu": "Они рабочие.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -709,7 +709,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Sie sind Arbeiter.",
-    "translationRu": "Вежливое обращение. Профессия: рабочий.",
+    "translationRu": "Вы рабочий.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -726,7 +726,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " bin Sportler.",
     "sentenceDe": "Ich bin Sportler.",
-    "translationRu": "Я рассказываю о себе.",
+    "translationRu": "Я спортсмен.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -743,7 +743,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Manager.",
     "sentenceDe": "Wir sind Manager.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе.",
+    "translationRu": "Мы менеджеры.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -760,7 +760,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " seid Designer.",
     "sentenceDe": "Ihr seid Designer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты».",
+    "translationRu": "Вы дизайнеры.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -777,7 +777,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " ist Lehrer.",
     "sentenceDe": "Er ist Lehrer.",
-    "translationRu": "Речь об одном мужчине.",
+    "translationRu": "Он учитель.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -794,7 +794,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " bist Programmierer.",
     "sentenceDe": "Du bist Programmierer.",
-    "translationRu": "Обращение к одному знакомому на «ты».",
+    "translationRu": "Ты программист.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -811,7 +811,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Arbeiter.",
     "sentenceDe": "Sie sind Arbeiter.",
-    "translationRu": "Речь о группе других людей.",
+    "translationRu": "Они рабочие.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -828,7 +828,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " bin Designer.",
     "sentenceDe": "Ich bin Designer.",
-    "translationRu": "Я рассказываю о себе.",
+    "translationRu": "Я дизайнер.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -845,7 +845,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " seid Programmierer.",
     "sentenceDe": "Ihr seid Programmierer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты».",
+    "translationRu": "Вы программисты.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -862,7 +862,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Sportler.",
     "sentenceDe": "Wir sind Sportler.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе.",
+    "translationRu": "Мы спортсмены.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -879,7 +879,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Sie sind Lehrer.",
-    "translationRu": "Вежливое обращение.",
+    "translationRu": "Вы учитель.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -896,7 +896,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Du ",
     "afterDe": " Designer.",
     "sentenceDe": "Du bist Designer.",
-    "translationRu": "Обращение к одному знакомому на «ты».",
+    "translationRu": "Ты дизайнер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -913,7 +913,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Programmierer.",
     "sentenceDe": "Ihr seid Programmierer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты».",
+    "translationRu": "Вы программисты.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -930,7 +930,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Manager.",
     "sentenceDe": "Er ist Manager.",
-    "translationRu": "Речь об одном мужчине.",
+    "translationRu": "Он менеджер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -947,7 +947,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Sie sind Arbeiter.",
-    "translationRu": "Речь о группе: они.",
+    "translationRu": "Они рабочие.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -964,7 +964,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Ihr ",
     "afterDe": " Sportler.",
     "sentenceDe": "Ihr seid Sportler.",
-    "translationRu": "Обращение к нескольким знакомым на «ты».",
+    "translationRu": "Вы спортсмены.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -981,7 +981,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Wir ",
     "afterDe": " Arbeiter.",
     "sentenceDe": "Wir sind Arbeiter.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе.",
+    "translationRu": "Мы рабочие.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -998,7 +998,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Er ",
     "afterDe": " Lehrer.",
     "sentenceDe": "Er ist Lehrer.",
-    "translationRu": "Речь об одном мужчине.",
+    "translationRu": "Он учитель.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -1015,7 +1015,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "Sie ",
     "afterDe": " Manager.",
     "sentenceDe": "Sie sind Manager.",
-    "translationRu": "Вежливое обращение.",
+    "translationRu": "Вы менеджер.",
     "ruleId": "profession-predicate",
     "explanationRu": "Форма sein согласуется с подлежащим; при назывании профессии артикль опускается.",
     "answers": [
@@ -1814,7 +1814,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " bin Lehrer.",
     "sentenceDe": "Ich bin Lehrer.",
-    "translationRu": "Я рассказываю о себе. Профессия: учитель.",
+    "translationRu": "Я учитель.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1831,7 +1831,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " bin Programmierer.",
     "sentenceDe": "Ich bin Programmierer.",
-    "translationRu": "Я рассказываю о себе. Профессия: программист.",
+    "translationRu": "Я программист.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1848,7 +1848,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " bist Lehrer.",
     "sentenceDe": "Du bist Lehrer.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: учитель.",
+    "translationRu": "Ты учитель.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1865,7 +1865,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " bist Programmierer.",
     "sentenceDe": "Du bist Programmierer.",
-    "translationRu": "Обращение к одному знакомому на «ты». Профессия: программист.",
+    "translationRu": "Ты программист.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1882,7 +1882,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " ist Lehrer.",
     "sentenceDe": "Er ist Lehrer.",
-    "translationRu": "Речь об одном мужчине. Профессия: учитель.",
+    "translationRu": "Он учитель.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1899,7 +1899,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " ist Programmierer.",
     "sentenceDe": "Er ist Programmierer.",
-    "translationRu": "Речь об одном мужчине. Профессия: программист.",
+    "translationRu": "Он программист.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1916,7 +1916,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Lehrer.",
     "sentenceDe": "Wir sind Lehrer.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: учитель.",
+    "translationRu": "Мы учителя.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1933,7 +1933,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Programmierer.",
     "sentenceDe": "Wir sind Programmierer.",
-    "translationRu": "Говорящий рассказывает о себе и своей группе. Профессия: программист.",
+    "translationRu": "Мы программисты.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1950,7 +1950,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " seid Lehrer.",
     "sentenceDe": "Ihr seid Lehrer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: учитель.",
+    "translationRu": "Вы учителя.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1967,7 +1967,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " seid Programmierer.",
     "sentenceDe": "Ihr seid Programmierer.",
-    "translationRu": "Обращение к нескольким знакомым на «ты». Профессия: программист.",
+    "translationRu": "Вы программисты.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -1984,7 +1984,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Lehrer.",
     "sentenceDe": "Sie sind Lehrer.",
-    "translationRu": "Речь о группе: они. Профессия: учитель.",
+    "translationRu": "Они учителя.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -2001,7 +2001,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Programmierer.",
     "sentenceDe": "Sie sind Programmierer.",
-    "translationRu": "Речь о группе: они. Профессия: программист.",
+    "translationRu": "Они программисты.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -2018,7 +2018,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Lehrer.",
     "sentenceDe": "Sie sind Lehrer.",
-    "translationRu": "Вежливое обращение. Профессия: учитель.",
+    "translationRu": "Вы учитель.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [
@@ -2035,7 +2035,7 @@ export const lektion2Templates: readonly Lektion2Template[] = [
     "beforeDe": "",
     "afterDe": " sind Programmierer.",
     "sentenceDe": "Sie sind Programmierer.",
-    "translationRu": "Вежливое обращение. Профессия: программист.",
+    "translationRu": "Вы программист.",
     "ruleId": "pronouns-nominative",
     "explanationRu": "Местоимение подлежащего выбирается по лицу и числу из контекста.",
     "answers": [

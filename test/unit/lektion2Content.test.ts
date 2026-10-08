@@ -48,3 +48,24 @@ test('profession_bank_covers_each_person_with_correct_sein', () => {
     expect(variants.every(t=>t.answers.length===1 && t.answers[0]===form)).toBe(true);
   }
 });
+
+// Feedback must translate the German sentence, rather than repeat its contextual hint.
+test('professional_feedback_translates_each_person_and_profession', () => {
+  const translations = [
+    ['Ich bin Lehrer.', 'professions-sein:ich', 'Я учитель.'],
+    ['Du bist Programmierer.', 'professions-sein:du', 'Ты программист.'],
+    ['Er ist Designer.', 'professions-sein:er', 'Он дизайнер.'],
+    ['Wir sind Manager.', 'professions-sein:wir', 'Мы менеджеры.'],
+    ['Ihr seid Sportler.', 'professions-sein:ihr', 'Вы спортсмены.'],
+    ['Sie sind Arbeiter.', 'professions-sein:sie_plural', 'Они рабочие.'],
+    ['Sie sind Lehrer.', 'professions-sein:sie_formal', 'Вы учитель.'],
+    ['Ich bin Sportler.', 'professions-pronoun:ich', 'Я спортсмен.'],
+    ['Sie sind Arbeiter.', 'professions-pronoun:sie_plural', 'Они рабочие.'],
+    ['Sie sind Programmierer.', 'professions-pronoun:sie_formal', 'Вы программист.'],
+  ];
+  for(const [sentenceDe, targetId, translationRu] of translations) {
+    const matches=lektion2Templates.filter(t=>t.sentenceDe===sentenceDe && t.targetId===targetId);
+    expect(matches.length).toBeGreaterThan(0);
+    for(const template of matches) expect(template.translationRu).toBe(translationRu);
+  }
+});
