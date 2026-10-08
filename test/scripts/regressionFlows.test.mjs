@@ -521,3 +521,36 @@ test('csv_preview_and_completion_require_production_fixture_counts',()=>{
  assert.equal(new RegExp('^'+summaries[5]+'$').test('Добавлено: 1 · Дубли: 299 · Ошибки: 0'),false);
  assert.deepEqual(contract.steps.map(s=>[s.added,s.duplicates,s.invalid]),[[260,40,0],[21,0,0],[0,300,0]]);
 });
+
+test('editor_below_fold_reveals_search_down_content_first_and_keep_reverse_fallback',()=>{
+ const parse=path=>JSON.parse(readFileSync(path,'utf8').split('---\n')[1]);
+ const editorPath=resolve(root,'checks/extended-vocabulary.nine-type-editor.yaml');
+ const savePath=resolve(root,'helpers/save-word-return-dictionary.yaml');
+ const editor=parse(editorPath), save=parse(savePath);
+ const calls=[...editor.filter(c=>c.runFlow?.env?.TARGET_TEXT).map(c=>[editorPath,c.runFlow]),...save.filter(c=>['Сохранить слово','Назад в словарь'].includes(c.runFlow?.env?.TARGET_TEXT)).map(c=>[savePath,c.runFlow])];
+ assert.equal(calls.length,21); // Nine POS toggles/options, noun gender, save and return.
+ function execute(commands,start,target){
+  let position=start;const swipes=[];
+  const visible=()=>position===target;
+  for(const command of commands){
+   if(command.repeat){
+    assert.deepEqual(command.repeat.while,{notVisible:'${TARGET_TEXT}'});
+    assert.ok(command.repeat.times>0&&command.repeat.times<=18);
+    for(let i=0;i<command.repeat.times&&!visible();i++)for(const nested of command.repeat.commands){
+     assert.equal(nested.swipe.from.id,'screen-scroll');
+     const direction=nested.swipe.direction;assert.ok(['UP','DOWN'].includes(direction));
+     swipes.push(direction);position=Math.max(0,Math.min(6,position+(direction==='UP'?1:-1)));
+    }
+   }else {assert.equal(command.assertVisible,'${TARGET_TEXT}');assert.ok(visible(),'target must be visible, including missing-target failure');}
+  }
+  return swipes;
+ }
+ for(const [path,call] of calls){
+  const commands=parse(resolve(dirname(path),call.file));
+  assert.deepEqual(execute(commands,0,3),['UP','UP','UP'],call.env.TARGET_TEXT+': avoid 18 topward swipes');
+  assert.deepEqual(execute(commands,3,3),[],'already visible needs no swipe');
+  assert.ok(execute(commands,4,1).includes('DOWN'),'reverse fallback finds a target above');
+  assert.throws(()=>execute(commands,0,99),/target must be visible/,'missing controls must still fail');
+ }
+ assert.equal(save.find(c=>c.runFlow?.env?.TARGET_TEXT==='${CARD_TEXT}').runFlow.file,'ensure-visible.yaml','card title remains top-first');
+});

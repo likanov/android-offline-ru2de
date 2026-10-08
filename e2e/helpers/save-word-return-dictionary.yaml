@@ -4,7 +4,7 @@ name: save-word-return-dictionary
 [
   {
     "runFlow": {
-      "file": "ensure-visible.yaml",
+      "file": "ensure-visible-below.yaml",
       "env": {
         "TARGET_TEXT": "Сохранить слово"
       }
@@ -28,7 +28,7 @@ name: save-word-return-dictionary
   },
   {
     "runFlow": {
-      "file": "ensure-visible.yaml",
+      "file": "ensure-visible-below.yaml",
       "env": {
         "TARGET_TEXT": "Назад в словарь"
       }
