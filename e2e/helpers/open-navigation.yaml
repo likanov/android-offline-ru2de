@@ -5,23 +5,22 @@ name: open-navigation
   {
     "runFlow": {
       "when": {
-        "notVisible": {
-          "id": "nav-more"
+        "visible": {
+          "id": "more-menu"
         }
       },
       "commands": [
         {
-          "runFlow": {
-            "when": {
-              "notVisible": {
-                "id": "more-menu"
-              }
+          "tapOn": {
+            "id": "menu-close"
+          }
+        },
+        {
+          "extendedWaitUntil": {
+            "visible": {
+              "id": "nav-more"
             },
-            "commands": [
-              {
-                "hideKeyboard": {}
-              }
-            ]
+            "timeout": 5000
           }
         }
       ]
@@ -31,7 +30,37 @@ name: open-navigation
     "runFlow": {
       "when": {
         "notVisible": {
-          "id": "more-menu"
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "hideKeyboard": {}
+        },
+        {
+          "extendedWaitUntil": {
+            "visible": {
+              "id": "nav-more"
+            },
+            "timeout": 5000
+          }
+        }
+      ]
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "nav-more"
+      },
+      "timeout": 5000
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "notVisible": {
+          "id": "${NAV_TARGET}"
         }
       },
       "commands": [
@@ -44,26 +73,26 @@ name: open-navigation
           "tapOn": {
             "id": "nav-more"
           }
-        }
-      ]
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "id": "${NAV_TARGET}"
-        }
-      },
-      "times": 6,
-      "commands": [
+        },
         {
-          "swipe": {
-            "from": {
-              "id": "more-menu-scroll"
+          "repeat": {
+            "while": {
+              "notVisible": {
+                "id": "${NAV_TARGET}"
+              }
             },
-            "direction": "UP",
-            "duration": 400
+            "times": 6,
+            "commands": [
+              {
+                "swipe": {
+                  "from": {
+                    "id": "more-menu-scroll"
+                  },
+                  "direction": "UP",
+                  "duration": 400
+                }
+              }
+            ]
           }
         }
       ]

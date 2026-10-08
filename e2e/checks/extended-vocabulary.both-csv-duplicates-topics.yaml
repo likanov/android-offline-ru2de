@@ -24,6 +24,14 @@ name: extended-vocabulary.both-csv-duplicates-topics
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать CSV"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать CSV"
   },
   {
@@ -35,13 +43,37 @@ name: extended-vocabulary.both-csv-duplicates-topics
     }
   },
   {
-    "assertVisible": ".*Ошибки: 0.*"
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+      }
+    }
+  },
+  {
+    "assertVisible": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Импортировать"
+      }
+    }
   },
   {
     "tapOn": "Импортировать"
   },
   {
-    "assertVisible": ".*Ошибки: 0.*"
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+      }
+    }
+  },
+  {
+    "assertVisible": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
   },
   {
     "runFlow": {
@@ -54,6 +86,14 @@ name: extended-vocabulary.both-csv-duplicates-topics
   {
     "tapOn": {
       "id": "nav-transfer"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать CSV"
+      }
     }
   },
   {
@@ -68,13 +108,37 @@ name: extended-vocabulary.both-csv-duplicates-topics
     }
   },
   {
-    "assertVisible": ".*Ошибки: 0.*"
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+      }
+    }
+  },
+  {
+    "assertVisible": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Импортировать"
+      }
+    }
   },
   {
     "tapOn": "Импортировать"
   },
   {
-    "assertVisible": ".*Ошибки: 0.*"
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+      }
+    }
+  },
+  {
+    "assertVisible": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
   },
   {
     "runFlow": {
@@ -90,6 +154,14 @@ name: extended-vocabulary.both-csv-duplicates-topics
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать CSV"
+      }
+    }
+  },
+  {
     "tapOn": "Выбрать CSV"
   },
   {
@@ -101,12 +173,36 @@ name: extended-vocabulary.both-csv-duplicates-topics
     }
   },
   {
-    "assertVisible": ".*Ошибки: 0.*"
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+      }
+    }
+  },
+  {
+    "assertVisible": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Импортировать"
+      }
+    }
   },
   {
     "tapOn": "Импортировать"
   },
   {
-    "assertVisible": ".*Ошибки: 0.*"
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+      }
+    }
+  },
+  {
+    "assertVisible": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
   }
 ]

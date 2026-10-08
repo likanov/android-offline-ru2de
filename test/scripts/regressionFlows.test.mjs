@@ -217,12 +217,8 @@ test('first_launch_clean_uses_stable_profile_and_dictionary_ids_instead_of_long_
 
 
 test('open_navigation_resets_more_tab_stack_before_opening_more_menu',()=>{
- const path=resolve(root,'helpers/open-navigation.yaml'),s=readFileSync(path,'utf8');
- const commands=JSON.parse(s.split('---\n')[1]);
- const openMoreFlow=commands.find(command=>command.runFlow?.when?.notVisible?.id==='more-menu' && command.runFlow?.commands?.some(step=>step.tapOn?.id==='nav-more'));
- assert.ok(openMoreFlow,'helper should open the More menu when it is not visible');
- const taps=openMoreFlow.runFlow.commands.filter(step=>step.tapOn?.id).map(step=>step.tapOn.id);
- assert.deepEqual(taps.slice(-2),['nav-today','nav-more'],'when currently inside a More sub-screen, tapping selected nav-more is a no-op; reset to Today before reopening More');
+ const result=exerciseNavigationHelper('nav-transfer');
+ assert.deepEqual(result.taps.slice(0,2),['nav-today','nav-more']);
 });
 
 
@@ -478,4 +474,40 @@ test('backup_preview_reveals_summary_and_restore_action_before_assert_or_tap',()
  const commands=JSON.parse(raw.split('---\n')[1]);
  const summary=commands.find(c=>typeof c.assertVisible==='string'&&c.assertVisible.startsWith('Профилей:')).assertVisible;
  for(const count of [9,100])assert.equal(new RegExp(summary.replace('${PROFILE_COUNT}','10')).test('Профилей: '+count+' · Слов: 362'),false);
+});
+
+function exerciseNavigationHelper(target,{menu=false,keyboard=false}={}){
+ const primary=['nav-today','nav-dictionary','nav-training'];
+ const secondary=['nav-profiles','nav-progress','nav-reviews','nav-topics','nav-difficult','nav-reminders','nav-transfer','nav-model'];
+ const state={menu,keyboard,menuScrolled:false,barPending:false,taps:[],swipes:0,selected:null};
+ const id=selector=>selector.id==='${NAV_TARGET}'?target:selector.id;
+ const visible=selector=>{const value=id(selector);if(['more-menu','menu-close','more-menu-scroll'].includes(value))return state.menu;if(primary.includes(value)||value==='nav-more')return !state.menu&&!state.keyboard&&!state.barPending;return state.menu&&secondary.includes(value)&&(secondary.indexOf(value)<3||state.menuScrolled);};
+ const condition=when=>!when||(when.visible?visible(when.visible):!visible(when.notVisible));
+ function run(commands){for(const c of commands){
+  if(c.runFlow){assert.ok(c.runFlow.commands,'navigation helper must be self-contained');if(condition(c.runFlow.when))run(c.runFlow.commands);}
+  else if(c.hideKeyboard){state.keyboard=false;state.barPending=true;}
+  else if(c.extendedWaitUntil){assert.equal(c.extendedWaitUntil.visible.id,'nav-more');assert.ok(!state.menu&&!state.keyboard);state.barPending=false;}
+  else if(c.tapOn){assert.ok(visible(c.tapOn),'cannot tap hidden '+id(c.tapOn));const value=id(c.tapOn);state.taps.push(value);if(value==='menu-close'){state.menu=false;state.barPending=true;}else if(value==='nav-more'){state.menu=true;state.menuScrolled=false;}else{state.selected=value;state.menu=false;}}
+  else if(c.repeat){for(let i=0;i<c.repeat.times&&condition(c.repeat.while);i++)run(c.repeat.commands);}
+  else if(c.swipe){assert.ok(state.menu&&c.swipe.from.id==='more-menu-scroll','only scroll the open overflow sheet');state.menuScrolled=true;state.swipes++;}
+  else if(c.assertVisible)assert.ok(visible(c.assertVisible),'target remains hidden '+id(c.assertVisible));
+  else assert.fail('unsupported navigation command '+JSON.stringify(c));
+ }}
+ run(JSON.parse(readFileSync(resolve(root,'helpers/open-navigation.yaml'),'utf8').split('---\n')[1]));
+ assert.ok(visible({id:target}));run([{tapOn:{id:target}}]);assert.equal(state.selected,target);return state;
+}
+test('navigation_helper_reveals_primary_tabs_without_opening_overflow',()=>{
+ for(const target of ['nav-today','nav-dictionary','nav-training'])for(const state of [{},{menu:true},{keyboard:true}]){
+  const result=exerciseNavigationHelper(target,state);assert.ok(!result.taps.includes('nav-more'));assert.equal(result.swipes,0);if(state.menu)assert.equal(result.taps[0],'menu-close');
+ }
+});
+test('navigation_helper_preserves_all_overflow_targets_from_menu_and_keyboard_states',()=>{
+ for(const target of ['nav-profiles','nav-progress','nav-reviews','nav-topics','nav-difficult','nav-reminders','nav-transfer','nav-model'])for(const state of [{},{menu:true},{keyboard:true}]){
+  const result=exerciseNavigationHelper(target,state);assert.ok(result.taps.includes('nav-more'));assert.equal(result.menu,false);
+ }
+});
+test('csv_import_reveals_preview_action_and_distinct_completion_result',()=>{
+ const commands=JSON.parse(readFileSync(resolve(root,'checks/extended-vocabulary.both-csv-duplicates-topics.yaml'),'utf8').split('---\n')[1]);
+ const imports=commands.map((c,i)=>c.tapOn==='Импортировать'?i:-1).filter(i=>i>=0);assert.equal(imports.length,3);
+ for(const i of imports){assert.equal(commands[i-1].runFlow?.env?.TARGET_TEXT,'Импортировать');const reveal=commands[i+1].runFlow;assert.ok(reveal?.env?.TARGET_TEXT.startsWith('Добавлено:'));assert.equal(commands[i+2].assertVisible,reveal.env.TARGET_TEXT);}
 });
