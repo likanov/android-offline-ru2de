@@ -27,7 +27,7 @@ test('commit rechecks DB, reparses source and rolls back the whole import',async
  await expect(csv.preview(p.id,'a'.repeat(10*1024*1024+1))).rejects.toMatchObject({code:'VALIDATION'});
  }finally{h.close();}
 });
-test('switching away and back requires a fresh preview',async()=>{
+test('preview_profile_roundtrip_is_stale',async()=>{
  const h=await createWordHarness();try{
  const p1=await createProfile(h.db,'A'),csv=new CsvImportService(h.db);const preview=await csv.preview(p1.id,'de,ru,pos\nweich,мягкий,adjective');
  await createProfile(h.db,'B');await setActiveProfile(h.db,p1.id);const before=await snapshotDb(h.db);
@@ -44,5 +44,53 @@ test('documented CSV previews and quoted-empty records report physical line erro
  expect(preview.errors.map(error=>error.line)).toEqual([3,4,6]);expect(preview.valid).toHaveLength(1);
  expect(await csv.commit(preview)).toEqual({added:1,duplicates:0,invalid:3});
  expect((await h.words.list(p.id,{query:'Kissen'}))[0]).toMatchObject({pos:'noun',gender:'n',exampleDe:'Das Kissen ist weich.',exampleRu:'Подушка мягкая.'});
+ }finally{h.close();}
+});
+
+test('duplicate_joins_new_topic_without_reset',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A'),csv=new CsvImportService(h.db);
+ const word=await h.words.create(p.id,{de:'weich',ru:'мягкий',pos:'adjective',gender:null});
+ const old=await h.topics.create(p.id,'Старый');await h.topics.setWordTopics(p.id,word.id,[old.id]);
+ await h.db.run('UPDATE word_progress SET streak=3,totalErrors=2 WHERE profileId=? AND wordId=?',[p.id,word.id]);
+ await h.db.run('UPDATE profiles SET xp=17 WHERE id=?',[p.id]);
+ const before=await h.words.get(p.id,word.id),progress=await h.wordState(p.id,word.id);
+ const preview=await csv.preview(p.id,'de,ru,pos,topic\nweich,мягкий,adjective,Новый');
+ expect(await csv.commit(preview)).toEqual({added:0,duplicates:1,invalid:0});
+ expect(await h.words.get(p.id,word.id)).toEqual(before);expect(await h.wordState(p.id,word.id)).toEqual(progress);expect((await h.profile(p.id))?.xp).toBe(17);
+ expect((await h.topics.wordTopics(p.id,word.id)).map(t=>t.name).sort()).toEqual(['Новый','Старый']);
+ }finally{h.close();}
+});
+test('same_csv_word_in_two_topics',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A'),csv=new CsvImportService(h.db);
+ expect(await csv.commit(await csv.preview(p.id,'de,ru,pos,topic\nweich,мягкий,adjective,Первый\nweich,мягкий,adjective,Второй'))).toEqual({added:1,duplicates:1,invalid:0});
+ const words=await h.words.list(p.id,{query:'weich'});expect(words).toHaveLength(1);
+ expect((await h.topics.wordTopics(p.id,words[0].id)).map(t=>t.name).sort()).toEqual(['Второй','Первый']);
+ }finally{h.close();}
+});
+test('reimport_is_idempotent',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A'),csv=new CsvImportService(h.db),text='de,ru,pos,topic\nweich,мягкий,adjective,Первый\nweich,мягкий,adjective,Второй';
+ await csv.commit(await csv.preview(p.id,text));const before=await snapshotDb(h.db);
+ expect(await csv.commit(await csv.preview(p.id,text))).toEqual({added:0,duplicates:2,invalid:0});expect(await snapshotDb(h.db)).toEqual(before);
+ }finally{h.close();}
+});
+test('topic_failure_rolls_back_import',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A'),csv=new CsvImportService(h.db);
+ await h.words.create(p.id,{de:'weich',ru:'мягкий',pos:'adjective',gender:null});
+ const preview=await csv.preview(p.id,'de,ru,pos,topic\nhart,твёрдый,adjective,Первый\nweich,мягкий,adjective,Второй');
+ await h.db.exec("CREATE TRIGGER fail_duplicate_topic BEFORE INSERT ON word_topics WHEN (SELECT de FROM words WHERE id=NEW.wordId)='weich' BEGIN SELECT RAISE(ABORT,'duplicate topic failure'); END;");
+ const before=await snapshotDb(h.db);await expect(csv.commit(preview)).rejects.toThrow('duplicate topic failure');expect(await snapshotDb(h.db)).toEqual(before);
+ }finally{h.close();}
+});
+
+test('non_noun_gender_and_plural_errors_keep_row_numbers',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A'),csv=new CsvImportService(h.db);
+ const preview=await csv.preview(p.id,'de,ru,pos,gender,plural\ngehen,идти,verb,m,\nheute,сегодня,adverb,,heute');
+ expect(preview.valid).toEqual([]);expect(preview.errors.map(error=>error.line)).toEqual([2,3]);
+ expect(await csv.commit(preview)).toEqual({added:0,duplicates:0,invalid:2});
  }finally{h.close();}
 });

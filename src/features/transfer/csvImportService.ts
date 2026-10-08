@@ -6,7 +6,7 @@ import { WordRepository } from '../dictionary/wordRepository';
 import { wordKey } from '../dictionary/wordValidation';
 import { findOrCreateTopic } from '../topics/topicRepository';
 import { parseCsv,csvRowToWord,type CsvRow } from './csvParser';
-export type CsvPreview={profileId:string;valid:CsvRow[];duplicates:number[];errors:{line:number;message:string}[];sourceText:string};
+export type CsvPreview={profileId:string;valid:CsvRow[];existing:CsvRow[];duplicates:number[];errors:{line:number;message:string}[];sourceText:string};
 export class CsvImportService {
  private issued=new WeakMap<CsvPreview,{profileId:string;text:string;selection:number}>();
  constructor(private db:SqlStore){}
@@ -17,12 +17,12 @@ export class CsvImportService {
  private async buildPreview(tx:SqlExecutor,profileId:string,text:string):Promise<CsvPreview>{
   await this.requireProfile(tx,profileId);
   const parsed=parseCsv(text),keys=new Set((await tx.all<{canonicalKey:string}>('SELECT canonicalKey FROM words WHERE profileId=?',[profileId])).map(word=>word.canonicalKey));
-  const preview:CsvPreview={profileId,valid:[],duplicates:[],errors:[],sourceText:text};
+  const preview:CsvPreview={profileId,valid:[],existing:[],duplicates:[],errors:[],sourceText:text};
   for(const record of parsed.rows){
    let row:CsvRow;
    try{row=csvRowToWord(record);}catch(error){preview.errors.push({line:record.line,message:error instanceof Error?error.message:String(error)});continue;}
    const key=wordKey(row.draft);
-   if(keys.has(key))preview.duplicates.push(row.line);else{keys.add(key);preview.valid.push(row);}
+   if(keys.has(key)){preview.duplicates.push(row.line);preview.existing.push(row);}else{keys.add(key);preview.valid.push(row);}
   }
   return preview;
  }
@@ -39,7 +39,14 @@ export class CsvImportService {
    if(!original)throw new AppError('VALIDATION','Сначала создайте предпросмотр CSV');
    if(original.selection!==profileSelectionVersion(this.db))throw new AppError('WRONG_PROFILE','Профиль изменился. Выберите файл заново.');
    const current=await this.buildPreview(tx,original.profileId,original.text),words=new WordRepository(this.db);
-   for(const row of current.valid){const topicIds=row.topicName?[(await findOrCreateTopic(tx,current.profileId,row.topicName)).id]:[];await words.saveWordWithTopicsInTransaction(tx,current.profileId,row.draft,topicIds);}
+   for(const row of [...current.valid,...current.existing]){
+    let word=await tx.first<{id:string}>('SELECT id FROM words WHERE profileId=? AND canonicalKey=?',[current.profileId,wordKey(row.draft)]);
+    if(!word)word=await words.saveWordWithTopicsInTransaction(tx,current.profileId,row.draft,[]);
+    if(row.topicName){
+     const topic=await findOrCreateTopic(tx,current.profileId,row.topicName);
+     await tx.run('INSERT OR IGNORE INTO word_topics(profileId,wordId,topicId) VALUES (?,?,?)',[current.profileId,word.id,topic.id]);
+    }
+   }
    return {added:current.valid.length,duplicates:current.duplicates.length,invalid:current.errors.length};
   });
   notifyProfileChanged(this.issued.get(preview)!.profileId);return result;

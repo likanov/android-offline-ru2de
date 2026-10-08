@@ -14,3 +14,15 @@ test('pick preview counts errors and confirm exact preview; cancel is quiet',asy
  fireEvent.press(screen.getByRole('button',{name:'Импортировать'}));await screen.findByText('Добавлено: 1 · Дубли: 0 · Ошибки: 1');expect(await h.words.list(p.id,{query:'weich'})).toHaveLength(1);
  }finally{h.close();}
 });
+
+test('duplicate-only CSV can add a topic through confirmation',async()=>{
+ const h=await createWordHarness();try{
+ const p=await createProfile(h.db,'A'),word=await h.words.create(p.id,{de:'weich',ru:'мягкий',pos:'adjective',gender:null});
+ const picker={saveText:async()=>false,readText:async()=>({name:'topics.csv',text:'de,ru,pos,topic\nweich,мягкий,adjective,Новая тема'})};
+ render(<TransferScreen profileId={p.id} csv={new CsvImportService(h.db)} picker={picker}/>);
+ fireEvent.press(screen.getByRole('button',{name:'Выбрать CSV'}));await screen.findByText('Новые: 0 · Дубли: 1 · Ошибки: 0');
+ expect(screen.getByRole('button',{name:'Импортировать'})).not.toBeDisabled();
+ fireEvent.press(screen.getByRole('button',{name:'Импортировать'}));await screen.findByText('Добавлено: 0 · Дубли: 1 · Ошибки: 0');
+ expect(await h.topics.wordTopics(p.id,word.id)).toEqual([expect.objectContaining({name:'Новая тема'})]);
+ }finally{h.close();}
+});
