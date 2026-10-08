@@ -5,7 +5,7 @@ import { persistLegacySiePluralQuestion } from '../fixtures/legacyGrammarQuestio
 
 const day = '2026-10-06';
 function answer(question: GrammarQuestion): GrammarSubmission {
-  return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: question.expected.token };
+  return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: ('token' in question.expected ? question.expected.token : question.expected.sentences[0]) };
 }
 
 test('restore_remaps_all_profile_links_v3_roundtrip_preserves_grammar_session_question_and_attempt', async () => {
@@ -21,7 +21,7 @@ test('restore_remaps_all_profile_links_v3_roundtrip_preserves_grammar_session_qu
     expect(backup.version).toBe(3);
     expect(backup.profiles[0].grammar.attempts[0].result).toEqual(result);
     expect(backup.profiles[0].grammar.questions[0].status).toBe('answered');
-    const legacy = { ...backup, version: 2, profiles: backup.profiles.map(({ grammar, ...part }) => ({ ...part, grammar: { ...grammar, catalogVersion: 1 } })) };
+    const legacy = { ...backup, version: 2, profiles: backup.profiles.map(({ grammar: {catalogVersions: _versions, ...grammar}, ...part }) => ({ ...part, grammar: { ...grammar, catalogVersion: 1 } })) };
     const restored = await h.backup.restore(h.backup.preview(JSON.stringify(legacy)));
     const restoredId = restored.profileIds[0];
     const restoredBackup = await h.backup.exportAll();
@@ -88,9 +88,11 @@ test.each(['sie_plural', 'sie_feminine'] as const)('legacy_v2_restores_historica
     const restoredId = restored.profileIds[0];
     const reopened = (await h.grammarSessions.resume(restoredId))!;
     expect(reopened.result).toMatchObject({ right, xpDelta: right ? 10 : 0, submittedAnswer: { kind: 'choice', optionId } });
-    expect(reopened.currentQuestion!.options[0].label).toBe('sie — они');
+    if(reopened.currentQuestion?.catalogVersion!==1) throw new Error('Expected legacy question');
+    expect(reopened.currentQuestion.options[0].label).toBe('sie — они');
     expect(await h.profile(restoredId)).toMatchObject({ xp: right ? 10 : 0 });
     const next = (await h.grammarSessions.next(restoredId, reopened.id, day))!;
+    if(next.catalogVersion!==1) throw new Error('Expected legacy question');
     expect(next.options.map(option => option.label).sort()).toEqual(['Du', 'Er', 'Ich', 'Sie']);
   } finally { h.close(); }
 });

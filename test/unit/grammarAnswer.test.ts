@@ -38,12 +38,12 @@ test('response_mode_must_match_submission_kind', () => {
 });
 
 test('question_validation_rejects_modified_expected', () => {
-  const question = q(grammarTargets[0].id) as GrammarQuestion;
+  const question = q(grammarTargets[0].id);
   expect(() => checkGrammarAnswer({ ...question, expected: { ...question.expected, token: 'wrong' } }, { kind: 'typed', text: 'wrong' })).toThrow('GRAMMAR_QUESTION_INVALID');
 });
 
 test('question_validation_rejects_tampered_fields', () => {
-  const question = q('pronoun-cloze:ich', 1, 'choice') as GrammarQuestion;
+  const question = q('pronoun-cloze:ich', 1, 'choice');
   expect(() => checkGrammarAnswer({ ...question, options: question.options.map((option, index) => index === 0 ? { ...option, label: 'подмена' } : option) }, { kind: 'choice', optionId: question.expected.optionId })).toThrow('GRAMMAR_QUESTION_INVALID');
   expect(() => checkGrammarAnswer({ ...question, feedback: { ...question.feedback, ruleId: 'sein-present' } }, { kind: 'choice', optionId: question.expected.optionId })).toThrow('GRAMMAR_QUESTION_INVALID');
   expect(() => checkGrammarAnswer({ ...question, dependencies: [{ wordId: 'other', revision: 1, de: 'Tisch', ru: 'стол', gender: 'm', plural: 'Tische' }] }, { kind: 'choice', optionId: question.expected.optionId })).toThrow('GRAMMAR_QUESTION_INVALID');

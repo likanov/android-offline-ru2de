@@ -1,3 +1,6 @@
+import { makeGrammarQuestion } from "../../src/features/grammar/grammarQuestionFactory";
+import { GrammarQuestionView } from "../../src/features/grammar/GrammarQuestionView";
+
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { createGrammarHarness } from '../harness';
@@ -93,4 +96,21 @@ test.each([
     view?.unmount();
     h.close();
   }
+});
+
+test('sentence_prompt_has_source_and_no_artificial_blank', () => {
+ const question=makeGrammarQuestion({attemptId:'sentence',sessionId:'s',profileId:'p',targetId:'yesno-transform:noun',variantIndex:0,responseMode:'choice',reviewStage:null,dueDay:null,words:[]});
+ const view=render(<GrammarQuestionView question={question} result={null} busy={false} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ expect(screen.getByTestId('grammar-prompt')).toHaveTextContent('Преобразуйте утверждение в вопрос.');
+ expect(screen.getByTestId('grammar-source')).toHaveTextContent('Das Buch ist neu.');
+ expect(screen.queryByText(/___/)).toBeNull();
+ expect(screen.getByTestId('grammar-answer-input').props.maxLength).toBe(256);
+ view.unmount();
+});
+test('sentence_case_error_explains_internal_case_without_marking_correct',()=>{
+ const question=makeGrammarQuestion({attemptId:'case',sessionId:'s',profileId:'p',targetId:'yesno-translation:sie_formal',variantIndex:0,responseMode:'typed',reviewStage:null,dueDay:null,words:[]});
+ const view=render(<GrammarQuestionView question={question} busy={false} result={{attemptId:'case',targetId:question.targetId,right:false,xpDelta:0,submittedAnswer:{kind:'typed',text:question.feedback.sentenceDe.replace(' Sie ',' sie ')},state:{streak:0,mastered:false,masteryBonusGranted:false,reviewStage:0,dueDay:null,difficult:false,totalErrors:1,recoveryErrors:0,recoveryCorrect:0}}} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ expect(screen.getByText('Проверьте регистр букв: Sie и sie имеют разное значение.')).toBeTruthy();
+ expect(screen.queryByText(/Верно!/)).toBeNull();
+ view.unmount();
 });

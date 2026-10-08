@@ -84,6 +84,7 @@ export async function createRegressionBackup(today: DayKey): Promise<BackupV1> {
 }
 
 function grammarAnswer(question: GrammarQuestion, right: boolean): GrammarSubmission {
+  if(question.catalogVersion===2 && question.presentation==='sentence') return {kind:'typed',text:question.expected.sentences[0]};
   if (!right) return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.options.find(option => option.id !== question.expected.optionId)!.id } : { kind: 'typed', text: 'falsch' };
   return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: question.expected.token };
 }

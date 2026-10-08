@@ -17,6 +17,7 @@ test('catalog_has_18_targets_and_five_sein_forms', () => {
 test('each_target_has_three_unambiguous_templates', () => {
   for (const target of grammarTargets) {
     const q = makeGrammarQuestion(input(target.id));
+    if(q.catalogVersion!==1) throw new Error('Expected legacy question');
     expect(q.targetId).toBe(target.id);
     expect(q.contextRu.length).toBeGreaterThan(0);
     expect(q.beforeDe + '___' + q.afterDe).toContain(q.beforeDe);
@@ -26,6 +27,7 @@ test('each_target_has_three_unambiguous_templates', () => {
 test('initial_sie_requires_context', () => {
   for (const target of grammarTargets.filter(t => t.pronounId.startsWith('sie_'))) {
     const q = makeGrammarQuestion(input(target.id));
+    if(q.catalogVersion!==1) throw new Error('Expected legacy question');
     expect(q.contextRu).toMatch(/она|они|вежлив|Вы/i);
   }
 });
@@ -33,6 +35,7 @@ test('initial_sie_requires_context', () => {
 test('choices_have_unique_semantic_ids', () => {
   for (const target of grammarTargets) {
     const q = makeGrammarQuestion(input(target.id));
+    if(q.catalogVersion!==1) throw new Error('Expected legacy question');
     expect(new Set(q.options.map(o => o.id)).size).toBe(q.options.length);
     expect(q.options).toHaveLength(4);
   }

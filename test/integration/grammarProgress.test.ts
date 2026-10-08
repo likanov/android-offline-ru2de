@@ -96,9 +96,11 @@ test('combined_xp_goal_calendar_and_level', async () => {
 
     const grammarSession = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'pronouns', targetIds: ['pronoun-cloze:ich'] }, day))!;
     const grammarQuestion = (await h.grammarSessions.next(profile.id, grammarSession.id, day))!;
+    if(grammarQuestion.catalogVersion!==1) throw new Error('Expected legacy question');
     await h.grammarAnswers.submit(profile.id, grammarSession.id, grammarQuestion.attemptId, { kind: 'choice', optionId: grammarQuestion.expected.optionId }, day);
     const seinSession = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'sein', targetIds: ['sein-cloze:ich'] }, day))!;
     const seinQuestion = (await h.grammarSessions.next(profile.id, seinSession.id, day))!;
+    if(seinQuestion.catalogVersion!==1) throw new Error('Expected legacy question');
     const wrongOption = seinQuestion.options.find(option => option.id !== seinQuestion.expected.optionId)!;
     await h.grammarAnswers.submit(profile.id, seinSession.id, seinQuestion.attemptId, { kind: 'choice', optionId: wrongOption.id }, day);
     // The summary reads the shared ledger exactly once; no grammar-side XP join is added.

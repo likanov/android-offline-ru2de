@@ -7,6 +7,7 @@ const day = '2026-10-06';
 type Harness = Awaited<ReturnType<typeof createGrammarHarness>>;
 
 function answerFor(question: GrammarQuestion): GrammarSubmission {
+  if(question.catalogVersion===2 && question.presentation==='sentence') return {kind:'typed',text:question.expected.sentences[0]};
   return question.responseMode === 'choice'
     ? {kind:'choice',optionId:question.expected.optionId}
     : {kind:'typed',text:question.expected.token};
@@ -22,7 +23,8 @@ async function startOne(h: Harness, profileId: string, targetId: GrammarTargetId
   expect(session).not.toBeNull();
   const question = await h.grammarSessions.next(profileId, session!.id, today);
   expect(question).not.toBeNull();
-  return {session:session!,question:question!};
+  if(!question || question.catalogVersion!==1) throw new Error('Expected legacy question');
+  return {session:session!,question};
 }
 
 async function nextQuestion(h: Harness, profileId: string, sessionId: string, today = day) {

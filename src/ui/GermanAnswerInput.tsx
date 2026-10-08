@@ -7,13 +7,14 @@ import { useQuestionInputReveal } from './QuestionScreen';
 
 export type GermanAnswerInputProps = {
   onSubmit: (answer: string) => void;
+  maxLength?:number;
   disabled?: boolean;
   inputTestID: string;
   submitTestID: string;
 };
 
 export const GermanAnswerInput = forwardRef<View, GermanAnswerInputProps>(function GermanAnswerInput(
-  { onSubmit, disabled = false, inputTestID, submitTestID },
+  { onSubmit, disabled = false, inputTestID, submitTestID, maxLength },
   groupRef,
 ) {
   const [value, setValue] = useState('');
@@ -47,6 +48,7 @@ export const GermanAnswerInput = forwardRef<View, GermanAnswerInputProps>(functi
     <View ref={setGroupRef} onLayout={() => { if (answerGroupRef.current) reveal(answerGroupRef.current); }} style={styles.group}>
       <Text style={styles.label}>Ответ на немецком</Text>
       <TextInput
+        maxLength={maxLength}
         ref={inputRef}
         testID={inputTestID}
         accessibilityLabel="Ответ на немецком"

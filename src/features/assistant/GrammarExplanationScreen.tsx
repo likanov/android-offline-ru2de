@@ -102,7 +102,7 @@ export function GrammarExplanationScreen({ db, profileId, attemptId, assistant, 
     {context ? <>
       <Text testID="grammar-error-context">{context.question.contextRu}</Text>
       <Text>Ваш ответ: {submitted}</Text>
-      <Text>Правильный ответ: {context.question.expected.token}</Text>
+      <Text>Правильный ответ: {context.question.catalogVersion===2 && context.question.presentation==='sentence' ? context.question.expected.sentences.join(' / ') : context.question.expected.token}</Text>
       <Text>{context.question.feedback.sentenceDe}</Text>
       <Text>{context.question.feedback.translationRu}</Text>
       <Text testID="grammar-error-reference-title">{context.reference.title}</Text>

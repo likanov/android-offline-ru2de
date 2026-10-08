@@ -1,10 +1,10 @@
 import { grammarTargets, pronouns } from './grammarCatalog';
-import type { GrammarOption, GrammarOptionId, GrammarQuestion, SeinForm } from './grammarTypes';
+import type { GrammarOption, GrammarOptionId, LegacyGrammarQuestion, SeinForm } from './grammarTypes';
 
-type ChoiceQuestion = Pick<GrammarQuestion, 'attemptId' | 'targetId' | 'position'>;
+type ChoiceQuestion = Pick<LegacyGrammarQuestion, 'attemptId' | 'targetId' | 'position'>;
 const seinForms: readonly SeinForm[] = ['bin', 'bist', 'ist', 'sind', 'seid'];
 
-function candidates(targetId: GrammarQuestion['targetId']) {
+function candidates(targetId: LegacyGrammarQuestion['targetId']) {
   const target = grammarTargets.find(item => item.id === targetId);
   const pronoun = pronouns.find(item => item.id === target?.pronounId);
   if (!target || !pronoun) throw new Error('GRAMMAR_QUESTION_INVALID');

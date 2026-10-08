@@ -14,7 +14,10 @@ test('unsupported_dictionary_uses_builtin_example', () => {
 test('options_are_reproducibly_shuffled_by_attempt', () => {
   const target = grammarTargets[0].id;
   const base = { sessionId: 's', profileId: 'p', targetId: target, responseMode: 'choice' as const, reviewStage: null, dueDay: null, variantIndex: 0, words: [] };
-  expect(makeGrammarQuestion({ ...base, attemptId: 'same' }).options).toEqual(makeGrammarQuestion({ ...base, attemptId: 'same' }).options);
+  const first=makeGrammarQuestion({ ...base, attemptId:'same' });
+  const second=makeGrammarQuestion({ ...base, attemptId:'same' });
+  if(first.catalogVersion!==1 || second.catalogVersion!==1) throw new Error('Expected legacy questions');
+  expect(first.options).toEqual(second.options);
 });
 
 test('all_templates_have_valid_german_and_russian_feedback', () => {
@@ -30,6 +33,7 @@ test('all_templates_have_valid_german_and_russian_feedback', () => {
 test('all_choice_buttons_have_four_distinct_german_forms_without_translation', () => {
   for (const target of grammarTargets) for (const variantIndex of [0, 1, 2]) {
     const q = makeGrammarQuestion({ attemptId: `${target.id}-${variantIndex}`, sessionId: 's', profileId: 'p', targetId: target.id, responseMode: 'choice', reviewStage: null, dueDay: null, variantIndex, words: [] });
+    if(q.catalogVersion!==1) throw new Error('Expected legacy question');
     const labels = q.options.map(option => option.label);
     expect(labels).toHaveLength(4);
     expect(new Set(labels).size).toBe(4);

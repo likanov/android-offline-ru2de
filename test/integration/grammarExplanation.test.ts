@@ -45,6 +45,7 @@ test('grammar_error_context_distinguishes_feminine_and_formal_sie', async () => 
     const formal = await wrongAttempt(h, profile.id, 'sein-cloze:sie_formal');
     const feminineContext = await loadGrammarErrorContext(h.db, profile.id, feminine.question.attemptId);
     const formalContext = await loadGrammarErrorContext(h.db, profile.id, formal.question.attemptId);
+    if(feminineContext.question.catalogVersion!==1 || formalContext.question.catalogVersion!==1) throw new Error('Expected legacy questions');
     expect(feminineContext.question.expected.optionId).toBe('sie_feminine');
     expect(formalContext.question.expected.optionId).toBe('sind');
     expect(feminineContext.question.contextRu).toContain('она');
@@ -65,6 +66,7 @@ test('grammar_error_context_rejects_foreign_or_successful_attempt', async () => 
 
     const successSession = await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'mixed', targetIds: ['pronoun-cloze:du'] }, day);
     const successQuestion = await h.grammarSessions.next(profile.id, successSession!.id, day);
+    if(!successQuestion || successQuestion.catalogVersion!==1) throw new Error('Expected legacy question');
     const successAnswer = successQuestion!.responseMode === 'typed'
       ? { kind: 'typed' as const, text: successQuestion!.expected.token }
       : { kind: 'choice' as const, optionId: successQuestion!.expected.optionId };

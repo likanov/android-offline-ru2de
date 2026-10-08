@@ -13,7 +13,7 @@ export function buildGrammarErrorMessages(context: GrammarErrorContext): Generat
       question: {
         targetId: question.targetId,
         kind: question.kind,
-        prompt: question.beforeDe + '___' + question.afterDe,
+        prompt: question.catalogVersion===2 && question.presentation==='sentence' ? question.promptRu : question.beforeDe + '___' + question.afterDe,
         contextRu: question.contextRu,
         expected: question.expected,
         sentenceDe: question.feedback.sentenceDe,

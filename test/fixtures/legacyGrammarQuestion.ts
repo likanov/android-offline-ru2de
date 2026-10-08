@@ -1,8 +1,9 @@
 import type { SqlStore } from '../../src/core/sql';
-import type { GrammarQuestion } from '../../src/features/grammar/grammarTypes';
+import type { GrammarQuestion, LegacyGrammarQuestion } from '../../src/features/grammar/grammarTypes';
 
 // Literal options from the shipped catalog v1, before German-only buttons.
-export function legacySiePluralQuestion(question: GrammarQuestion): GrammarQuestion {
+export function legacySiePluralQuestion(question: GrammarQuestion): LegacyGrammarQuestion {
+  if(question.catalogVersion!==1) throw new Error('Expected legacy grammar question');
   return {
     ...question,
     options: [
@@ -14,7 +15,7 @@ export function legacySiePluralQuestion(question: GrammarQuestion): GrammarQuest
   };
 }
 
-export async function persistLegacySiePluralQuestion(db: SqlStore, question: GrammarQuestion): Promise<GrammarQuestion> {
+export async function persistLegacySiePluralQuestion(db: SqlStore, question: GrammarQuestion): Promise<LegacyGrammarQuestion> {
   const legacy = legacySiePluralQuestion(question);
   await db.run('UPDATE grammar_questions SET payload=? WHERE attemptId=?', [JSON.stringify(legacy), legacy.attemptId]);
   await db.run('UPDATE grammar_sessions SET currentQuestion=? WHERE id=?', [JSON.stringify(legacy), legacy.sessionId]);
