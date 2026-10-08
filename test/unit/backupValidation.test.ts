@@ -11,7 +11,7 @@ test('oversized_json_is_rejected_before_parse', () => { expect(() => new BackupS
 test('v1_v2_reject_new_parts_and_unsupported_catalogs', () => {
     const base = validateBackup(fixture());
     expect(base.version).toBe(3);
-    for (const catalogVersions of [[], [2], [1, 1], [1, 2]]) {
+    for (const catalogVersions of [[], [2], [1, 1], [1], [1, 2, 2], [1, 3]]) {
         const bad = JSON.parse(JSON.stringify(base)); bad.profiles[0].grammar.catalogVersions = catalogVersions;
         expect(() => validateBackup(bad)).toThrow();
     }

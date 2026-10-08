@@ -1,6 +1,5 @@
 import { checkGrammarAnswer, makeGrammarQuestion } from '../../src/features/grammar/grammarQuestionFactory';
 import { grammarTargets } from '../../src/features/grammar/grammarCatalog';
-import type { GrammarQuestion } from '../../src/features/grammar/grammarTypes';
 import { legacySiePluralQuestion } from '../fixtures/legacyGrammarQuestion';
 
 const q = (targetId: any, variantIndex = 0, responseMode: 'choice'|'typed' = 'choice') => makeGrammarQuestion({ attemptId: 'a', sessionId: 's', profileId: 'p', targetId, responseMode, reviewStage: null, dueDay: null, variantIndex, words: [] });

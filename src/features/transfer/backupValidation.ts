@@ -1,3 +1,4 @@
+import { getGrammarCatalogVersions } from '../grammar/grammarCatalog';
 import { AppError } from '../../core/errors';
 import { addDays } from '../../core/calendar';
 import { applyAnswer } from '../learning/learningRules';
@@ -193,7 +194,7 @@ export function validateBackupV1(value: unknown): BackupV1 {
 }
 
 function emptyGrammar(): ProfileBackupV3['grammar'] {
-    return { catalogVersions: [1], progress: [], sessions: [], questions: [], attempts: [], rewards: [] };
+    return { catalogVersions: getGrammarCatalogVersions(), progress: [], sessions: [], questions: [], attempts: [], rewards: [] };
 }
 
 function wordOnlyPart(part: ProfileBackupV3): ProfileBackup {
@@ -238,7 +239,7 @@ export function validateBackup(value: unknown): BackupV3 {
                 validateGrammarProfile(value as ProfileBackupV2);
             } else if ('catalogVersion' in value.grammar) invalid();
             const { catalogVersion: _legacyVersion, ...grammar } = value.grammar;
-            return { ...value, grammar: legacy ? { ...grammar, catalogVersions: [1] } : value.grammar };
+            return { ...value, grammar: legacy ? { ...grammar, catalogVersions: getGrammarCatalogVersions() } : value.grammar };
         }),
     } as BackupV3;
     // Keep the old strict validator for all vocabulary tables, but validate XP and

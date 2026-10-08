@@ -3,7 +3,7 @@ import type { Profile } from '../../core/types';
 import { AppError } from '../../core/errors';
 import { notifyProfileChanged } from '../../app/refreshBus';
 import { BACKUP_MAX_BYTES, type BackupV3, type GrammarProfileBackupV3, type ProfileBackup, type ProfileBackupV3, type RestorePreview } from './backupTypes';
-import { grammarTargets } from '../grammar/grammarCatalog';
+import { getGrammarCatalogVersions, getGrammarTarget } from '../grammar/grammarCatalog';
 import { validateBackup } from './backupValidation';
 import { remapBackup } from './backupRemap';
 // Table names and columns are application constants. File values are always bound parameters.
@@ -26,7 +26,7 @@ export class BackupService {
                 part.rewards = (part.rewards as Omit<ProfileBackup['rewards'][number], 'day'>[]).map(r => ({ ...r, day: attempts.find(a => a.attemptId === r.attemptId)!.day }));
                 const progressRows = await tx.all<Row>('SELECT * FROM grammar_progress WHERE profileId=? ORDER BY rowid', [profile.id]);
                 const grammar: GrammarProfileBackupV3 = {
-                    catalogVersions: [...new Set(grammarTargets.map(target => target.catalogVersion))],
+                    catalogVersions: getGrammarCatalogVersions(),
                     progress: progressRows.map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV3['grammar']['progress'][number]['targetId'], state: { streak: Number(row.streak), mastered: !!row.mastered, masteryBonusGranted: !!row.masteryBonusGranted, reviewStage: Number(row.reviewStage), dueDay: row.dueDay as string | null, difficult: !!row.difficult, totalErrors: Number(row.totalErrors), recoveryErrors: Number(row.recoveryErrors), recoveryCorrect: Number(row.recoveryCorrect) }, attemptCount: Number(row.attemptCount), variantIndex: Number(row.variantIndex) })),
                     sessions: (await tx.all<Row>('SELECT * FROM grammar_sessions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ ...row, selection: JSON.parse(String(row.selection)), targetIds: JSON.parse(String(row.targetIds)), currentQuestion: row.currentQuestion ? JSON.parse(String(row.currentQuestion)) : null, result: row.result ? JSON.parse(String(row.result)) : null })) as ProfileBackupV3['grammar']['sessions'],
                     questions: (await tx.all<Row>('SELECT * FROM grammar_questions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ question: JSON.parse(String(row.payload)), status: row.status as 'active' | 'answered' | 'cancelled' })),
@@ -77,7 +77,7 @@ export class BackupService {
                         await insert(tx, table, row);
                 for (const progress of p.grammar.progress) {
                     const s = progress.state;
-                    await tx.run('INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?,?,1,?,?,?,?,?,?,?,?,?,?,?)', [p.profile.id, progress.targetId, s.streak, +s.mastered, +s.masteryBonusGranted, s.reviewStage, s.dueDay, +s.difficult, s.totalErrors, s.recoveryErrors, s.recoveryCorrect, progress.attemptCount, progress.variantIndex]);
+                    await tx.run('INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [p.profile.id, progress.targetId, getGrammarTarget(progress.targetId).catalogVersion, s.streak, +s.mastered, +s.masteryBonusGranted, s.reviewStage, s.dueDay, +s.difficult, s.totalErrors, s.recoveryErrors, s.recoveryCorrect, progress.attemptCount, progress.variantIndex]);
                 }
                 for (const session of p.grammar.sessions) await tx.run('INSERT INTO grammar_sessions(id,profileId,selection,targetIds,cursor,currentQuestion,result,status) VALUES (?,?,?,?,?,?,?,?)', [session.id, p.profile.id, JSON.stringify(session.selection), JSON.stringify(session.targetIds), session.cursor, session.currentQuestion ? JSON.stringify(session.currentQuestion) : null, session.result ? JSON.stringify(session.result) : null, session.status]);
                 for (const row of p.grammar.questions) await tx.run('INSERT INTO grammar_questions(attemptId,profileId,sessionId,targetId,catalogVersion,kind,responseMode,payload,status) VALUES (?,?,?,?,?,?,?,?,?)', [row.question.attemptId, p.profile.id, row.question.sessionId, row.question.targetId, row.question.catalogVersion, row.question.kind, row.question.responseMode, JSON.stringify(row.question), row.status]);

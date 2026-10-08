@@ -180,7 +180,7 @@ test('v3_roundtrip_all_word_parts_and_unicode_and_case_survive_roundtrip', async
     for (const [i, pos] of parts.entries()) await h.words.create(p.id, { de: pos === 'pronoun' ? 'Sie' : pos === 'phrase' ? 'Cafe\u0301' : `Probe${i}`, ru: `перевод${i}`, pos, gender: pos === 'noun' ? 'm' : null });
     const service = new BackupService(h.db), data = await service.exportAll();
     expect(data.version).toBe(3);
-    expect(data.profiles[0].grammar).toHaveProperty('catalogVersions', [1]);
+    expect(data.profiles[0].grammar).toHaveProperty('catalogVersions', [1, 2]);
     for (const version of [1, 2]) {
         const legacy = JSON.parse(JSON.stringify(data)); legacy.version = version;
         if (version === 1) delete legacy.profiles[0].grammar;

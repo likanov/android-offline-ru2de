@@ -1,3 +1,4 @@
+import { validateBackupV2 } from '../../src/features/transfer/backupValidation';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import type { GrammarQuestion, GrammarSubmission } from '../../src/features/grammar/grammarTypes';
 import { createGrammarHarness } from '../harness';
@@ -112,5 +113,80 @@ test('legacy_v2_restores_unanswered_question_and_accepts_current_distractor', as
     expect(result).toMatchObject({ right: false, xpDelta: 0, state: { streak: 0, totalErrors: 1 } });
     const after = await h.backup.exportAll();
     expect(() => h.backup.preview(JSON.stringify(after))).not.toThrow();
+  } finally { h.close(); }
+});
+
+async function mixedCatalogFixture() {
+  const h = await createGrammarHarness();
+  const profile = await createProfile(h.db, 'Оба каталога');
+  const old = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'pronouns', targetIds: ['pronoun-cloze:ich'] }, day))!;
+  for (let index = 0; index < 20; index++) {
+    const question = (await h.grammarSessions.next(profile.id, old.id, day))!;
+    await h.grammarAnswers.submit(profile.id, old.id, question.attemptId, answer(question), day);
+  }
+  await h.grammarSessions.next(profile.id, old.id, day);
+  const state = await h.grammar.getState(profile.id, 'yesno-transform:pronoun');
+  await h.grammar.write(profile.id, { ...state, attemptCount: 19 });
+  const session = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'yesno-transform', targetIds: ['yesno-transform:pronoun'] }, day))!;
+  const active = (await h.grammarSessions.next(profile.id, session.id, day))!;
+  expect(active).toMatchObject({ catalogVersion: 2, presentation: 'sentence' });
+  return { h, profile, active, backup: await h.backup.exportAll() };
+}
+
+function withoutRemappedIds(value: unknown, ids = new Map<string, string>()): unknown {
+  if (typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value)) {
+    if (!ids.has(value)) ids.set(value, `<uuid-${ids.size}>`);
+    return ids.get(value);
+  }
+  if (Array.isArray(value)) return value.map(child => withoutRemappedIds(child, ids));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, key === 'name' ? '<name>' : withoutRemappedIds(child, ids)]));
+  return value;
+}
+
+test('mixed_catalog_roundtrip_preserves_active_sentence', async () => {
+  const { h, profile, active, backup } = await mixedCatalogFixture();
+  try {
+    expect(backup.profiles[0].grammar.catalogVersions).toEqual([1, 2]);
+    expect(backup.profiles[0].grammar.progress.find(row => row.targetId === 'pronoun-cloze:ich')!.state.mastered).toBe(true);
+    expect(backup.profiles[0].profile.xp).toBe(250);
+    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(backup)));
+    const after = (await h.backup.exportAll()).profiles.find(part => part.profile.id === restored.profileIds[0])!;
+    expect(withoutRemappedIds(after)).toEqual(withoutRemappedIds(backup.profiles[0]));
+    expect(after.profile.id).not.toBe(profile.id);
+    const resumed = (await h.grammarSessions.resume(after.profile.id))!;
+    expect(resumed.currentQuestion!.templateId).toBe(active.templateId);
+    expect(resumed.currentQuestion!.targetId).toBe(active.targetId);
+    expect(resumed.currentQuestion!.attemptId).not.toBe(active.attemptId);
+    expect(resumed.currentQuestion).toEqual(after.grammar.questions.find(row => row.status === 'active')!.question);
+  } finally { h.close(); }
+});
+
+test.each(['expected', 'template', 'catalogVersion', 'lesson', 'attempt', 'reward'] as const)('unknown_template_rejected_atomically_and_forged_expected_sentence_rejected_%s', async field => {
+  const { h, backup } = await mixedCatalogFixture();
+  try {
+    const forged = JSON.parse(JSON.stringify(backup));
+    const grammar = forged.profiles[0].grammar;
+    const row = grammar.questions.find((item: { status: string }) => item.status === 'active');
+    const session = grammar.sessions.find((item: { status: string }) => item.status === 'active');
+    if (field === 'expected') row.question.expected.sentences = ['Ist falsch?'];
+    if (field === 'template') row.question.templateId = 'missing-template';
+    if (field === 'catalogVersion') row.question.catalogVersion = 1;
+    if (field === 'lesson') session.selection.lesson = 'pronouns';
+    if (field === 'attempt') grammar.attempts[0].sessionId = session.id;
+    if (field === 'reward') grammar.rewards[0].targetId = 'yesno-transform:pronoun';
+    if (['expected', 'template', 'catalogVersion'].includes(field)) session.currentQuestion = row.question;
+    expect(() => h.backup.preview(JSON.stringify(forged))).toThrow();
+    await expect(h.backup.restore({ ...h.backup.preview(JSON.stringify(backup)), backup: forged })).rejects.toThrow();
+    expect((await h.backup.exportAll()).profiles).toHaveLength(1);
+  } finally { h.close(); }
+});
+
+test('v2_cannot_smuggle_catalog2_even_with_legacy_container', async () => {
+  const { h, backup } = await mixedCatalogFixture();
+  try {
+    const legacy = { ...backup, version: 2, profiles: backup.profiles.map(({ grammar: { catalogVersions: _versions, ...grammar }, ...part }) => ({ ...part, grammar: { ...grammar, catalogVersion: 1 } })) };
+    expect(() => validateBackupV2(legacy)).toThrow();
+    expect(() => h.backup.preview(JSON.stringify(legacy))).toThrow();
+    expect((await h.backup.exportAll()).profiles).toHaveLength(1);
   } finally { h.close(); }
 });

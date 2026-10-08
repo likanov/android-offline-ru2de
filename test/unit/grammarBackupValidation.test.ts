@@ -1,6 +1,6 @@
-import { grammarTargets } from '../../src/features/grammar/grammarCatalog';
+import { grammarTargets, lektion2Targets } from '../../src/features/grammar/grammarCatalog';
 import { validateGrammarProfile, validateCombinedLedger } from '../../src/features/transfer/grammarBackupValidation';
-import type { GrammarProfileBackup, ProfileBackupV2 } from '../../src/features/transfer/backupTypes';
+import type { GrammarProfileBackup, ProfileBackupV2, ProfileBackupV3 } from '../../src/features/transfer/backupTypes';
 
 const profileId = '00000000-0000-4000-8000-000000000001';
 const attemptId = '00000000-0000-4000-8000-000000000002';
@@ -38,4 +38,18 @@ test('combined_ledger_includes_grammar_attempt_xp_once', () => {
   expect(() => validateCombinedLedger(value)).not.toThrow();
   value.profile.xp = 20;
   expect(() => validateCombinedLedger(value)).toThrow();
+});
+
+test('v3_accepts_both_catalogs_with_catalog_derived_variant_limits', () => {
+  const value = part();
+  const { catalogVersion: _version, ...rows } = value.grammar;
+  const mixed: ProfileBackupV3 = { ...value, grammar: { ...rows, catalogVersions: [1, 2] as (1 | 2)[] } };
+  mixed.grammar.progress.push({ profileId, targetId: lektion2Targets[0].id, state: { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 }, attemptCount: 0, variantIndex: 0 });
+  expect(() => validateGrammarProfile(mixed)).not.toThrow();
+});
+
+test('v2_cannot_smuggle_catalog2', () => {
+  const value = part();
+  value.grammar.progress.push({ profileId, targetId: lektion2Targets[0].id as never, state: { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 }, attemptCount: 0, variantIndex: 0 });
+  expect(() => validateGrammarProfile(value)).toThrow();
 });

@@ -1,5 +1,5 @@
 import { applyAnswer } from '../learning/learningRules';
-import { grammarTargets } from '../grammar/grammarCatalog';
+import { grammarTargets, getGrammarTarget, getGrammarVariantCount, getGrammarCatalogVersions } from '../grammar/grammarCatalog';
 import { checkGrammarAnswer, validateGrammarQuestion } from '../grammar/grammarQuestionFactory';
 import type { GrammarProfileBackupV3, ProfileBackupV3, ProfileBackupV2 } from './backupTypes';
 import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession } from '../grammar/grammarTypes';
@@ -19,13 +19,13 @@ function isDay(value: unknown): value is string {
 }
 function equal(a: unknown, b: unknown): boolean { return JSON.stringify(a) === JSON.stringify(b); }
 function emptyState() { return { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 } as const; }
-function targetKnown(id: unknown): boolean { return typeof id === 'string' && grammarTargets.some(target => target.id === id); }
+function targetKnown(id: unknown): boolean { try { return typeof id === 'string' && !!getGrammarTarget(id as GrammarQuestion['targetId']); } catch { return false; } }
 function validateQuestionSnapshot(question: GrammarQuestion, words?: ProfileBackupV3['words']): void {
-  if(question.catalogVersion!==1) invalid();
+  if (!targetKnown(question.targetId) || question.catalogVersion !== getGrammarTarget(question.targetId).catalogVersion) invalid();
   try { validateGrammarQuestion(question, words); } catch { invalid(); }
 }
 function checkProgress(row: GrammarProgress & { profileId: string }, profileId: string): void {
-  if (row.profileId !== profileId || !targetKnown(row.targetId) || !Number.isInteger(row.attemptCount) || row.attemptCount < 0 || !Number.isInteger(row.variantIndex) || row.variantIndex < 0 || row.variantIndex > 2)
+  if (row.profileId !== profileId || !targetKnown(row.targetId) || !Number.isInteger(row.attemptCount) || row.attemptCount < 0 || !Number.isInteger(row.variantIndex) || row.variantIndex < 0 || row.variantIndex >= getGrammarVariantCount(row.targetId))
     invalid();
   const state = row.state;
   if (!state || !Number.isInteger(state.streak) || state.streak < 0 || state.streak > 20 || typeof state.mastered !== 'boolean' || typeof state.masteryBonusGranted !== 'boolean' || !Number.isInteger(state.reviewStage) || state.reviewStage < 0 || state.reviewStage > 5 || (state.dueDay !== null && !isDay(state.dueDay)) || typeof state.difficult !== 'boolean' || !Number.isInteger(state.totalErrors) || state.totalErrors < 0 || !Number.isInteger(state.recoveryErrors) || state.recoveryErrors < 0 || !Number.isInteger(state.recoveryCorrect) || state.recoveryCorrect < 0 || state.recoveryCorrect > 2)
@@ -39,7 +39,11 @@ function checkQuestion(row: { question: GrammarQuestion; status: string }, profi
   const question = row.question;
   if (!['active', 'answered', 'cancelled'].includes(row.status) || question.profileId !== profileId || !isUuid(question.attemptId) || !isUuid(question.sessionId) || !targetKnown(question.targetId) || !['active', 'answered', 'cancelled'].includes(row.status)) invalid();
   const session = sessions.get(question.sessionId);
-  if (!session || session.profileId !== profileId || !session.targetIds.includes(question.targetId)) invalid();
+  if (!session || session.profileId !== profileId || (row.status === 'active' && !session.targetIds.includes(question.targetId))) invalid();
+  if (session.selection.targetIds && !session.selection.targetIds.includes(question.targetId)) invalid();
+  const target = getGrammarTarget(question.targetId);
+  const lesson = session.selection.lesson;
+  if (lesson === 'mixed' ? target.catalogVersion !== 1 : target.kind !== (lesson === 'pronouns' ? 'pronoun-cloze' : lesson === 'sein' ? 'sein-cloze' : lesson)) invalid();
   if (!Array.isArray(question.dependencies) || question.dependencies.some(dependency => dependency.profileId !== undefined && dependency.profileId !== profileId || !isUuid(dependency.wordId) || !Number.isInteger(dependency.revision) || dependency.revision < 1)) invalid();
   const trustedWords = words.filter(word => question.dependencies.some(dependency => dependency.wordId === word.id));
   if (row.status === 'active') {
@@ -54,31 +58,40 @@ function checkQuestion(row: { question: GrammarQuestion; status: string }, profi
   if (row.status === 'answered' && !attempts.has(question.attemptId)) invalid();
 }
 
-export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2): void {
+export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2, context: { catalogVersions: readonly (1 | 2)[] } = { catalogVersions: getGrammarCatalogVersions() }): void {
   if (part && part.grammar && 'catalogVersion' in part.grammar) {
     if (part.grammar.catalogVersion !== 1 || 'catalogVersions' in part.grammar) invalid();
     const legacyTargets = new Set(grammarTargets.filter(target => target.catalogVersion === 1).map(target => target.id));
     for (const id of [...part.grammar.progress.map(row => row.targetId), ...part.grammar.sessions.flatMap(row => [...row.targetIds, ...(row.selection.targetIds ?? [])]), ...part.grammar.questions.map(row => row.question.targetId), ...part.grammar.attempts.map(row => row.targetId), ...part.grammar.rewards.map(row => row.targetId)]) if (!legacyTargets.has(id)) invalid();
     if (part.grammar.questions.some(row => row.question.catalogVersion !== 1)) invalid();
     const { catalogVersion: _legacyVersion, ...grammar } = part.grammar;
-    return validateGrammarProfile({ ...part, grammar: { ...grammar, catalogVersions: [1] } });
+    return validateGrammarProfile({ ...part, grammar: { ...grammar, catalogVersions: [1] } }, { catalogVersions: [1] });
   }
   if (!isRecord(part) || !isRecord(part.profile) || !isUuid(part.profile.id) || !isRecord(part.grammar)) invalid();
   const profileId = part.profile.id;
   const grammar = part.grammar as GrammarProfileBackupV3;
-  if (!Array.isArray(grammar.catalogVersions) || grammar.catalogVersions.length !== new Set(grammarTargets.map(target => target.catalogVersion)).size || new Set(grammar.catalogVersions).size !== grammar.catalogVersions.length || grammar.catalogVersions.some(version => !grammarTargets.some(target => target.catalogVersion === version)) || !Array.isArray(grammar.progress) || !Array.isArray(grammar.sessions) || !Array.isArray(grammar.questions) || !Array.isArray(grammar.attempts) || !Array.isArray(grammar.rewards)) invalid();
+  if (!Array.isArray(grammar.catalogVersions) || grammar.catalogVersions.length !== context.catalogVersions.length || new Set(grammar.catalogVersions).size !== grammar.catalogVersions.length || grammar.catalogVersions.some(version => !context.catalogVersions.includes(version)) || !Array.isArray(grammar.progress) || !Array.isArray(grammar.sessions) || !Array.isArray(grammar.questions) || !Array.isArray(grammar.attempts) || !Array.isArray(grammar.rewards)) invalid();
+  for (const id of [...grammar.progress.map(row => row.targetId), ...grammar.sessions.flatMap(row => [...row.targetIds, ...(row.selection?.targetIds ?? [])]), ...grammar.questions.map(row => row.question.targetId), ...grammar.attempts.map(row => row.targetId), ...grammar.rewards.map(row => row.targetId)]) {
+    if (!targetKnown(id) || !context.catalogVersions.includes(getGrammarTarget(id).catalogVersion)) invalid();
+  }
   const targetIds = new Set<string>();
   for (const row of grammar.progress) {
     if (targetIds.has(row.targetId)) invalid();
     targetIds.add(row.targetId);
+    if (!targetKnown(row.targetId) || !context.catalogVersions.includes(getGrammarTarget(row.targetId).catalogVersion)) invalid();
     checkProgress(row, profileId);
   }
   const sessions = new Map<string, GrammarSession>();
   for (const session of grammar.sessions) {
     if (!session.selection || (session.selection.targetIds !== undefined && (!Array.isArray(session.selection.targetIds) || new Set(session.selection.targetIds).size !== session.selection.targetIds.length || session.selection.targetIds.some(id => !targetKnown(id))))) invalid();
-    if (!isUuid(session.id) || sessions.has(session.id) || session.profileId !== profileId || !['study', 'review'].includes(session.selection.mode) || !['mixed', 'pronouns', 'sein'].includes(session.selection.lesson) || !Array.isArray(session.targetIds) || new Set(session.targetIds).size !== session.targetIds.length || session.targetIds.some(id => !targetKnown(id)) || !Number.isInteger(session.cursor) || session.cursor < 0 || !['active', 'completed', 'cancelled'].includes(session.status)) invalid();
+    if (!isUuid(session.id) || sessions.has(session.id) || session.profileId !== profileId || !['study', 'review'].includes(session.selection.mode) || !['mixed', 'pronouns', 'sein', 'professions-pronoun', 'professions-sein', 'demonstrative-statement', 'yesno-transform', 'yesno-translation'].includes(session.selection.lesson) || !Array.isArray(session.targetIds) || new Set(session.targetIds).size !== session.targetIds.length || session.targetIds.some(id => !targetKnown(id)) || !Number.isInteger(session.cursor) || session.cursor < 0 || !['active', 'completed', 'cancelled'].includes(session.status)) invalid();
     if (session.status === 'active' && session.currentQuestion === null && session.result !== null) invalid();
     if (session.currentQuestion === null && session.result !== null) invalid();
+    const lesson = session.selection.lesson;
+    for (const id of [...session.targetIds, ...(session.selection.targetIds ?? [])]) {
+      const target = getGrammarTarget(id);
+      if (lesson === 'mixed' ? target.catalogVersion !== 1 : target.kind !== (lesson === 'pronouns' ? 'pronoun-cloze' : lesson === 'sein' ? 'sein-cloze' : lesson)) invalid();
+    }
     sessions.set(session.id, session);
   }
   if (grammar.sessions.filter(session => session.status === 'active').length > 1) invalid();
