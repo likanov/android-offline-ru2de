@@ -40,7 +40,7 @@ name: extended-vocabulary.search-sie-numbers
     "inputText": "Sie"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "assertVisible": ".*Вы.*"
@@ -62,7 +62,7 @@ name: extended-vocabulary.search-sie-numbers
     "inputText": "22"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "assertVisible": ".*zweiundzwanzig.*"

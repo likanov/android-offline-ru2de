@@ -45,7 +45,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия noun"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -124,7 +124,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия adjective"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -192,7 +192,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия number"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -260,7 +260,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия verb"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -328,7 +328,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия pronoun"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -396,7 +396,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия adverb"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -464,7 +464,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия preposition"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -532,7 +532,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия conjunction"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {
@@ -600,7 +600,7 @@ name: extended-vocabulary.nine-type-editor
     "inputText": "регрессия phrase"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "runFlow": {

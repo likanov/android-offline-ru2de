@@ -29,7 +29,7 @@ name: grammar-persistence.sqlite-five-six-upgrade
     "inputText": "Upgradeprobe"
   },
   {
-    "hideKeyboard": null
+    "hideKeyboard": {}
   },
   {
     "assertVisible": ".*Upgradeprobe.*"
