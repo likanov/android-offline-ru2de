@@ -35,7 +35,23 @@ name: extended-vocabulary.backup3-roundtrip
     }
   },
   {
-    "assertVisible": "Профилей:"
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Профилей: [1-9][0-9]* · .*"
+      }
+    }
+  },
+  {
+    "assertVisible": "Профилей: [1-9][0-9]* · .*"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Восстановить новые профили"
+      }
+    }
   },
   {
     "tapOn": "Восстановить новые профили"

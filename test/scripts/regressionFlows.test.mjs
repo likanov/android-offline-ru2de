@@ -456,3 +456,26 @@ test('lektion2_sentence_keyboard_captures_have_unique_lesson_names',()=>{
  const names=commands.filter(c=>c.takeScreenshot).map(c=>c.takeScreenshot);
  assert.equal(names.length,3);assert.equal(new Set(names).size,3);
 });
+
+test('backup_preview_reveals_summary_and_restore_action_before_assert_or_tap',()=>{
+ for(const file of ['grammar-import-fixture.yaml','checks/extended-vocabulary.backup3-roundtrip.yaml']){
+  const raw=readFileSync(resolve(root,file),'utf8');
+  const commands=JSON.parse(raw.split('---\n')[1]);
+  const summaryIndex=commands.findIndex(c=>typeof c.assertVisible==='string'&&c.assertVisible.startsWith('Профилей:'));
+  assert.ok(summaryIndex>=0,file);
+  const summary=commands[summaryIndex].assertVisible;
+  assert.ok(new RegExp(summary.replace('${PROFILE_COUNT}','10')).test('Профилей: 10 · Слов: 362 · Грамматических целей: 20'),file+': summary must match complete preview text');
+  assert.ok(summary.endsWith('.*'),file+': summary must include the numeric preview suffix');
+  const reveal=commands[summaryIndex-1]?.runFlow;
+  assert.ok(reveal?.file.endsWith('/ensure-visible.yaml'),file+': reveal summary before assertion');
+  assert.equal(reveal.env.TARGET_TEXT,summary);
+  const restoreIndex=commands.findIndex(c=>c.tapOn==='Восстановить новые профили');
+  assert.ok(restoreIndex>summaryIndex);
+  assert.equal(commands[restoreIndex-1]?.runFlow?.env?.TARGET_TEXT,'Восстановить новые профили',file+': restore can still be below viewport after summary');
+ }
+ const raw=readFileSync(resolve(root,'grammar-import-fixture.yaml'),'utf8');
+ assert.ok(raw.includes('PROFILE_COUNT: "10"'),'V3 import defaults to the exact generated fixture count; legacy runner supplies its own count');
+ const commands=JSON.parse(raw.split('---\n')[1]);
+ const summary=commands.find(c=>typeof c.assertVisible==='string'&&c.assertVisible.startsWith('Профилей:')).assertVisible;
+ for(const count of [9,100])assert.equal(new RegExp(summary.replace('${PROFILE_COUNT}','10')).test('Профилей: '+count+' · Слов: 362'),false);
+});
