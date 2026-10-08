@@ -1,3 +1,4 @@
+import { wordParts } from './wordParts';
 import type { Word, WordDraft } from '../learning/learningTypes';
 import { normalizeAnswer } from '../learning/normalizeAnswer';
 import { theme } from '../../ui/theme';
@@ -11,10 +12,12 @@ export function validateWord(draft: WordDraft): WordDraft {
         throw new WordError('VALIDATION', 'Введите немецкое слово');
     if (!ru)
         throw new WordError('VALIDATION', 'Введите перевод');
-    if (!['noun', 'adjective'].includes(draft.pos))
+    if (!wordParts.some(part => part.value === draft.pos))
         throw new WordError('VALIDATION', 'Выберите часть речи');
     if (draft.pos === 'noun' && !['m', 'f', 'n'].includes(draft.gender ?? ''))
         throw new WordError('VALIDATION', 'Выберите род существительного');
+    if (draft.pos !== 'noun' && (draft.gender != null || !!draft.plural?.trim()))
+        throw new WordError('VALIDATION', 'Род и множественное число допустимы только для существительного');
     // Normalize plain all-uppercase input; retain existing interior capitalization.
     // Preserve interior capitals in mixed-case and hyphenated words (USB-Stick).
     const plainUppercase = /^[A-ZÄÖÜẞ]+$/u.test(de);
@@ -28,8 +31,8 @@ export function genderPresentation(word: Pick<Word, 'pos' | 'gender'>): {
     color: string | null;
     label: string;
 } {
-    if (word.pos === 'adjective')
-        return { article: null, color: null, label: 'Прилагательное' };
+    if (word.pos !== 'noun')
+        return { article: null, color: null, label: wordParts.find(part => part.value === word.pos)?.labelRu ?? 'Часть речи' };
     const genders = { m: { article: 'der', color: theme.masculine, label: 'Мужской род' }, f: { article: 'die', color: theme.feminine, label: 'Женский род' }, n: { article: 'das', color: theme.neuter, label: 'Средний род' } };
     return word.gender ? genders[word.gender] : { article: null, color: null, label: 'Род не указан' };
 }

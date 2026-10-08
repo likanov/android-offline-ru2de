@@ -9,6 +9,8 @@ export interface SqlExecutor {
   first<T>(sql: string, params?: SqlValue[]): Promise<T | null>;
 }
 export interface SqlStore extends SqlExecutor {
+  // Startup table rebuilds only. The callback must use tx, never queued db methods.
+  schemaTransaction<T>(work: (tx: SqlExecutor) => Promise<T>): Promise<T>;
   transaction<T>(work: (tx: SqlExecutor) => Promise<T>): Promise<T>;
 }
 export interface NativeExecutor {
@@ -48,6 +50,33 @@ export function createSqlStore(native: NativeDatabase): SqlStore {
       enqueue(() => direct.all<T>(sql, params)),
     first: <T>(sql: string, params?: SqlValue[]) =>
       enqueue(() => direct.first<T>(sql, params)),
+    schemaTransaction: <T>(work: (tx: SqlExecutor) => Promise<T>) =>
+      enqueue(async () => {
+        const original = await direct.first<{ foreign_keys: number }>("PRAGMA foreign_keys");
+        if (!original) throw new Error("Cannot read SQLite foreign key setting");
+        let begun = false;
+        try {
+          await direct.exec("PRAGMA foreign_keys=OFF");
+          const disabled = await direct.first<{ foreign_keys: number }>("PRAGMA foreign_keys");
+          if (disabled?.foreign_keys !== 0) throw new Error("Cannot disable foreign keys before schema transaction");
+          await direct.exec("BEGIN IMMEDIATE");
+          begun = true;
+          const result = await work(direct);
+          if ((await direct.all("PRAGMA foreign_key_check")).length)
+            throw new Error("Schema migration violates foreign key relationships");
+          await direct.exec("COMMIT");
+          begun = false;
+          return result;
+        } catch (error) {
+          if (begun) await direct.exec("ROLLBACK");
+          throw error;
+        } finally {
+          await direct.exec(`PRAGMA foreign_keys=${original.foreign_keys ? "ON" : "OFF"}`);
+          const restored = await direct.first<{ foreign_keys: number }>("PRAGMA foreign_keys");
+          if (restored?.foreign_keys !== original.foreign_keys)
+            throw new Error("Cannot restore SQLite foreign key setting");
+        }
+      }),
     transaction: <T>(work: (tx: SqlExecutor) => Promise<T>) =>
       enqueue(async () => {
         let result!: T;

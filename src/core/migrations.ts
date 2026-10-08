@@ -1,3 +1,4 @@
+import { migrateWordParts } from './migrations/007_word_parts';
 import { topicsSchema, seedProfileTopics } from './migrations/004_topics';
 import type { SqlStore } from "./sql";
 import { profilesSchema } from "./migrations/001_profiles";
@@ -8,11 +9,13 @@ import { starterWords } from "../data/starterWords";
 import { learningSchema } from "./migrations/003_learning";
 import { grammarSchema, seedGrammarTargets } from './migrations/006_grammar';
 export async function migrate(db: SqlStore): Promise<void> {
+  const current = await db.first<{user_version:number}>("PRAGMA user_version");
+  if ((current?.user_version ?? 0) > 7) throw new Error("Unsupported database version");
   await db.transaction(async (tx) => {
     const version = await tx.first<{ user_version: number }>(
       "PRAGMA user_version",
     );
-    if ((version?.user_version ?? 0) > 6)
+    if ((version?.user_version ?? 0) > 7)
       throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 1) {
       await tx.exec(profilesSchema);
@@ -45,6 +48,15 @@ export async function migrate(db: SqlStore): Promise<void> {
       await tx.exec(grammarSchema);
       await seedGrammarTargets(tx);
       await tx.exec('PRAGMA user_version=6;');
+    }
+  });
+  await db.schemaTransaction(async tx => {
+    const version = await tx.first<{user_version:number}>("PRAGMA user_version");
+    if ((version?.user_version ?? 0) > 7) throw new Error("Unsupported database version");
+    if ((version?.user_version ?? 0) < 7) {
+      await migrateWordParts(tx);
+      if ((await tx.all("PRAGMA foreign_key_check")).length) throw new Error("Word migration violates foreign key relationships");
+      await tx.exec("PRAGMA user_version=7");
     }
   });
 }

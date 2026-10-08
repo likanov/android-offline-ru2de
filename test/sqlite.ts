@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { createSqlStore } from "../src/core/sql";
 import type { SqlExecutor, SqlStore, SqlValue } from "../src/core/sql";
 const { DatabaseSync } = createRequire(__filename)(
   "node:sqlite",
@@ -25,26 +26,20 @@ export function openTestDb(path = ":memory:"): {
     first: async <T>(sql: string, params: SqlValue[] = []) =>
       (native.prepare(sql).get(...params) as T | undefined) ?? null,
   };
-  let pending: Promise<unknown> = Promise.resolve();
   return {
-    db: {
-      ...executor,
-      transaction: <T>(work: (tx: SqlExecutor) => Promise<T>) => {
-        const operation = pending.then(async () => {
-          native.exec("BEGIN IMMEDIATE");
-          try {
-            const result = await work(executor);
-            native.exec("COMMIT");
-            return result;
-          } catch (error) {
-            native.exec("ROLLBACK");
-            throw error;
-          }
-        });
-        pending = operation.catch(() => {});
-        return operation;
+    db: createSqlStore({
+      execAsync: executor.exec,
+      runAsync: executor.run,
+      getAllAsync: executor.all,
+      getFirstAsync: executor.first,
+      withExclusiveTransactionAsync: async work => {
+        native.exec("BEGIN IMMEDIATE");
+        try {
+          await work({execAsync:executor.exec,runAsync:executor.run,getAllAsync:executor.all,getFirstAsync:executor.first});
+          native.exec("COMMIT");
+        } catch(error) { native.exec("ROLLBACK"); throw error; }
       },
-    },
+    }),
     close: () => native.close(),
   };
 }

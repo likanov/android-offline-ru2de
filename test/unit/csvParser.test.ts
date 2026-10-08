@@ -12,7 +12,7 @@ test.each(['de,ru,pos\nx,"broken,adjective','de,ru,pos\nx,bad"quote,adjective','
  expect(()=>parseCsv(text)).toThrow(expect.objectContaining({code:'VALIDATION'}));
 });
 test('invalid fields and uneven columns reject individual rows',()=>{
- for(const text of ['de,ru,pos,gender\nStuhl,стул,noun,','de,ru,pos,gender\nklein,,adjective,','de,ru,pos,gender\nx,y,verb,','de,ru,pos\nx,y,adjective,extra']){
+ for(const text of ['de,ru,pos,gender\nStuhl,стул,noun,','de,ru,pos,gender\nklein,,adjective,','de,ru,pos,gender\nx,y,interjection,','de,ru,pos\nx,y,adjective,extra']){
  expect(()=>csvRowToWord(parseCsv(text).rows[0])).toThrow(expect.objectContaining({code:'VALIDATION'}));
  }
 });

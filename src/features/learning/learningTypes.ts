@@ -1,3 +1,4 @@
+import type { WordPart } from "../dictionary/wordParts";
 export type DayKey = string;
 export type Skill = "translation" | "writing" | "article" | "listening";
 export type Word = {
@@ -5,7 +6,7 @@ export type Word = {
   profileId: string;
   de: string;
   ru: string;
-  pos: "noun" | "adjective";
+  pos: WordPart;
   gender: "m" | "f" | "n" | null;
   plural: string | null;
   exampleDe: string | null;

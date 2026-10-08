@@ -6,7 +6,7 @@ async function snapshotDb(db:SqlStore){const result:Record<string,unknown>={};fo
 test('quoted_csv_unicode_and_profile_change',async()=>{
  const h=await createWordHarness();try{
  const p1=await createProfile(h.db,'A');const csv=new CsvImportService(h.db);
- const text='\uFEFFde,ru,pos,gender,note,topic\nStuhl,"стул, мягкий",noun,m,"строка 1\nстрока 2",Комната\nschön,красивый,adjective,,,\ngroß,большой,adjective,,,\ngross,большой,adjective,,,\ngroß,большой,adjective,,,\nTisch,стол,noun,,,\nleer,,adjective,,,\nx,y,verb,,,';
+ const text='\uFEFFde,ru,pos,gender,note,topic\nStuhl,"стул, мягкий",noun,m,"строка 1\nстрока 2",Комната\nschön,красивый,adjective,,,\ngroß,большой,adjective,,,\ngross,большой,adjective,,,\ngroß,большой,adjective,,,\nTisch,стол,noun,,,\nleer,,adjective,,,\nx,y,interjection,,,';
  const preview=await csv.preview(p1.id,text);expect(preview.valid).toHaveLength(3);expect(preview.duplicates).toEqual([4,7]);expect(preview.errors.map(e=>e.line)).toEqual([8,9,10]);
  await createProfile(h.db,'B');const before=await snapshotDb(h.db);await expect(csv.commit(preview)).rejects.toMatchObject({code:'WRONG_PROFILE'});expect(await snapshotDb(h.db)).toEqual(before);
  await setActiveProfile(h.db,p1.id);const fresh=await csv.preview(p1.id,text);expect(await csv.commit(fresh)).toEqual({added:3,duplicates:2,invalid:3});expect(await csv.commit(fresh)).toEqual({added:0,duplicates:5,invalid:3});

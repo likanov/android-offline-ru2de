@@ -110,3 +110,28 @@ test("refuses_a_transaction_connection_without_foreign_key_enforcement", async (
   ).toBeNull();
   close();
 });
+
+// Losing rollback or restoring FK after the next queued write corrupts the database.
+test('schema_transaction_rolls_back_and_restores_foreign_keys', async () => {
+ const {db:sqlite,close}=openTestDb();
+ const db=createSqlStore({execAsync:sqlite.exec,runAsync:sqlite.run,getAllAsync:sqlite.all,getFirstAsync:sqlite.first,withExclusiveTransactionAsync:()=>{throw new Error('must use primary');}});
+ try {
+  expect(typeof (db as any).schemaTransaction).toBe('function');
+  await expect((db as any).schemaTransaction(async (tx:any)=>{await tx.exec('CREATE TABLE temporary(id TEXT)');throw new Error('after copy');})).rejects.toThrow('after copy');
+  expect(await db.first("SELECT name FROM sqlite_master WHERE name='temporary'")).toBeNull();
+  expect(await db.first('PRAGMA foreign_keys')).toEqual({foreign_keys:1});
+ } finally {close();}
+});
+test('queued_operations_wait_for_schema_transaction', async () => {
+ const {db,close}=openTestDb();
+ try {
+  expect(typeof (db as any).schemaTransaction).toBe('function');
+  let release!:()=>void,entered!:()=>void;
+  const gate=new Promise<void>(r=>release=r),ready=new Promise<void>(r=>entered=r);
+  const schema=(db as any).schemaTransaction(async(tx:any)=>{await tx.exec('CREATE TABLE entries(value TEXT)');entered();await gate;});
+  await ready;
+  let finished=false;
+  const read=db.all('SELECT * FROM entries').then(rows=>{finished=true;return rows;});
+  await Promise.resolve();expect(finished).toBe(false);release();await schema;expect(await read).toEqual([]);
+ } finally {close();}
+});

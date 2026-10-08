@@ -1,7 +1,7 @@
 import { createWordHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import { WordRepository } from '../../src/features/dictionary/wordRepository';
-import { genderPresentation } from '../../src/features/dictionary/wordValidation';
+import { wordKey, genderPresentation } from '../../src/features/dictionary/wordValidation';
 let h: Awaited<ReturnType<typeof createWordHarness>>, words: any, p1: string, p2: string, stool: any;
 beforeEach(async () => {
     h = await createWordHarness();
@@ -46,7 +46,7 @@ test('canonical_duplicate_and_same_translation', async () => {
 test('validates_gender_and_presents_articles', async () => {
     for (const draft of [{ de: '', ru: 'x', pos: 'noun', gender: 'm' }, { de: 'x', ru: ' ', pos: 'noun', gender: 'm' }, { de: 'x', ru: 'x', pos: 'noun', gender: null }])
         await expect(words.create(p1, draft)).rejects.toMatchObject({ code: 'VALIDATION' });
-    const adjective = await words.create(p1, { de: ' nett ', ru: 'милый', pos: 'adjective', gender: 'm' });
+    const adjective = await words.create(p1, { de: ' nett ', ru: 'милый', pos: 'adjective', gender: null });
     expect(adjective).toMatchObject({ de: 'nett', gender: null });
     expect(genderPresentation(adjective)).toMatchObject({ article: null, color: null });
     expect(genderPresentation(stool)).toMatchObject({ article: 'der', color: '#2a63bd' });
@@ -70,3 +70,21 @@ test.each(['T-Shirt', 'E-Mail', 'USB-Stick', 'CD-ROM'])(
         expect(edited.learningReset).toBe(false);
     },
 );
+
+// Rejecting a new valid POS or silently discarding non-noun metadata breaks this contract.
+test('all_nine_parts_and_noun_only_gender_plural', async () => {
+ expect(wordKey({de:'Stuhl',ru:'стул',pos:'noun',gender:'m'})).toBe('["stuhl","стул","noun","m"]');
+ expect(wordKey({de:'nett',ru:'милый',pos:'adjective',gender:null})).toBe('["nett","милый","adjective",null]');
+ const parts = ['noun','adjective','number','verb','pronoun','adverb','preposition','conjunction','phrase'];
+ for (const pos of parts) {
+  const word = await words.create(p1, {de: pos==='pronoun'?'Sie':pos,ru:pos,pos,gender:pos==='noun'?'m':null});
+  expect(word.pos).toBe(pos);
+  if (pos!=='noun') {
+   expect(genderPresentation(word)).toMatchObject({article:null,color:null});
+   await expect(words.create(p1,{de:'x',ru:'x',pos,gender:'m'})).rejects.toMatchObject({code:'VALIDATION'});
+   await expect(words.create(p1,{de:'x',ru:'x',pos,gender:null,plural:'xs'})).rejects.toMatchObject({code:'VALIDATION'});
+  }
+ }
+ expect((await words.list(p1,{})).find((w:any)=>w.pos==='pronoun').de).toBe('Sie');
+ await expect(words.create(p1,{de:'x',ru:'x',pos:'unknown',gender:null})).rejects.toMatchObject({code:'VALIDATION'});
+});
