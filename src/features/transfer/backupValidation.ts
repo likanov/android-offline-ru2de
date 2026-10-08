@@ -232,7 +232,11 @@ export function validateBackup(value: unknown): BackupV3 {
         createdAt: source.createdAt,
         profiles: source.profiles.map(value => {
             if (!value || typeof value !== 'object' || !value.grammar) invalid();
-            if (legacy) validateGrammarProfile(value as ProfileBackupV2);
+            if (typeof value.grammar !== 'object' || Array.isArray(value.grammar)) invalid();
+            if (legacy) {
+                if (value.grammar.catalogVersion !== 1 || 'catalogVersions' in value.grammar) invalid();
+                validateGrammarProfile(value as ProfileBackupV2);
+            } else if ('catalogVersion' in value.grammar) invalid();
             const { catalogVersion: _legacyVersion, ...grammar } = value.grammar;
             return { ...value, grammar: legacy ? { ...grammar, catalogVersions: [1] } : value.grammar };
         }),

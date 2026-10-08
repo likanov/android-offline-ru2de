@@ -15,7 +15,7 @@ test('v1_v2_reject_new_parts_and_unsupported_catalogs', () => {
         const bad = JSON.parse(JSON.stringify(base)); bad.profiles[0].grammar.catalogVersions = catalogVersions;
         expect(() => validateBackup(bad)).toThrow();
     }
-    const v2 = { ...base, version: 2, profiles: base.profiles.map(p => ({ ...p, grammar: { ...p.grammar, catalogVersion: 1 } })) };
+    const v2 = { ...base, version: 2, profiles: base.profiles.map(({ grammar, ...p }) => { const { catalogVersions: _versions, ...rows } = grammar; return { ...p, grammar: { ...rows, catalogVersion: 1 } }; }) };
     expect(validateBackup(v2).version).toBe(3);
     v2.profiles[0].grammar.catalogVersion = 2;
     expect(() => validateBackup(v2)).toThrow();

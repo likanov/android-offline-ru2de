@@ -21,6 +21,7 @@ function equal(a: unknown, b: unknown): boolean { return JSON.stringify(a) === J
 function emptyState() { return { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 } as const; }
 function targetKnown(id: unknown): boolean { return typeof id === 'string' && grammarTargets.some(target => target.id === id); }
 function validateQuestionSnapshot(question: GrammarQuestion, words?: ProfileBackupV3['words']): void {
+  if(question.catalogVersion!==1) invalid();
   try { validateGrammarQuestion(question, words); } catch { invalid(); }
 }
 function checkProgress(row: GrammarProgress & { profileId: string }, profileId: string): void {
@@ -55,9 +56,9 @@ function checkQuestion(row: { question: GrammarQuestion; status: string }, profi
 
 export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2): void {
   if (part && part.grammar && 'catalogVersion' in part.grammar) {
-    if (part.grammar.catalogVersion !== 1) invalid();
+    if (part.grammar.catalogVersion !== 1 || 'catalogVersions' in part.grammar) invalid();
     const legacyTargets = new Set(grammarTargets.filter(target => target.catalogVersion === 1).map(target => target.id));
-    for (const id of [...part.grammar.progress.map(row => row.targetId), ...part.grammar.sessions.flatMap(row => row.targetIds), ...part.grammar.questions.map(row => row.question.targetId), ...part.grammar.attempts.map(row => row.targetId), ...part.grammar.rewards.map(row => row.targetId)]) if (!legacyTargets.has(id)) invalid();
+    for (const id of [...part.grammar.progress.map(row => row.targetId), ...part.grammar.sessions.flatMap(row => [...row.targetIds, ...(row.selection.targetIds ?? [])]), ...part.grammar.questions.map(row => row.question.targetId), ...part.grammar.attempts.map(row => row.targetId), ...part.grammar.rewards.map(row => row.targetId)]) if (!legacyTargets.has(id)) invalid();
     if (part.grammar.questions.some(row => row.question.catalogVersion !== 1)) invalid();
     const { catalogVersion: _legacyVersion, ...grammar } = part.grammar;
     return validateGrammarProfile({ ...part, grammar: { ...grammar, catalogVersions: [1] } });
@@ -74,6 +75,7 @@ export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2):
   }
   const sessions = new Map<string, GrammarSession>();
   for (const session of grammar.sessions) {
+    if (!session.selection || (session.selection.targetIds !== undefined && (!Array.isArray(session.selection.targetIds) || new Set(session.selection.targetIds).size !== session.selection.targetIds.length || session.selection.targetIds.some(id => !targetKnown(id))))) invalid();
     if (!isUuid(session.id) || sessions.has(session.id) || session.profileId !== profileId || !['study', 'review'].includes(session.selection.mode) || !['mixed', 'pronouns', 'sein'].includes(session.selection.lesson) || !Array.isArray(session.targetIds) || new Set(session.targetIds).size !== session.targetIds.length || session.targetIds.some(id => !targetKnown(id)) || !Number.isInteger(session.cursor) || session.cursor < 0 || !['active', 'completed', 'cancelled'].includes(session.status)) invalid();
     if (session.status === 'active' && session.currentQuestion === null && session.result !== null) invalid();
     if (session.currentQuestion === null && session.result !== null) invalid();
