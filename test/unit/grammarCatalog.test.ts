@@ -47,3 +47,12 @@ test('response_modes_share_target', () => {
     expect(makeGrammarQuestion({ ...input(target.id), responseMode: grammarResponseMode(3) }).targetId).toBe(target.id);
   }
 });
+
+// A seed expansion here would expose unsupported targets to legacy mixed sessions.
+test('legacy_catalog_is_unchanged', () => {
+  expect(grammarTargets.map(t=>t.id)).toEqual([
+    'pronoun-cloze:ich','pronoun-cloze:du','pronoun-cloze:er','pronoun-cloze:sie_feminine','pronoun-cloze:es','pronoun-cloze:wir','pronoun-cloze:ihr','pronoun-cloze:sie_plural','pronoun-cloze:sie_formal',
+    'sein-cloze:ich','sein-cloze:du','sein-cloze:er','sein-cloze:sie_feminine','sein-cloze:es','sein-cloze:wir','sein-cloze:ihr','sein-cloze:sie_plural','sein-cloze:sie_formal',
+  ]);
+  expect(grammarTargets.every(t=>t.catalogVersion===1)).toBe(true);
+});
