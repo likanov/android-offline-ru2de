@@ -31,3 +31,9 @@ test('rule_requires_the_selected_reference_and_other_modes_do_not_receive_it', (
     expect(() => buildContext({ ...req, mode: 'rule', ruleTopic: 'gender' }, [word, second], null)).toThrow(expect.objectContaining({ code: 'VALIDATION' }));
     expect(buildContext(req, [word, second], { title: 'unrelated', text: 'unrelated' }).reference).toBeNull();
 });
+
+test.each(['number','verb','pronoun','adverb','preposition','conjunction','phrase'] as const)('assistant_receives_real_part_%s_without_noun_metadata',pos=>{
+ const target:Word={...word,pos,gender:null,plural:null,de:pos==='pronoun'?'Sie':'sechzehn'};
+ const context=buildContext({...req,mode:'association',selectedWordIds:[]},[target],null);
+ expect(context.word.pos).toBe(pos);expect(JSON.parse(buildMessages(context)[1].content).word).toMatchObject({pos,gender:null,article:null,plural:null,de:target.de});
+});

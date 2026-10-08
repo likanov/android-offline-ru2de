@@ -37,3 +37,8 @@ test('asynchronous_synthesis_error_after_acceptance_rejects_playback',async()=>{
  const pending=service.play(word());while(!fail)await Promise.resolve();const outcome=expect(pending).rejects.toMatchObject({code:'AUDIO_UNAVAILABLE'});
  fail(new Error('synthesis output error'));await outcome;
 });
+
+test.each(['number','verb','pronoun','adverb','preposition','conjunction','phrase'] as const)('non_noun_%s_is_spoken_without_article',async pos=>{
+ const {service,speech}=setup([{id:'de',language:'de-DE',requiresNetwork:false,installed:true}]);
+ await service.play(word({pos,gender:null,de:'Sie'}));expect(speech.speakOffline).toHaveBeenCalledWith('Sie','de',expect.any(String));
+});

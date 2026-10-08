@@ -83,3 +83,17 @@ test('navigation_returns_to_saved_card_and_searches_new_word',async()=>{
  await screen.findByText('Найдено: 1');
  expect(screen.getByRole('button',{name:'die Beere — ягода'})).toBeTruthy();close();
 });
+
+test('part_selector_clears_noun_fields_and_preserves_Sie', async () => {
+ const {db,close}=openTestDb();await migrate(db);const p=await createProfile(db,'A');let saved='';
+ render(<WordEditorScreen db={db} profileId={p.id} onSaved={id=>{saved=id;}} onCancel={()=>{}}/>);
+ fireEvent.changeText(screen.getByLabelText('Немецкое слово'),'Sie');fireEvent.changeText(screen.getByLabelText('Перевод'),'Вы');
+ fireEvent.press(screen.getByRole('button',{name:'das — средний род'}));fireEvent.changeText(screen.getByLabelText('Множественное число'),'Sie');
+ fireEvent.press(screen.getByRole('button',{name:'Выбрать часть речи'}));
+ for(const label of ['Существительное','Прилагательное','Числительное','Глагол','Местоимение','Наречие','Предлог','Союз','Выражение'])expect(screen.getByRole('button',{name:label})).toBeTruthy();
+ fireEvent.press(screen.getByRole('button',{name:'Числительное'}));
+ expect(screen.queryByLabelText('Множественное число')).toBeNull();expect(screen.queryByRole('button',{name:'das — средний род'})).toBeNull();
+ fireEvent.press(screen.getByRole('button',{name:'Выбрать часть речи'}));fireEvent.press(screen.getByRole('button',{name:'Местоимение'}));
+ fireEvent.press(screen.getByRole('button',{name:'Сохранить слово'}));await waitFor(()=>expect(saved).not.toBe(''));
+ expect(await db.first('SELECT de,pos,gender,plural FROM words WHERE id=?',[saved])).toEqual({de:'Sie',pos:'pronoun',gender:null,plural:null});close();
+});

@@ -1,3 +1,5 @@
+import { wordParts } from './wordParts';
+import { wordPartLabel } from './dictionaryPresentation';
 import { TopicRepository, type Topic } from '../topics/topicRepository';
 import { TopicPicker } from '../topics/TopicPicker';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -20,6 +22,7 @@ export function WordEditorScreen({ db, profileId, wordId, onSaved, onCancel }: {
     const topics = useMemo(() => new TopicRepository(db), [db]);
     const [topicRows,setTopicRows] = useState<Topic[]>([]), [topicIds,setTopicIds] = useState<string[]>([]);
     const [draft, setDraft] = useState<WordDraft>({ de: '', ru: '', pos: 'noun', gender: null, plural: '', exampleDe: '', exampleRu: '', note: '', icon: null });
+    const [partsExpanded, setPartsExpanded] = useState(false);
     const [error, setError] = useState(''), [busy, setBusy] = useState(false), [loaded, setLoaded] = useState(!wordId);
     useEffect(()=>{let alive=true;void topics.list(profileId).then(rows=>{if(alive)setTopicRows(rows);}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false;};},[topics,profileId]);
     useEffect(() => { let alive = true; if (wordId)
@@ -46,10 +49,13 @@ export function WordEditorScreen({ db, profileId, wordId, onSaved, onCancel }: {
     return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><Screen>
  <Text style={{ fontSize: 26, fontWeight: '700' }}>Редактор карточки</Text>
  {error ? <Text accessibilityRole="alert" style={{ color: theme.error }}>{error}</Text> : null}
- {fields.map(([field, label]) => <React.Fragment key={field}><Text>{label}</Text><TextInput testID={`word-${field}`} accessibilityLabel={label} value={String(draft[field] ?? '')} onChangeText={value => setDraft({ ...draft, [field]: value })} editable={loaded && !busy} multiline={field === 'note' || field === 'exampleDe' || field === 'exampleRu'} autoCorrect={false} autoCapitalize={field === 'de' ? 'none' : 'sentences'} style={{ borderWidth: 1, borderColor: theme.muted, borderRadius: 10, padding: 12, color: theme.foreground }}/></React.Fragment>)}
- <Text>Часть речи: {draft.pos === 'noun' ? 'существительное' : 'прилагательное'}</Text>
- <Button title="Существительное" onPress={() => setDraft({ ...draft, pos: 'noun' })}/>
- <Button title="Прилагательное" onPress={() => setDraft({ ...draft, pos: 'adjective', gender: null })}/>
+ {fields.filter(([field]) => field !== 'plural' || draft.pos === 'noun').map(([field, label]) => <React.Fragment key={field}><Text>{label}</Text><TextInput testID={`word-${field}`} accessibilityLabel={label} value={String(draft[field] ?? '')} onChangeText={value => setDraft({ ...draft, [field]: value })} editable={loaded && !busy} multiline={field === 'note' || field === 'exampleDe' || field === 'exampleRu'} autoCorrect={false} autoCapitalize={field === 'de' ? 'none' : 'sentences'} style={{ borderWidth: 1, borderColor: theme.muted, borderRadius: 10, padding: 12, color: theme.foreground }}/></React.Fragment>)}
+ <Text>Часть речи: {wordPartLabel(draft.pos)}</Text>
+ <Button title="Выбрать часть речи" variant="ghost" disabled={busy || !loaded} onPress={() => setPartsExpanded(!partsExpanded)}/>
+ {partsExpanded && wordParts.map(part => <Button key={part.value} title={part.labelRu} variant="ghost" disabled={busy || !loaded} onPress={() => {
+     setDraft({ ...draft, pos: part.value, gender: part.value === 'noun' ? draft.gender : null, plural: part.value === 'noun' ? draft.plural : null });
+     setPartsExpanded(false);
+ }}/>) }
  {draft.pos === 'noun' && <><Text>Выбранный род: {draft.gender ?? 'не выбран'}</Text>{([['m', 'der — мужской род'], ['f', 'die — женский род'], ['n', 'das — средний род']] as const).map(([gender, title]) => <Button key={gender} title={title} onPress={() => setDraft({ ...draft, gender })}/>)}</>}
  <IconPicker value={draft.icon ?? null} onChange={icon => setDraft({ ...draft, icon })}/>
  <TopicPicker topics={topicRows} value={topicIds} onChange={setTopicIds} disabled={busy || !loaded}/>
