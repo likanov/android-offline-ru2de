@@ -381,9 +381,15 @@ async function preparePrimaryDevice() {
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/vocabulary.csv'),'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/invalid-backup.json'),'/sdcard/Download/GermanVocabulary/']);
 }
+export function grammarFixtureImportEnvironment(path) {
+ let fixture;try{fixture=JSON.parse(readFileSync(path,'utf8'));}catch{throw new Unavailable('GRAMMAR_FIXTURE_INVALID');}
+ const profiles=fixture?.profiles;
+ if(fixture?.format!=='german-vocabulary-backup'||fixture.version!==2||!Array.isArray(profiles)||!profiles.length||profiles.some(p=>typeof p?.profile?.id!=='string'||!p.profile.id||typeof p.profile.name!=='string'||!p.profile.name)||new Set(profiles.map(p=>p.profile.id)).size!==profiles.length)throw new Unavailable('GRAMMAR_FIXTURE_INVALID');
+ return {BACKUP_FILE:'grammar-backup-v2.json',PROFILE_COUNT:String(profiles.length)};
+}
 async function importRegressionFixture(grammar=false) {
  const file=grammar?'grammar-backup-v2.json':'regression-backup.json';
- flow(grammar?'import-grammar-fixture':'import-fixture',grammar?'grammar-import-fixture.yaml':'import-fixture.yaml',{BACKUP_FILE:file,PROFILE_COUNT:grammar?'4':'13'});latestBackup=captureState(grammar?'imported-grammar-fixture':'imported-fixture');
+ flow(grammar?'import-grammar-fixture':'import-fixture',grammar?'grammar-import-fixture.yaml':'import-fixture.yaml',grammar?grammarFixtureImportEnvironment(options['grammar-fixture']):{BACKUP_FILE:file,PROFILE_COUNT:'13'});latestBackup=captureState(grammar?'imported-grammar-fixture':'imported-fixture');
 }
 function lektion2Answers(backup) {
  const result={};

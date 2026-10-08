@@ -271,3 +271,18 @@ test('schema5_evidence_rejects_missing_provenance_checkpoints_and_changed_graph'
   for(const mutate of [r=>delete r.schema5Upgrade.manifestPath,r=>delete r.schema5Upgrade.beforeEvidence,r=>delete r.schema5Upgrade.afterEvidence,r=>r.schema5Upgrade.apkSha256='f'.repeat(64),r=>r.schema5Upgrade.finalCertificateSha256='f'.repeat(64),r=>writeFileSync(r.schema5Upgrade.afterEvidence,JSON.stringify({version:3,profiles:[]}))]){const r=completeReport(f);mutate(r);assert.equal(validateRegressionReport(r).ok,false);}
  }finally{rmSync(f.root,{recursive:true,force:true});}
 });
+
+test('legacy_grammar_import_uses_exact_validated_fixture_profile_count',async()=>{
+ const module=await import('../../scripts/emulator-regression.mjs');
+ assert.equal(typeof module.grammarFixtureImportEnvironment,'function');
+ assert.deepEqual(module.grammarFixtureImportEnvironment('work/android-regression/fixtures/grammar-backup-v2.json'),{BACKUP_FILE:'grammar-backup-v2.json',PROFILE_COUNT:'3'});
+ const f=inputs();try{
+  const path=join(f.root,'grammar-backup.json');
+  const fixture={format:'german-vocabulary-backup',version:2,profiles:Array.from({length:3},(_,i)=>({profile:{id:'p'+i,name:'Grammar '+i}}))};
+  writeFileSync(path,JSON.stringify(fixture));
+  assert.deepEqual(module.grammarFixtureImportEnvironment(path),{BACKUP_FILE:'grammar-backup-v2.json',PROFILE_COUNT:'3'});
+  fixture.profiles.push({profile:{id:'p3',name:'Additional profile'}});writeFileSync(path,JSON.stringify(fixture));
+  assert.equal(module.grammarFixtureImportEnvironment(path).PROFILE_COUNT,'4');
+  for(const value of [{...fixture,profiles:[]},{...fixture,version:3},{...fixture,profiles:[{}]}]){writeFileSync(path,JSON.stringify(value));assert.throws(()=>module.grammarFixtureImportEnvironment(path),/GRAMMAR_FIXTURE_INVALID/);}
+ }finally{rmSync(f.root,{recursive:true,force:true});}
+});
