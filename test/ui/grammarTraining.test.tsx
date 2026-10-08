@@ -114,3 +114,37 @@ test('sentence_case_error_explains_internal_case_without_marking_correct',()=>{
  expect(screen.queryByText(/Верно!/)).toBeNull();
  view.unmount();
 });
+
+test('five_lesson_entries_start_correct_selection', async () => {
+ const h=await createGrammarHarness(); const p=await createProfile(h.db,'A'); const onGrammar=jest.fn();
+ const view=render(<TrainingHomeScreen db={h.db} profileId={p.id} onVocabulary={jest.fn()} onGrammar={onGrammar} />);
+ fireEvent.press(await screen.findByTestId('training-lektion2-toggle'));
+ for(const lesson of ['professions-pronoun','professions-sein','demonstrative-statement','yesno-transform','yesno-translation']) {
+  fireEvent.press(screen.getByTestId(`training-lektion2-${lesson}`)); expect(onGrammar).toHaveBeenLastCalledWith({mode:'study',lesson});
+ }
+ view.unmount();h.close();
+});
+
+test('profile_switch_does_not_submit_old_answer', async () => {
+ const h=await createGrammarHarness(); const a=await createProfile(h.db,'A');
+ const selection={mode:'study' as const,lesson:'yesno-transform' as const,targetIds:['yesno-transform:noun' as const]};
+ const props={db:h.db,today:'2026-10-08',selection,onReference:jest.fn(),onExplainError:jest.fn()};
+ const view=render(<GrammarTrainingScreen {...props} profileId={a.id} />);
+ try {
+  fireEvent.changeText(await screen.findByTestId('grammar-answer-input'),'Ist das Buch neu?');
+  const b=await createProfile(h.db,'B');
+  view.rerender(<GrammarTrainingScreen {...props} profileId={b.id} />);
+  const input=await screen.findByTestId('grammar-answer-input'); expect(input).toHaveProp('value','');
+  expect(await h.db.first('SELECT attemptId FROM grammar_attempts WHERE profileId=?',[a.id])).toBeNull();
+ } finally {view.unmount();h.close();}
+});
+
+test('german_only_options_before_feedback',()=>{
+ const question=makeGrammarQuestion({attemptId:'choices',sessionId:'s',profileId:'p',targetId:'professions-pronoun:ich',variantIndex:0,responseMode:'choice',reviewStage:null,dueDay:null,words:[]});
+ const view=render(<GrammarQuestionView question={question} result={null} busy={false} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ try {
+  for(const button of screen.getAllByTestId(/grammar-option-/)) expect(button.props.accessibilityLabel).not.toMatch(/[А-Яа-яЁё]/);
+  expect(screen.queryByText(question.feedback.translationRu)).toBeNull();
+  expect(screen.queryByTestId('grammar-result')).toBeNull();
+ } finally {view.unmount();}
+});

@@ -128,7 +128,7 @@ function NavigationRoutes({ dictionaryViewState, onDictionaryViewStateChange }: 
     else if (route.screen === 'training-home')
         content = <TrainingHomeScreen db={db} profileId={profile.id} onVocabulary={startQueue} onGrammar={startGrammar}/>;
     else if (route.screen === 'grammar-training')
-        content = <GrammarTrainingScreen key={`${profile.id}:${JSON.stringify(route.grammarSelection ?? {mode:'study',lesson:'mixed'})}`} db={db} profileId={profile.id} profileName={profile.name} selection={route.grammarSelection ?? {mode:'study',lesson:'mixed'}} onReference={() => setRoute({ screen: 'grammar-reference', grammarSelection: route.grammarSelection, grammarAttemptId: route.grammarAttemptId })} onExplainError={attemptId => setRoute({ screen: 'grammar-explanation', grammarSelection: route.grammarSelection, grammarAttemptId: attemptId })}/>;
+        content = null;
     else if (route.screen === 'grammar-reference')
         content = <GrammarReferenceScreen onBack={back}/>;
     else if (route.screen === 'training')
@@ -139,8 +139,12 @@ function NavigationRoutes({ dictionaryViewState, onDictionaryViewStateChange }: 
         content = <WordEditorScreen key={`${profile.id}:${route.wordId ?? 'new'}`} db={db} profileId={profile.id} wordId={route.wordId} onSaved={wordId => setRoute({ ...route, screen: 'card', wordId })} onCancel={back}/>;
     else
         content = <WordCardScreen db={db} profileId={profile.id} profileName={profile.name} wordId={route.wordId!} backLabel={route.fromTraining ? 'Вернуться к тренировке' : 'Назад в словарь'} onAssistant={() => void navigate({ ...route, screen: 'assistant' })} onPractice={() => setRoute({ screen: 'practice', practiceKind: 'cloze', wordIds: [route.wordId!] })} onEdit={() => setRoute({ ...route, screen: 'editor' })} onBack={back}/>;
+    // Keep the current answer mounted while opening help, so keyboard input and
+    // the checked question survive the round trip without a second session load.
+    const grammarOpen = ['grammar-training', 'grammar-reference', 'grammar-explanation'].includes(route.screen);
+    const grammarContent = profile && grammarOpen ? <GrammarTrainingScreen key={`${profile.id}:${JSON.stringify(route.grammarSelection ?? {mode:'study',lesson:'mixed'})}`} db={db} profileId={profile.id} profileName={profile.name} selection={route.grammarSelection ?? {mode:'study',lesson:'mixed'}} onReference={() => setRoute({ screen: 'grammar-reference', grammarSelection: route.grammarSelection, grammarAttemptId: route.grammarAttemptId })} onExplainError={attemptId => setRoute({ screen: 'grammar-explanation', grammarSelection: route.grammarSelection, grammarAttemptId: attemptId })}/> : null;
     const active = ['card', 'editor', 'assistant', 'error-explanation', 'grammar-explanation', 'practice'].includes(route.screen)
-        ? route.fromTraining ? 'training' : 'dictionary'
-        : (['training-home', 'grammar-training', 'grammar-reference'].includes(route.screen) ? 'training' : route.screen as React.ComponentProps<typeof NavigationMenu>['active']);
-    return <View style={{ flex: 1 }}>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<NavigationMenu active={active} hasProfile={!!profile} onNavigate={screen => void navigate(screen === 'training' ? { screen: 'training-home' } : { screen })}/></View>;
+        ? route.screen === 'grammar-explanation' || route.fromTraining ? 'training' : 'dictionary'
+        : (['training-home', 'grammar-training', 'grammar-reference', 'grammar-explanation'].includes(route.screen) ? 'training' : route.screen as React.ComponentProps<typeof NavigationMenu>['active']);
+    return <View style={{ flex: 1 }}><View style={grammarOpen && route.screen === 'grammar-training' ? { flex: 1 } : { display: 'none' }} accessibilityElementsHidden={route.screen !== 'grammar-training'} importantForAccessibility={route.screen === 'grammar-training' ? 'auto' : 'no-hide-descendants'}>{grammarContent}</View>{content}{error ? <Text accessibilityRole="alert">{error}</Text> : null}<NavigationMenu active={active} hasProfile={!!profile} onNavigate={screen => void navigate(screen === 'training' ? { screen: 'training-home' } : { screen })}/></View>;
 }

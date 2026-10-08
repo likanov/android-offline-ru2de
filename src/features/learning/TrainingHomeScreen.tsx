@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import type { SqlStore } from '../../core/sql';
 import type { TrainingSelection } from './questionTypes';
 import type { GrammarSelection } from '../grammar/grammarTypes';
+import { lektion2Lessons } from '../grammar/grammarPresentation';
 import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
 import { getGrammarServices, getProgressRepository } from '../../app/AppServices';
@@ -16,6 +17,7 @@ export function TrainingHomeScreen({ db, profileId, onVocabulary, onGrammar }: {
   onGrammar: (selection: GrammarSelection) => void;
 }) {
   const today = useCurrentDay();
+  const [lektion2Open, setLektion2Open] = useState(false);
   const [words, setWords] = useState<{ mastered: number; totalWords: number; dueCount: number } | null>(null);
   const [grammar, setGrammar] = useState<{ mastered: number; totalTargets: number; dueCount: number } | null>(null);
   const [error, setError] = useState('');
@@ -46,5 +48,9 @@ export function TrainingHomeScreen({ db, profileId, onVocabulary, onGrammar }: {
     <Text>Фильтр урока</Text>
     <Button title="Только местоимения" onPress={() => onGrammar({ mode: 'study', lesson: 'pronouns' })} />
     <Button title="Только sein" onPress={() => onGrammar({ mode: 'study', lesson: 'sein' })} />
+    <Button title="Lektion 2 · Профессии и вопросы" variant="secondary" testID="training-lektion2-toggle" onPress={() => setLektion2Open(open => !open)} />
+    {lektion2Open ? <View>{lektion2Lessons.map(({ lesson, title }) =>
+      <Button key={lesson} title={title} variant="ghost" testID={`training-lektion2-${lesson}`} onPress={() => onGrammar({ mode: 'study', lesson })} />
+    )}</View> : null}
   </Screen>;
 }

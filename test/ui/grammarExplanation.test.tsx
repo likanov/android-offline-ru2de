@@ -47,3 +47,18 @@ test('grammar_generation_uses_shared_assistant_only_after_explicit_action', asyn
     expect(generatePractice).toHaveBeenCalledWith(expect.objectContaining({ kind: 'grammar-error', profileId: profile.id, attemptId: question!.attemptId }), expect.any(AbortSignal), expect.any(Function));
   } finally { h.close(); }
 });
+
+test('sentence_error_without_model_keeps_typed_answer_checked_solution_and_rule',async()=>{
+ const h=await createGrammarHarness(); let view:ReturnType<typeof render>|undefined;
+ try {
+  const p=await createProfile(h.db,'Предложения'); const session=(await h.grammarSessions.start(p.id,{mode:'study',lesson:'yesno-transform',targetIds:['yesno-transform:noun']},day))!;
+  const question=(await h.grammarSessions.next(p.id,session.id,day))!;
+  await h.grammarAnswers.submit(p.id,session.id,question.attemptId,{kind:'typed',text:'Das Buch ist neu?'},day);
+  const assistant={generatePractice:jest.fn(),cancelAndRelease:jest.fn().mockResolvedValue(undefined)} as unknown as AssistantService;
+  view=render(<GrammarExplanationScreen db={h.db} profileId={p.id} attemptId={question.attemptId} assistant={assistant} onModelSetup={jest.fn()} onBack={jest.fn()} />);
+  await screen.findByText('Ваш ответ: Das Buch ist neu?');
+  expect(screen.getByText('Правильный ответ: Ist das Buch neu?')).toBeTruthy();
+  expect(screen.getByTestId('grammar-error-reference-text')).toHaveTextContent('В вопросе без вопросительного слова глагол стоит перед подлежащим.');
+  expect(assistant.generatePractice).not.toHaveBeenCalled();
+ } finally {view?.unmount();h.close();}
+});
