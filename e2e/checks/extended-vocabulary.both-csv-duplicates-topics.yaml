@@ -46,12 +46,12 @@ name: extended-vocabulary.both-csv-duplicates-topics
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+        "TARGET_TEXT": "Новые: 260 · Дубли: 40 · Ошибки: 0"
       }
     }
   },
   {
-    "assertVisible": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+    "assertVisible": "Новые: 260 · Дубли: 40 · Ошибки: 0"
   },
   {
     "runFlow": {
@@ -68,12 +68,12 @@ name: extended-vocabulary.both-csv-duplicates-topics
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+        "TARGET_TEXT": "Добавлено: 260 · Дубли: 40 · Ошибки: 0"
       }
     }
   },
   {
-    "assertVisible": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+    "assertVisible": "Добавлено: 260 · Дубли: 40 · Ошибки: 0"
   },
   {
     "runFlow": {
@@ -111,12 +111,12 @@ name: extended-vocabulary.both-csv-duplicates-topics
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+        "TARGET_TEXT": "Новые: 21 · Дубли: 0 · Ошибки: 0"
       }
     }
   },
   {
-    "assertVisible": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+    "assertVisible": "Новые: 21 · Дубли: 0 · Ошибки: 0"
   },
   {
     "runFlow": {
@@ -133,12 +133,12 @@ name: extended-vocabulary.both-csv-duplicates-topics
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+        "TARGET_TEXT": "Добавлено: 21 · Дубли: 0 · Ошибки: 0"
       }
     }
   },
   {
-    "assertVisible": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+    "assertVisible": "Добавлено: 21 · Дубли: 0 · Ошибки: 0"
   },
   {
     "runFlow": {
@@ -176,12 +176,12 @@ name: extended-vocabulary.both-csv-duplicates-topics
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+        "TARGET_TEXT": "Новые: 0 · Дубли: 300 · Ошибки: 0"
       }
     }
   },
   {
-    "assertVisible": "Новые: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+    "assertVisible": "Новые: 0 · Дубли: 300 · Ошибки: 0"
   },
   {
     "runFlow": {
@@ -198,11 +198,11 @@ name: extended-vocabulary.both-csv-duplicates-topics
     "runFlow": {
       "file": "../helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+        "TARGET_TEXT": "Добавлено: 0 · Дубли: 300 · Ошибки: 0"
       }
     }
   },
   {
-    "assertVisible": "Добавлено: [0-9]+ · Дубли: [0-9]+ · Ошибки: 0"
+    "assertVisible": "Добавлено: 0 · Дубли: 300 · Ошибки: 0"
   }
 ]

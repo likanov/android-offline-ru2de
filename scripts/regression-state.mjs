@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+const CSV_IMPORT_CONTRACT=JSON.parse(readFileSync(new URL('../e2e/fixtures/extended-vocabulary-import-contract.json',import.meta.url),'utf8'));
 // Read only exported BackupV1 data produced by the normal Android save screen.
 // This module never opens or mutates the application's SQLite database.
 export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCheckpoint}={}) {
@@ -77,11 +79,28 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
   const p=part('A1 — словарь'),b=old('A1 — словарь');check(!!p,'A1_VOCABULARY_MISSING');
   if(id.endsWith('nine-type-editor'))for(const pos of ['noun','adjective','number','verb','pronoun','adverb','preposition','conjunction','phrase'])check(p?.words.some(w=>w.de==='R1'+pos&&w.pos===pos),'EDITOR_PART:'+pos);
   if(id.endsWith('both-csv-duplicates-topics')){
-   check(p?.words.length>=300,'CSV_WORD_COUNT');check(p?.topics.some(t=>t.name==='Числа 0–20'),'CSV_NUMBER_TOPIC');
-   const word=p?.words.find(w=>w.de==='Stuhl'),previous=b?.words.find(w=>w.de==='Stuhl');
-   check(word?.id===previous?.id&&same(state(p,'Stuhl'),state(b,'Stuhl')),'CSV_DUPLICATE_PROGRESS_CHANGED');
-   check(p?.rewards.length===b?.rewards.length,'CSV_DUPLICATE_REWARD_CHANGED');
-   check(p?.wordTopics.some(t=>t.wordId===word?.id),'CSV_DUPLICATE_TOPIC_MISSING');
+   check(b?.words.length===CSV_IMPORT_CONTRACT.initialWords,'CSV_INITIAL_WORD_COUNT');
+   check(p?.words.length===CSV_IMPORT_CONTRACT.finalWords,'CSV_WORD_COUNT');
+   check(!!p&&!!b&&p.profile.xp===b.profile.xp&&same(p.attempts,b.attempts)&&same(p.rewards,b.rewards),'CSV_LEARNING_LEDGER_CHANGED');
+   const expectedTopics=new Set((b?.topics??[]).map(t=>t.name));
+   const expectedLinks=new Set((b?.wordTopics??[]).map(t=>t.wordId+':'+t.topicId));
+   for(const previous of b?.words??[]){
+    check(same(p?.words.find(w=>w.id===previous.id),previous),'CSV_EXISTING_WORD_CHANGED:'+previous.de);
+    check(same(p?.progress.find(r=>r.wordId===previous.id),b.progress.find(r=>r.wordId===previous.id)),'CSV_DUPLICATE_PROGRESS_CHANGED:'+previous.de);
+   }
+   for(const pack of CSV_IMPORT_CONTRACT.packs)for(const row of pack.rows){
+    const matches=p?.words.filter(w=>['de','ru','pos','gender'].every(key=>w[key]===row[key]))??[];
+    check(matches.length===1,'CSV_PACK_WORD_MISSING_OR_DUPLICATE:'+pack.file+':'+row.de);
+    expectedTopics.add(row.topic);
+    const topics=p?.topics.filter(t=>t.name===row.topic)??[];
+    check(topics.length===1,'CSV_PACK_TOPIC_MISSING_OR_DUPLICATE:'+row.topic);
+    if(matches.length===1&&topics.length===1)expectedLinks.add(matches[0].id+':'+topics[0].id);
+   }
+   check(p?.topics.length===expectedTopics.size&&p.topics.every(t=>expectedTopics.has(t.name)),'CSV_TOPIC_SET_CHANGED');
+   const actualLinks=new Set((p?.wordTopics??[]).map(t=>t.wordId+':'+t.topicId));
+   check(p?.wordTopics.length===expectedLinks.size&&actualLinks.size===expectedLinks.size&&[...expectedLinks].every(link=>actualLinks.has(link)),'CSV_TOPIC_MEMBERSHIP_INCOMPLETE');
+   for(const previous of b?.topics??[])check(same(p?.topics.find(t=>t.id===previous.id),previous),'CSV_EXISTING_TOPIC_CHANGED');
+
   }
   if(id.endsWith('search-sie-numbers'))check(conserved(p,b),'SEARCH_CHANGED_PROGRESS');
   if(id.endsWith('typed-number')){const added=p?.attempts.filter(a=>!b?.attempts.some(x=>x.attemptId===a.attemptId))??[];check(added.length===1&&added[0].right===1&&added[0].xpDelta===10,'NUMBER_TYPED_ATTEMPT');check(p?.questions.some(q=>q.attemptId===added[0]?.attemptId&&q.payload.kind==='typing'),'NUMBER_TYPED_QUESTION');}

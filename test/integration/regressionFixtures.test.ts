@@ -105,3 +105,53 @@ test('v3_fixture_roundtrip_retains_every_graph_and_state_checker_rejects_missing
   expect({status:result.status,stderr:result.stderr}).toEqual({status:0,stderr:''});
  }finally{h.close();await rm(dir,{recursive:true,force:true});}
 });
+
+async function extendedCsvEvidence() {
+ const {readFile}=require('node:fs/promises');
+ const {CsvImportService}=require('../../src/features/transfer/csvImportService');
+ const {WordRepository}=require('../../src/features/dictionary/wordRepository');
+ const {setActiveProfile}=require('../../src/features/profiles/profileRepository');
+ const {parseCsv,csvRowToWord}=require('../../src/features/transfer/csvParser');
+ const {createHash}=require('node:crypto');
+ const h=await createWordHarness();
+ try{
+  const service=new BackupService(h.db);await service.restore(service.preview(JSON.stringify(await createLektion2RegressionBackup('2026-10-09'))));
+  const initial=await service.exportAll(),profile=initial.profiles.find(p=>p.profile.name==='A1 — словарь')!;
+  await setActiveProfile(h.db,profile.profile.id);
+  const words=new WordRepository(h.db);
+  for(const pos of ['noun','adjective','number','verb','pronoun','adverb','preposition','conjunction','phrase'])await words.create(profile.profile.id,{de:'R1'+pos,ru:'регрессия '+pos,pos,gender:pos==='noun'?'m':null});
+  const before=await service.exportAll(),csv=new CsvImportService(h.db);
+  const steps:{file:string;added:number;duplicates:number;invalid:number}[]=[];
+  const packs:{file:string;sha256:string;rows:{de:string;ru:string;pos:string;gender:string|null;topic:string}[]}[]=[];
+  for(const file of ['a1-300.csv','numbers-0-20.csv','a1-300.csv']){
+   const text=await readFile('content/vocabulary/'+file,'utf8');
+   if(!packs.some((p:{file:string})=>p.file===file))packs.push({file,sha256:createHash('sha256').update(text).digest('hex'),rows:parseCsv(text).rows.map((r:unknown)=>{const row=csvRowToWord(r);return {de:row.draft.de,ru:row.draft.ru,pos:row.draft.pos,gender:row.draft.gender,topic:row.topicName};})});
+   const preview=await csv.preview(profile.profile.id,text);
+   const expected={file,added:preview.valid.length,duplicates:preview.duplicates.length,invalid:preview.errors.length};
+   expect(await csv.commit(preview)).toEqual({added:expected.added,duplicates:expected.duplicates,invalid:expected.invalid});steps.push(expected);
+  }
+  const after=await service.exportAll(),result={before,after,contract:{initialWords:before.profiles.find(p=>p.profile.id===profile.profile.id)!.words.length,finalWords:after.profiles.find(p=>p.profile.id===profile.profile.id)!.words.length,steps,packs}};
+  await writeFile('/tmp/a1-csv-production-evidence.json',JSON.stringify(result.contract,null,2)+'\n');
+  return result;
+ }finally{h.close();}
+}
+
+test('extended_csv_flow_counts_match_real_fixture_editor_and_production_imports',async()=>{
+ const {readFile}=require('node:fs/promises');const {contract}=await extendedCsvEvidence();
+ expect(JSON.parse(await readFile('e2e/fixtures/extended-vocabulary-import-contract.json','utf8'))).toEqual(contract);
+ expect(contract.packs.map(pack=>pack.rows.length)).toEqual([300,21]);
+ const flow=JSON.parse((await readFile('e2e/checks/extended-vocabulary.both-csv-duplicates-topics.yaml','utf8')).split('---\n')[1]);
+ const summaries=flow.filter((c:{assertVisible?:string})=>c.assertVisible?.startsWith('Новые:')||c.assertVisible?.startsWith('Добавлено:')).map((c:{assertVisible:string})=>c.assertVisible);
+ expect(summaries).toEqual(contract.steps.flatMap(step=>[`Новые: ${step.added} · Дубли: ${step.duplicates} · Ошибки: ${step.invalid}`,`Добавлено: ${step.added} · Дубли: ${step.duplicates} · Ошибки: ${step.invalid}`]));
+});
+
+test('extended_csv_state_rejects_partial_numbers_and_missing_topic_even_at_full_word_count',async()=>{
+ const {spawnSync}=require('node:child_process');const {mkdtemp,rm}=require('node:fs/promises');const {tmpdir}=require('node:os');
+ const {before,after,contract}=await extendedCsvEvidence();const dir=await mkdtemp(tmpdir()+'/a1-csv-state-');
+ try{
+  await writeFile(dir+'/evidence.json',JSON.stringify({before,after,contract}));
+  const code=`import{readFileSync}from'node:fs';import{verifyScenarioState}from'./scripts/regression-state.mjs';const {before,after,contract}=JSON.parse(readFileSync(process.argv[1]));const verify=b=>verifyScenarioState('extended-vocabulary.both-csv-duplicates-topics',b,{before});if(!verify(after).ok)throw Error(JSON.stringify(verify(after)));for(const mutation of ['number','topic','a1']){const copy=structuredClone(after),p=copy.profiles.find(p=>p.profile.name==='A1 — словарь');if(mutation==='topic'){const t=p.topics.find(t=>t.name==='Числа 0–20');p.wordTopics=p.wordTopics.filter(link=>link.topicId!==t.id);}else{const rows=contract.packs[mutation==='number'?1:0].rows,w=p.words.find(w=>w.de===rows[0].de&&w.pos===rows[0].pos);w.de='not-the-imported-word';}if(verify(copy).ok)throw Error('accepted corrupt CSV '+mutation);}`;
+  const result=spawnSync(process.execPath,['--input-type=module','-e',code,dir+'/evidence.json'],{encoding:'utf8'});
+  expect({status:result.status,stderr:result.stderr}).toEqual({status:0,stderr:''});
+ }finally{await rm(dir,{recursive:true,force:true});}
+});

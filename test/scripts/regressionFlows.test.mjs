@@ -511,3 +511,13 @@ test('csv_import_reveals_preview_action_and_distinct_completion_result',()=>{
  const imports=commands.map((c,i)=>c.tapOn==='Импортировать'?i:-1).filter(i=>i>=0);assert.equal(imports.length,3);
  for(const i of imports){assert.equal(commands[i-1].runFlow?.env?.TARGET_TEXT,'Импортировать');const reveal=commands[i+1].runFlow;assert.ok(reveal?.env?.TARGET_TEXT.startsWith('Добавлено:'));assert.equal(commands[i+2].assertVisible,reveal.env.TARGET_TEXT);}
 });
+
+test('csv_preview_and_completion_require_production_fixture_counts',()=>{
+ const contract=JSON.parse(readFileSync(resolve(root,'fixtures/extended-vocabulary-import-contract.json'),'utf8'));
+ const commands=JSON.parse(readFileSync(resolve(root,'checks/extended-vocabulary.both-csv-duplicates-topics.yaml'),'utf8').split('---\n')[1]);
+ const summaries=commands.filter(c=>typeof c.assertVisible==='string'&&/^(Новые|Добавлено):/.test(c.assertVisible)).map(c=>c.assertVisible);
+ assert.deepEqual(summaries,contract.steps.flatMap(s=>[`Новые: ${s.added} · Дубли: ${s.duplicates} · Ошибки: 0`,`Добавлено: ${s.added} · Дубли: ${s.duplicates} · Ошибки: 0`]));
+ assert.equal(new RegExp('^'+summaries[3]+'$').test('Добавлено: 1 · Дубли: 0 · Ошибки: 0'),false);
+ assert.equal(new RegExp('^'+summaries[5]+'$').test('Добавлено: 1 · Дубли: 299 · Ошибки: 0'),false);
+ assert.deepEqual(contract.steps.map(s=>[s.added,s.duplicates,s.invalid]),[[260,40,0],[21,0,0],[0,300,0]]);
+});
