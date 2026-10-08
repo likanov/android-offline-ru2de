@@ -1,4 +1,37 @@
 appId: com.personal.germanvocabulary
 name: grammar-persistence.sqlite-five-six-upgrade
 ---
-[{"assertVisible":{"id":"grammar-context"}},{"takeScreenshot":"grammar-sqlite-five-six-upgrade"}]
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "inputText": "Upgradeprobe"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "assertVisible": ".*Upgradeprobe.*"
+  }
+]

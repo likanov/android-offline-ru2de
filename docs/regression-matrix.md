@@ -41,3 +41,16 @@ The current actual Android result is failed/exit1
 results are entirely unverified. See [release report](release-report.md) and
 [device acceptance](device-acceptance.md); no row becomes passed through a host
 unit test or a successful release build.
+
+## A1 / Lektion 2 required blocks
+
+| Block | Required checks | Retained evidence |
+| --- | --- | --- |
+| extended-vocabulary | nine-type-editor; both-csv-duplicates-topics; search-sie-numbers; typed-number; backup3-roundtrip | Nine saved POS values, both CSV imports, mastered duplicate and topics, exact typed attempt/XP, complete V3 graph after restore |
+| grammar-lektion2 | five-lessons; sentence-correct-error; sie-context; reference-helper; force-stop; reboot; empty-dictionary; schema6-eight-upgrade | Real attempts in all five lessons, sentence error with zero XP, formal Sie answer, unchanged help ledger, pending sentence retained after process death/reboot, fallback with zero words, before/after upgrade graph |
+
+Every new check is mandatory in the full report and bound to the final APK
+SHA-256. All are initially **implemented-unverified**. UI presence alone cannot
+satisfy learning checks: exported attempt deltas and expected outcomes are
+required. Keyboard checks assert prompt/input/submit together before capture.
+The schema5 and original Task5 checks remain mandatory alongside schema6→8.

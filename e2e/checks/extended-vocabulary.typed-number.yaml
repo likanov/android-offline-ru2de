@@ -1,0 +1,65 @@
+appId: com.personal.germanvocabulary
+name: extended-vocabulary.typed-number
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "A1 — словарь"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-vocabulary-start"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "training-prompt-typing"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "typed-answer-input"
+    }
+  },
+  {
+    "inputText": "zweiundzwanzig"
+  },
+  {
+    "assertVisible": {
+      "id": "training-prompt-typing"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "typed-submit"
+    }
+  },
+  {
+    "takeScreenshot": "number-keyboard-open"
+  },
+  {
+    "tapOn": {
+      "id": "typed-submit"
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+10 XP"
+  }
+]

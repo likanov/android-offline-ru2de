@@ -1,0 +1,46 @@
+appId: com.personal.germanvocabulary
+name: extended-vocabulary.backup3-roundtrip
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/export-state.yaml",
+      "env": {
+        "EXPORT_NAME": "${EXPORT_NAME}"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "tapOn": "Выбрать резервную копию"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "${EXPORT_NAME}"
+      }
+    }
+  },
+  {
+    "assertVisible": "Профилей:"
+  },
+  {
+    "tapOn": "Восстановить новые профили"
+  },
+  {
+    "assertVisible": ".*Восстановлено.*"
+  }
+]

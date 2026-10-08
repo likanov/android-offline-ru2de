@@ -38,9 +38,10 @@ function completeReport(f) {
     const junit=join(f.root,id+'.xml');
     writeFileSync(junit,`<testsuite tests="1" failures="0"><testcase name="${id}"/></testsuite>`);
     const grammarState = id.startsWith('grammar-') && ['grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-progress.twenty-ui-answers','grammar-progress.nineteen-error','grammar-progress.bonus-once-double-submit','grammar-progress.reviews-difficult','grammar-progress.combined-summary','grammar-persistence.profile-isolation','grammar-persistence.force-stop-reboot','grammar-persistence.word-dependency-edit','grammar-persistence.sqlite-five-six-upgrade','grammar-transfer-assistant.v1-v2-roundtrip','grammar-transfer-assistant.invalid-backup-atomicity'].includes(id);
-    return grammarState ? {id,status:'passed',junit,stateEvidence:artifact,stateValidation:{ok:true}} : {id,status:'passed',junit};
+    return grammarState||id.startsWith('extended-vocabulary')||id.startsWith('grammar-lektion2') ? {id,status:'passed',junit,apkSha256:sha256File(f.apk),stateEvidence:artifact,stateValidation:{ok:true}} : {id,status:'passed',junit};
   });
-  return {status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
+  const schema6Provenance=join(f.root,'schema6-provenance.json');writeFileSync(schema6Provenance,JSON.stringify({schemaVersion:6,sha256:sha256File(previousApk),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),commit:'d'.repeat(40),sourceMapVerified:true}));
+  return {schema6Upgrade:{apk:previousApk,apkSha256:sha256File(previousApk),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),provenancePath:schema6Provenance,beforeEvidence:artifact,afterEvidence:artifact,stateValidation:{ok:true}},status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
     model:{path:join(f.modelDir,'model.gguf'),sha256:f.hash},scenarios,
     generations:['association','example','text','rule'].map(mode=>({mode,runtime:'llama.rn',modelSha256:f.hash,text:'Der Stuhl. Стул.',screenshot:artifact,hierarchy:artifact})),
     network:{wifi:false,mobile:false},crashCount:0,anrCount:0,logcat:artifact,deviceLogs:[{phase:'primary-final',path:primaryLog,crashCount:0,anrCount:0},{phase:'upgrade-final',path:upgradeLog,crashCount:0,anrCount:0}],
@@ -219,4 +220,31 @@ test('runner_rejects_unknown_block_before_adb_preflight', () => {
     assert.match(result.stderr, /BLOCK_INVALID:unknown-block/);
     assert.doesNotMatch(result.stderr, /ADB_MISSING/);
   } finally { rmSync(f.root,{recursive:true,force:true}); }
+});
+
+test('schema6_upgrade_requires_distinct_signed_apk',async()=>{
+ const module=await import('../../scripts/regression-report.mjs');
+ assert.equal(typeof module.validateSchema6Upgrade,'function');
+ const validate=module.validateSchema6Upgrade;
+ const base={apkSha256:'a'.repeat(64),finalSha256:'b'.repeat(64),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),provenance:{schemaVersion:6,sha256:'a'.repeat(64),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),commit:'d'.repeat(40),sourceMapVerified:true}};
+ assert.equal(validate(base).ok,true);
+ for(const change of [{finalSha256:base.apkSha256},{package:'other.app'},{finalCertificateSha256:'e'.repeat(64)},{provenance:{...base.provenance,sourceMapVerified:false}},{provenance:{...base.provenance,sha256:'f'.repeat(64)}}])assert.equal(validate({...base,...change}).ok,false);
+});
+
+test('retained_upgrade_exports_before_install_and_never_injects_database',async()=>{
+ const {runRetainedUpgrade}=await import('../../scripts/regression-upgrade.mjs');
+ const calls=[];
+ const result=await runRetainedUpgrade({schema:6,previousApk:'old.apk',finalApk:'final.apk',install:(path,replace)=>calls.push(['install',path,replace]),flow:id=>calls.push(['flow',id]),capture:id=>{calls.push(['export',id]);return {id};}});
+ assert.deepEqual(calls,[['install','old.apk',false],['flow','upgrade-before'],['flow','schema6-grammar-before'],['export','schema6-before'],['install','final.apk',true],['export','schema6-after']]);
+ assert.equal(result.before.id,'schema6-before');assert.equal(result.after.id,'schema6-after');
+});
+
+test('new_report_checks_reject_missing_skipped_and_other_apk_evidence',()=>{
+ const f=inputs();try{
+  for(const id of ['extended-vocabulary.typed-number','grammar-lektion2.five-lessons']){
+   for(const mutation of [r=>r.scenarios=r.scenarios.filter(s=>s.id!==id),r=>r.scenarios.find(s=>s.id===id).status='skipped',r=>r.scenarios.find(s=>s.id===id).apkSha256='f'.repeat(64)]){
+    const report=completeReport(f);mutation(report);assert.equal(validateRegressionReport(report).ok,false);
+   }
+  }
+ }finally{rmSync(f.root,{recursive:true,force:true});}
 });

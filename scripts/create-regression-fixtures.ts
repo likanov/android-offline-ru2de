@@ -131,3 +131,53 @@ export async function createGrammarRegressionBackup(today: DayKey): Promise<Back
     } finally { target.close(); }
   } finally { source.close(); }
 }
+
+/** Catalog 2 regression data is always generated with production repositories,
+ * real submit transactions and BackupService's V3 serializer. */
+export async function createLektion2RegressionBackup(today: DayKey): Promise<BackupV3> {
+ const source=openTestDb();
+ try {
+  await migrate(source.db);
+  const words=new WordRepository(source.db), topics=new TopicRepository(source.db);
+  const gs=new GrammarSessionRepository(source.db),ga=new GrammarAnswerService(source.db);
+  async function respond(profileId:string,targetId:import('../src/features/grammar/grammarTypes').GrammarTargetId,count:number,day:DayKey,mode:'study'|'review'='study') {
+   const lesson=targetId.startsWith('sein-cloze:')?'sein':targetId.split(':')[0] as import('../src/features/grammar/grammarTypes').GrammarLesson;
+   const session=(await gs.start(profileId,{mode,lesson,targetIds:[targetId]},day))!;
+   for(let n=0;n<count;n++){const q=(await gs.next(profileId,session.id,day))!;await ga.submit(profileId,session.id,q.attemptId,grammarAnswer(q,true),day);}
+  }
+  const vocabulary=await createProfile(source.db,'A1 — словарь');
+  const duplicate=(await words.list(vocabulary.id)).find(w=>w.de==='Stuhl')!;
+  const ws=new SessionRepository(source.db),wa=new AnswerService(source.db);
+  const session=await ws.start(vocabulary.id,{mode:'study',wordIds:[duplicate.id]},today);
+  for(let n=0;n<20;n++){const q=(await ws.next(vocabulary.id,session.id,today))!;await wa.submit(vocabulary.id,session.id,q.attemptId,q.expected[0],today);}
+  await words.create(vocabulary.id,{de:'Sie',ru:'Вы (вежливо)',pos:'pronoun',gender:null});
+  const number=await words.create(vocabulary.id,{de:'zweiundzwanzig',ru:'22',pos:'number',gender:null});
+  const topic=await topics.create(vocabulary.id,'A1 число');await topics.setWordTopics(vocabulary.id,number.id,[topic.id]);
+  const numberSession=await ws.start(vocabulary.id,{mode:'study',wordIds:[number.id]},today);
+  // Third mode is typed. Preserve the production session at that question.
+  for(let n=0;n<2;n++){const q=(await ws.next(vocabulary.id,numberSession.id,today))!;await wa.submit(vocabulary.id,numberSession.id,q.attemptId,q.expected[0],today);}
+  await ws.next(vocabulary.id,numberSession.id,today);
+  const history=await createProfile(source.db,'A1 — история');
+  await respond(history.id,'sein-cloze:ich',20,addDays(today,-10));
+  await respond(history.id,'sein-cloze:ich',1,addDays(today,-9),'review');
+  await respond(history.id,'sein-cloze:ich',1,addDays(today,-6),'review');
+  await respond(history.id,'yesno-transform:pronoun',19,today);
+  for(const lesson of ['professions-pronoun','professions-sein','demonstrative-statement','yesno-transform','yesno-translation'] as const){
+   const p=await createProfile(source.db,'A1 — '+lesson);
+   const s=(await gs.start(p.id,{mode:'study',lesson},today))!;await gs.next(p.id,s.id,today);
+  }
+  const formal=await createProfile(source.db,'A1 — Sie');
+  for(const person of ['du','er','ihr','sie_plural','noun'] as const)await respond(formal.id,`yesno-translation:${person}`,1,today);
+  const formalSession=(await gs.start(formal.id,{mode:'study',lesson:'yesno-translation'},today))!;await gs.next(formal.id,formalSession.id,today);
+  const empty=await createProfile(source.db,'A1 — пустой исходный');
+  // The public backup import supports empty dictionaries; create the empty profile
+  // through that production service (there is intentionally no word-delete API).
+  const service=new BackupService(source.db);
+  const snapshot=await service.exportAll();
+  const emptyPart=snapshot.profiles.find(p=>p.profile.id===empty.id)!;
+  const restored=await service.restore(service.preview(JSON.stringify({...snapshot,profiles:[{...emptyPart,profile:{...emptyPart.profile,name:'A1 — пустой'},words:[],progress:[],wordTopics:[]}]})));
+  const emptyId=restored.profileIds[0];
+  const s=(await gs.start(emptyId,{mode:'study',lesson:'yesno-translation'},today))!;await gs.next(emptyId,s.id,today);
+  return validateBackup(await new BackupService(source.db).exportAll());
+ }finally{source.close();}
+}

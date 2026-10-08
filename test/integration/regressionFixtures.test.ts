@@ -1,6 +1,6 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { createRegressionBackup, createGrammarRegressionBackup } from '../../scripts/create-regression-fixtures';
+import { createRegressionBackup, createGrammarRegressionBackup, createLektion2RegressionBackup } from '../../scripts/create-regression-fixtures';
 import { validateBackup, validateBackupV1 } from '../../src/features/transfer/backupValidation';
 import { BackupService } from '../../src/features/transfer/backupService';
 import { createWordHarness } from '../harness';
@@ -69,4 +69,34 @@ test('write_requested_grammar_fixture', async () => {
   const backup = await createGrammarRegressionBackup(process.env.REGRESSION_FIXTURE_DAY ?? '2026-10-06');
   await mkdir(dirname(process.env.GRAMMAR_FIXTURE_OUTPUT), { recursive: true });
   await writeFile(process.env.GRAMMAR_FIXTURE_OUTPUT, JSON.stringify(backup, null, 2) + '\n');
+});
+
+test('catalog2_fixture_uses_production_v3_export_and_retains_mixed_history',async()=>{
+ const backup=await createLektion2RegressionBackup(process.env.REGRESSION_FIXTURE_DAY ?? '2026-10-08');
+ expect(backup.version).toBe(3);expect(()=>validateBackup(backup)).not.toThrow();
+ const all=backup.profiles.flatMap(p=>p.grammar.attempts);
+ expect(all.some(a=>a.targetId==='sein-cloze:ich'&&a.result.state.mastered)).toBe(true);
+ expect(all.some(a=>a.targetId==='yesno-transform:pronoun'&&a.result.state.streak===19)).toBe(true);
+ expect(new Set(all.map(a=>a.day)).size).toBeGreaterThan(2);
+ const active=backup.profiles.flatMap(p=>p.grammar.sessions).filter(s=>s.currentQuestion&&!s.result).map(s=>s.currentQuestion!);
+ expect(active.some(q=>q.catalogVersion===2&&q.presentation==='cloze')).toBe(true);
+ expect(active.some(q=>q.catalogVersion===2&&q.presentation==='sentence')).toBe(true);
+ if(process.env.LEKTION2_FIXTURE_OUTPUT){await mkdir(dirname(process.env.LEKTION2_FIXTURE_OUTPUT),{recursive:true});await writeFile(process.env.LEKTION2_FIXTURE_OUTPUT,JSON.stringify(backup,null,2)+'\n');}
+});
+
+test('v3_fixture_roundtrip_retains_every_graph_and_state_checker_rejects_missing_reward',async()=>{
+ const {spawnSync}=require('node:child_process');
+ const {mkdtemp,rm}=require('node:fs/promises');
+ const {tmpdir}=require('node:os');
+ const dir=await mkdtemp(tmpdir()+'/a1-v3-state-');
+ const h=await createWordHarness();
+ try{
+  const fixture=await createLektion2RegressionBackup('2026-10-08');
+  const service=new BackupService(h.db);await service.restore(service.preview(JSON.stringify(fixture)));
+  const before=await service.exportAll();await service.restore(service.preview(JSON.stringify(before)));const after=await service.exportAll();
+  await writeFile(dir+'/before.json',JSON.stringify(before));await writeFile(dir+'/after.json',JSON.stringify(after));
+  const code=`import{readFileSync}from'node:fs';import{verifyScenarioState}from'./scripts/regression-state.mjs';const before=JSON.parse(readFileSync(process.argv[1])),after=JSON.parse(readFileSync(process.argv[2]));const result=verifyScenarioState('extended-vocabulary.backup3-roundtrip',after,{before});if(!result.ok)throw Error(JSON.stringify(result));const reward=after.profiles.find(p=>p.grammar.rewards.length);reward.grammar.rewards.pop();if(verifyScenarioState('extended-vocabulary.backup3-roundtrip',after,{before}).ok)throw Error('accepted lost reward');`;
+  const result=spawnSync(process.execPath,['--input-type=module','-e',code,dir+'/before.json',dir+'/after.json'],{encoding:'utf8'});
+  expect({status:result.status,stderr:result.stderr}).toEqual({status:0,stderr:''});
+ }finally{h.close();await rm(dir,{recursive:true,force:true});}
 });

@@ -1,0 +1,33 @@
+appId: com.personal.germanvocabulary
+name: grammar-lektion2.schema6-eight-upgrade
+---
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-grammar-start"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  }
+]

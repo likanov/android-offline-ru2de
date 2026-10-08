@@ -6,8 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import {appendDeviceLog,generationFromHierarchy,completeRegressionReport,offlineRadioState,rootVerified,applicationAlarmEpochs,alarmMatchesLocalTime,maestroOutcome} from './regression-evidence.mjs';
-import {verifyScenarioState} from './regression-state.mjs';
-import { MATRIX, REQUIRED_SCENARIOS, sha256File, validateRegressionReport, validateBlockRegressionReport, matrixRowForBlock, scenarioIdsForBlock } from './regression-report.mjs';
+import {runRetainedUpgrade} from './regression-upgrade.mjs';
+import {verifyScenarioState,compareBackupGraphs} from './regression-state.mjs';
+import { MATRIX, validateSchema6Upgrade, REQUIRED_SCENARIOS, sha256File, validateRegressionReport, validateBlockRegressionReport, matrixRowForBlock, scenarioIdsForBlock } from './regression-report.mjs';
 const appRoot=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const taskRoot=resolve(appRoot,'../..');
 const workRoot=join(taskRoot,'work/android-regression');
@@ -109,9 +110,36 @@ async function preflight() {
       if(!artifact(provenancePath))blockers.push('UPGRADE_PROVENANCE_MISSING');
       else { const provenance=JSON.parse(readFileSync(provenancePath,'utf8'));if(provenance.commit!==previousCommit||provenance.sha256!==previousHash||provenance.sourceMapVerified!==true)blockers.push('UPGRADE_PROVENANCE_MISMATCH');else report.upgrade={previousCommit,apk:resolve(options['previous-apk']),apkSha256:previousHash,provenancePath}; }
     }
+    if(!options.block||['grammar-lektion2','extended-vocabulary'].includes(options.block)){
+      if(!artifact(options['lektion2-fixture']))blockers.push('LEKTION2_FIXTURE_MISSING');
+      if(!artifact(options['schema6-apk']))blockers.push('SCHEMA6_APK_MISSING');
+      else {
+        const apk=resolve(options['schema6-apk']),provenancePath=apk+'.provenance.json';
+        const badging=execute(join(tools,'aapt'),['dump','badging',apk],{allowFailure:true});
+        const signature=execute(join(tools,'apksigner'),['verify','--print-certs',apk],{allowFailure:true});
+        const fingerprint=text=>text?.match(/certificate SHA-256 digest: ([a-f0-9]+)/)?.[1];
+        let provenance;try{provenance=JSON.parse(readFileSync(provenancePath,'utf8'));}catch{}
+        const evidence={apk,provenancePath,provenance,apkSha256:sha256File(apk),finalSha256:report.apk.sha256,package:badging.stdout?.match(/package: name='([^']+)'/)?.[1],certificateSha256:fingerprint(signature.stdout),finalCertificateSha256:fingerprint(report.apk.signature)};
+        const validation=validateSchema6Upgrade(evidence);
+        if(signature.status!==0||badging.status!==0)blockers.push('SCHEMA6_UNSIGNED_OR_INVALID');
+        blockers.push(...validation.errors);report.schema6Upgrade=evidence;
+      }
+    }
     if (!artifact(options.fixture)) blockers.push('REGRESSION_FIXTURE_MISSING');
     if (!artifact(options['grammar-fixture'])) blockers.push('GRAMMAR_FIXTURE_MISSING');
     if (!artifact(options['grammar-previous-apk'])) blockers.push('GRAMMAR_PREVIOUS_APK_MISSING');
+    else {
+      const apk=resolve(options['grammar-previous-apk']),hash=sha256File(apk),manifestPath=join(dirname(apk),'release-manifest.json');
+      const signature=execute(join(tools,'apksigner'),['verify','--print-certs',apk],{allowFailure:true});
+      const badging=execute(join(tools,'aapt'),['dump','badging',apk],{allowFailure:true});
+      const certificate=signature.stdout?.match(/certificate SHA-256 digest: ([a-f0-9]+)/)?.[1];
+      let manifest;try{manifest=JSON.parse(readFileSync(manifestPath,'utf8'));}catch{}
+      const source=manifest?.sourceCommit?execute('git',['show',manifest.sourceCommit+':src/core/migrations.ts'],{allowFailure:true}):null;
+      if(signature.status!==0||badging.status!==0||!badging.stdout?.includes("name='com.personal.germanvocabulary'")||!certificate||!report.apk.signature?.includes(certificate)||hash===report.apk.sha256)blockers.push('SCHEMA5_APK_INVALID');
+      if(manifest?.files?.[basename(apk)]?.sha256!==hash||manifest?.certificateSha256!==certificate||source?.status!==0||!source.stdout?.includes('PRAGMA user_version=5'))blockers.push('SCHEMA5_PROVENANCE_INVALID');
+      report.schema5Upgrade={apk,apkSha256:hash,manifestPath,sourceCommit:manifest?.sourceCommit,certificateSha256:certificate};
+    }
+
     if (!options.block || options.block === 'dictionary') {
       if (!artifact(options['dictionary-fixture'])) blockers.push('DICTIONARY_FIXTURE_MISSING');
       if (!artifact(options['dictionary-large-fixture'])) blockers.push('DICTIONARY_LARGE_FIXTURE_MISSING');
@@ -262,6 +290,8 @@ async function rebootDevice() {
  if(!booted)throw new Unavailable('REBOOT_TIMEOUT');await deviceRoot();offline();shell('input','keyevent','82');
 }
 async function beforeCheck(check) {
+ if(check.device==='force-stop')shell('am','force-stop',applicationId);
+ if(check.device==='reboot')await rebootDevice();
  if(check.clock)setClock(`${check.clock==='tomorrow'?new Date(Date.parse(fixtureDay+'T12:00:00Z')+86400000).toISOString():fixtureDay+'T12:00:00Z'}`);
  if(check.device==='permission-denied') {shell('pm','revoke',applicationId,'android.permission.POST_NOTIFICATIONS');shell('pm','clear-permission-flags',applicationId,'android.permission.POST_NOTIFICATIONS','user-set','user-fixed');}
  if(check.device==='permission-granted')shell('pm','grant',applicationId,'android.permission.POST_NOTIFICATIONS');
@@ -307,11 +337,13 @@ async function afterCheck(check) {
 }
 async function group(row,baseline) {
  for(const check of row.checks) {
+  if(['grammar-persistence.sqlite-five-six-upgrade','grammar-lektion2.schema6-eight-upgrade'].includes(check.id))continue;
   let before=baseline??latestBackup;
   if(check.state&&check.id!=='assistant.helper-save-edit'&&!baseline)before=captureState(check.id+'-before');
   await beforeCheck(check);
-  const extra={FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:check.id+'-operation.json',RESTORE_CHECKPOINT_NAME:check.id+'-restored.json'};
+  const extra={...lektion2Answers(before),CHECK_ID:check.id,FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:check.id+'-operation.json',RESTORE_CHECKPOINT_NAME:check.id+'-restored.json'};
   flow(check.id,check.flow,extra);
+  report.scenarios.find(s=>s.id===check.id).apkSha256=report.apk.sha256;
   recordDictionaryUxEvidence(check);
   await afterCheck(check);
   if(check.state) {
@@ -330,6 +362,7 @@ async function group(row,baseline) {
   }
  }
  flow(row.id,row.flow,{FIXTURE_DAY:fixtureDay,GROUP_ID:row.id});
+ report.scenarios.find(s=>s.id===row.id).apkSha256=report.apk.sha256;
 }
 async function preparePrimaryDevice() {
  await boot(options.avd,true);snapshotSettings();await deviceRoot();offline();
@@ -341,12 +374,52 @@ async function preparePrimaryDevice() {
  execute(adb,['-s',serial,'push',options.fixture,'/sdcard/Download/GermanVocabulary/regression-backup.json'],{timeout:180000});
  if(options['dictionary-large-fixture'])execute(adb,['-s',serial,'push',options['dictionary-large-fixture'],'/sdcard/Download/GermanVocabulary/dictionary-large-backup.json'],{timeout:180000});
  execute(adb,['-s',serial,'push',options['grammar-fixture'],'/sdcard/Download/GermanVocabulary/grammar-backup-v2.json'],{timeout:180000});
+ if(options['lektion2-fixture'])execute(adb,['-s',serial,'push',options['lektion2-fixture'],'/sdcard/Download/GermanVocabulary/lektion2-backup-v3.json']);
+ for(const name of ['a1-300.csv','numbers-0-20.csv'])execute(adb,['-s',serial,'push',join(appRoot,'content/vocabulary',name),'/sdcard/Download/GermanVocabulary/']);
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/vocabulary.csv'),'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/invalid-backup.json'),'/sdcard/Download/GermanVocabulary/']);
 }
 async function importRegressionFixture(grammar=false) {
  const file=grammar?'grammar-backup-v2.json':'regression-backup.json';
  flow(grammar?'import-grammar-fixture':'import-fixture',grammar?'grammar-import-fixture.yaml':'import-fixture.yaml',{BACKUP_FILE:file,PROFILE_COUNT:grammar?'4':'13'});latestBackup=captureState(grammar?'imported-grammar-fixture':'imported-fixture');
+}
+function lektion2Answers(backup) {
+ const result={};
+ for(const p of backup?.profiles??[]){
+  const q=p.grammar?.sessions.find(s=>s.status==='active')?.currentQuestion;
+  if(q?.catalogVersion!==2||q.presentation!=='sentence')continue;
+  let key=p.profile.name.replace('A1 — ','').replaceAll('-','_').toUpperCase();
+  if(p.profile.name==='A1 — пустой')key='EMPTY';
+  if(p.profile.name==='A1 — Sie')key='SIE';
+  result['ANSWER_'+key]=q.expected.sentences[0];
+ }
+ return result;
+}
+async function importLektion2Fixture() {
+ flow('import-lektion2-fixture','grammar-import-fixture.yaml',{BACKUP_FILE:'lektion2-backup-v3.json'});
+ latestBackup=captureState('imported-lektion2-fixture');
+}
+async function runCatalogUpgrade(schema) {
+ if(processHandle){captureDeviceLog(devicePhase+'-before-schema'+schema);restoreSettings();execute(adb,['-s',serial,'emu','kill'],{allowFailure:true});await delay(3000);}
+ devicePhase='upgrade-schema'+schema;
+ execute('/bin/sh',[join(appRoot,'scripts/prepare-avd.sh'),'--upgrade']);
+ await boot('GermanVocabulary_API36_Upgrade',true);snapshotSettings();await deviceRoot();offline();
+ shell('mkdir','-p','/sdcard/Download/GermanVocabulary');setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
+ const {before,after}=await runRetainedUpgrade({schema,previousApk:options[schema===6?'schema6-apk':'grammar-previous-apk'],finalApk:options.apk,
+  install:(path,replace)=>execute(adb,['-s',serial,'install',...(replace?['-r']:[]),path]),
+  flow:id=>flow(id,id+'.yaml'),capture:id=>captureState(id)});
+ const id=schema===6?'grammar-lektion2.schema6-eight-upgrade':'grammar-persistence.sqlite-five-six-upgrade';
+ const check=MATRIX.flatMap(row=>row.checks).find(check=>check.id===id);
+ flow(id,check.flow);
+ const validation=compareBackupGraphs(before,after,{upgrade:true});
+ if(!before.profiles.some(p=>p.profile.name==='Миграция UI'&&p.profile.xp>=250&&p.attempts.length>=20))validation.errors.push('UPGRADE_UI_HISTORY_MISSING');
+ if(schema===6&&!before.profiles.some(p=>p.grammar?.attempts.length>0))validation.errors.push('SCHEMA6_GRAMMAR_UI_HISTORY_MISSING');
+ validation.ok=validation.errors.length===0;
+ const scenario=report.scenarios.find(s=>s.id===id);
+ Object.assign(scenario,{apkSha256:report.apk.sha256,stateEvidence:join(reportDir,`schema${schema}-after.json`),beforeEvidence:join(reportDir,`schema${schema}-before.json`),stateValidation:validation});
+ if(schema===6)Object.assign(report.schema6Upgrade,{beforeEvidence:scenario.beforeEvidence,afterEvidence:scenario.stateEvidence,stateValidation:validation});
+ if(!validation.ok){scenario.status='failed';throw Error('UPGRADE_GRAPH_CHANGED:'+validation.errors.join(';'));}
+ captureDeviceLog(devicePhase+'-final');
 }
 async function importDictionaryFixtures() {
  if(options['dictionary-fixture']) { flow('import-dictionary-fixture','import-fixture.yaml',{BACKUP_FILE:'dictionary-backup.json',PROFILE_COUNT:'2'}); latestBackup=captureState('imported-dictionary-fixture'); }
@@ -377,7 +450,8 @@ async function runBlock(block) {
  await preparePrimaryDevice();
  if(block==='first-launch') { await group(row); captureDeviceLog('primary-block-'+block); return; }
  await setupBlockPrerequisites();
- await importRegressionFixture(block.startsWith('grammar-'));
+ if(['extended-vocabulary','grammar-lektion2'].includes(block))await importLektion2Fixture();
+ else await importRegressionFixture(block.startsWith('grammar-'));
  if(block==='dictionary')await importDictionaryFixtures();
  if(row.phase==='force-stop'||row.phase==='reboot') {
   await seedPersistencePrerequisite();
@@ -389,20 +463,26 @@ async function runBlock(block) {
   await group(row);
  }
  captureDeviceLog('primary-block-'+block);
+ if(block==='grammar-lektion2')await runCatalogUpgrade(6);
+ if(block==='grammar-persistence')await runCatalogUpgrade(5);
 }
 async function run() {
  await preparePrimaryDevice();
  await group(MATRIX.find(row=>row.id==='first-launch'));
  await importRegressionFixture();
  await importDictionaryFixtures();
- for(const row of MATRIX.filter(row=>row.phase==='main'&&!row.id.startsWith('grammar-')))await group(row);
+ for(const row of MATRIX.filter(row=>row.phase==='main'&&!row.id.startsWith('grammar-')&&row.id!=='extended-vocabulary'))await group(row);
  await importRegressionFixture(true);
- for(const row of MATRIX.filter(row=>row.id.startsWith('grammar-')))await group(row);
+ for(const row of MATRIX.filter(row=>row.id.startsWith('grammar-')&&row.id!=='grammar-lektion2'))await group(row);
+ await importLektion2Fixture();
+ for(const id of ['extended-vocabulary','grammar-lektion2'])await group(MATRIX.find(row=>row.id===id));
  flow('persistence-before','persistence-before.yaml');persistenceBaseline=captureState('persistence-baseline');
  shell('am','force-stop',applicationId);await group(MATRIX.find(row=>row.phase==='force-stop'),persistenceBaseline);
  await rebootDevice();await group(MATRIX.find(row=>row.phase==='reboot'),persistenceBaseline);
  captureDeviceLog('primary-final');restoreSettings();execute(adb,['-s',serial,'emu','kill']);await delay(3000);
  await runUpgradePhase();
+ await runCatalogUpgrade(5);
+ await runCatalogUpgrade(6);
    if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
  else report.blockers.push('OBSERVATIONS_MISSING:review generated text and audible playback');
 }
@@ -416,7 +496,7 @@ async function main() {
  let exitCode=2;
  try {
    const argv=process.argv.slice(2);
-   const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','grammar-previous-apk','fixture','grammar-fixture','dictionary-fixture','dictionary-large-fixture','observations','block']);
+   const allowed=new Set(['preflight','sdk-root','apk','model-dir','avd','report-dir','maestro','previous-apk','grammar-previous-apk','fixture','grammar-fixture','dictionary-fixture','dictionary-large-fixture','lektion2-fixture','schema6-apk','observations','block']);
    for(let i=0;i<argv.length;i++){const key=argv[i].replace(/^--/,'');if(!argv[i].startsWith('--')||!allowed.has(key))throw new Unavailable(`ARGUMENT_INVALID:${argv[i]}`);if(key==='preflight')options[key]=true;else {if(!argv[i+1]||argv[i+1].startsWith('--'))throw new Unavailable(`ARGUMENT_VALUE_MISSING:${key}`);options[key]=argv[++i];}}
    if(options.block){try{selectedBlockScenarios=scenarioIdsForBlock(options.block);}catch(error){throw new Unavailable(error.message);}}
    reportDir=resolve(options['report-dir'] ?? join(workRoot,`reports/${new Date().toISOString().replace(/[:.]/g,'-')}`));

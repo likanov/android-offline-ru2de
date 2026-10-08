@@ -1,0 +1,125 @@
+appId: com.personal.germanvocabulary
+name: grammar-lektion2.sie-context
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "A1 — Sie"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion2-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion2-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion2-yesno-translation"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion2-yesno-translation"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "assertVisible": "Вежливое обращение."
+  },
+  {
+    "tapOn": {
+      "id": "grammar-answer-input"
+    }
+  },
+  {
+    "inputText": "${ANSWER_SIE}"
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-answer-input"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-submit"
+    }
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}-keyboard-open"
+  },
+  {
+    "tapOn": {
+      "id": "grammar-submit"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+10 XP"
+  }
+]

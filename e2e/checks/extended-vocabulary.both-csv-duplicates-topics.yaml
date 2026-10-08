@@ -1,0 +1,112 @@
+appId: com.personal.germanvocabulary
+name: extended-vocabulary.both-csv-duplicates-topics
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "A1 — словарь"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "tapOn": "Выбрать CSV"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "a1-300.csv"
+      }
+    }
+  },
+  {
+    "assertVisible": ".*Ошибки: 0.*"
+  },
+  {
+    "tapOn": "Импортировать"
+  },
+  {
+    "assertVisible": ".*Ошибки: 0.*"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "tapOn": "Выбрать CSV"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "numbers-0-20.csv"
+      }
+    }
+  },
+  {
+    "assertVisible": ".*Ошибки: 0.*"
+  },
+  {
+    "tapOn": "Импортировать"
+  },
+  {
+    "assertVisible": ".*Ошибки: 0.*"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "tapOn": "Выбрать CSV"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "a1-300.csv"
+      }
+    }
+  },
+  {
+    "assertVisible": ".*Ошибки: 0.*"
+  },
+  {
+    "tapOn": "Импортировать"
+  },
+  {
+    "assertVisible": ".*Ошибки: 0.*"
+  }
+]

@@ -5,7 +5,7 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
  const part=name=>backup?.profiles?.find(p=>p.profile.name===name);
  const old=name=>before?.profiles?.find(p=>p.profile.name===name);
  const state=(p,de)=>p?.progress?.find(r=>r.wordId===p.words.find(w=>w.de===de)?.id);
- const sum=p=>p?.attempts?.reduce((n,a)=>n+a.xpDelta,0);
+ const sum=p=>(p?.attempts??[]).reduce((n,a)=>n+a.xpDelta,0)+(p?.grammar?.attempts??[]).reduce((n,a)=>n+a.result.xpDelta,0);
  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  const conserved=(p,b)=>p&&b&&p.profile.xp===b.profile.xp&&same(p.attempts,b.attempts)&&same(p.rewards,b.rewards)&&same(p.progress,b.progress);
  const add=(day,n)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(day??''))return null;const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
@@ -71,12 +71,42 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
  if(id.startsWith('persistence-')){const p=part('Регрессия — 20 UI'),b=old('Регрессия — 20 UI');check(p?.profile.xp>=250&&p.rewards.length===1&&state(p,'Stuhl')?.streak===20,'PERSISTENCE_NONZERO_STATE');check(conserved(p,b)&&same(p?.sessions,b?.sessions),'PERSISTENCE_CHANGED');}
  if(id.startsWith('upgrade.')){const p=part('Миграция UI');check(p?.words.some(w=>w.de==='Upgradeprobe'),'UPGRADE_CUSTOM_WORD_LOST');check(p?.profile.xp===250&&p.rewards.length===1&&p.attempts.length===20,'UPGRADE_EARNED_HISTORY');if(id==='upgrade.topic-migration')check(p?.topics.length>=6&&p.wordTopics.length>0,'TOPIC_MIGRATION_MISSING');if(before?.profiles?.length){const b=old('Миграция UI');check(p?.profile.xp===b?.profile.xp&&same(p?.attempts,b?.attempts)&&same(p?.rewards,b?.rewards),'UPGRADE_DUPLICATE_REWARD');}}
  if(id==='resilience.picker-double-answer'){const p=part('Регрессия — трудное'),b=old('Регрессия — трудное');check(p?.attempts.length===b?.attempts.length+1&&p?.profile.xp===b?.profile.xp+10,'DOUBLE_ANSWER_REWARDED');}
- if(id.startsWith('grammar-')) checkGrammarState(id,(backup?.profiles??[]).find(p=>p?.grammar),check);
+ if(id.startsWith('grammar-lektion2.')){for(const p of backup?.profiles??[])if(p.grammar)checkGrammarState(id,p,check);}
+ else if(id.startsWith('grammar-'))checkGrammarState(id,(backup?.profiles??[]).find(p=>p?.grammar),check);
+ if(id.startsWith('extended-vocabulary.')){
+  const p=part('A1 — словарь'),b=old('A1 — словарь');check(!!p,'A1_VOCABULARY_MISSING');
+  if(id.endsWith('nine-type-editor'))for(const pos of ['noun','adjective','number','verb','pronoun','adverb','preposition','conjunction','phrase'])check(p?.words.some(w=>w.de==='R1'+pos&&w.pos===pos),'EDITOR_PART:'+pos);
+  if(id.endsWith('both-csv-duplicates-topics')){
+   check(p?.words.length>=300,'CSV_WORD_COUNT');check(p?.topics.some(t=>t.name==='Числа 0–20'),'CSV_NUMBER_TOPIC');
+   const word=p?.words.find(w=>w.de==='Stuhl'),previous=b?.words.find(w=>w.de==='Stuhl');
+   check(word?.id===previous?.id&&same(state(p,'Stuhl'),state(b,'Stuhl')),'CSV_DUPLICATE_PROGRESS_CHANGED');
+   check(p?.rewards.length===b?.rewards.length,'CSV_DUPLICATE_REWARD_CHANGED');
+   check(p?.wordTopics.some(t=>t.wordId===word?.id),'CSV_DUPLICATE_TOPIC_MISSING');
+  }
+  if(id.endsWith('search-sie-numbers'))check(conserved(p,b),'SEARCH_CHANGED_PROGRESS');
+  if(id.endsWith('typed-number')){const added=p?.attempts.filter(a=>!b?.attempts.some(x=>x.attemptId===a.attemptId))??[];check(added.length===1&&added[0].right===1&&added[0].xpDelta===10,'NUMBER_TYPED_ATTEMPT');check(p?.questions.some(q=>q.attemptId===added[0]?.attemptId&&q.payload.kind==='typing'),'NUMBER_TYPED_QUESTION');}
+  if(id.endsWith('backup3-roundtrip')){
+   check(backup.version===3&&before?.version===3,'V3_EXPORT_REQUIRED');check(backup.profiles.length===before?.profiles.length*2,'V3_RESTORE_COUNT');
+   for(const source of before?.profiles??[]){check(stable(part(source.profile.name))===stable(source),'V3_ORIGINAL_CHANGED');const restored=backup.profiles.find(p=>p.profile.id!==source.profile.id&&p.profile.name===source.profile.name+' восстановлено 2');for(const error of restorationErrors(source,restored))check(false,'V3_RESTORE:'+source.profile.name+':'+error);}
+  }
+ }
+ if(id.startsWith('grammar-lektion2.')){
+  check(backup.version===3,'LEKTION2_V3_REQUIRED');
+  check((backup.profiles??[]).every(p=>same(p.grammar?.catalogVersions,[1,2])),'LEKTION2_BOTH_CATALOGS_REQUIRED');
+  if(['force-stop','reboot'].some(suffix=>id.endsWith(suffix)))check(part('A1 — пустой')?.grammar.sessions.some(s=>s.status==='active'&&!s.result&&s.currentQuestion?.presentation==='sentence'),'PENDING_SENTENCE_REQUIRED');
+  const additions=name=>{const p=part(name),b=old(name);return p?.grammar.attempts.filter(a=>!b?.grammar.attempts.some(x=>x.result.attemptId===a.result.attemptId))??[];};
+  if(id.endsWith('five-lessons'))for(const lesson of ['professions-pronoun','professions-sein','demonstrative-statement','yesno-transform','yesno-translation']){const added=additions('A1 — '+lesson);check(added.length===1&&added[0].result.right===true&&added[0].targetId.startsWith(lesson+':'),'LESSON_REAL_ANSWER:'+lesson);}
+  if(id.endsWith('sentence-correct-error')){const added=additions('A1 — yesno-transform');check(added.length===1&&added[0].result.right===false&&added[0].result.xpDelta===0,'SENTENCE_ERROR_ATTEMPT');}
+  if(id.endsWith('sie-context')){const added=additions('A1 — Sie');check(added.length===1&&added[0].targetId==='yesno-translation:sie_formal'&&added[0].result.right,'SIE_CONTEXT_ATTEMPT');}
+  if(id.endsWith('empty-dictionary')){const p=part('A1 — пустой');check(p?.words.length===0,'EMPTY_DICTIONARY_REQUIRED');check(additions(p?.profile.name).some(a=>a.result.right),'EMPTY_FALLBACK_ANSWER');}
+  if(['force-stop','reboot','reference-helper'].some(suffix=>id.endsWith(suffix)))for(const error of compareBackupGraphs(before,backup).errors)check(false,error);
+  if(id.endsWith('schema6-eight-upgrade'))for(const error of compareBackupGraphs(before,backup,{upgrade:true}).errors)check(false,error);
+ }
  return {ok:errors.length===0,errors};
 }
 
 const GRAMMAR_TARGETS=new Set(['ich','du','er','sie_feminine','es','wir','ihr','sie_plural','sie_formal']);
-function grammarTargetKnown(targetId){const [kind,pronoun]=String(targetId??'').split(':');return (kind==='pronoun-cloze'||kind==='sein-cloze')&&GRAMMAR_TARGETS.has(pronoun);}
+function grammarTargetKnown(targetId){const [kind,pronoun]=String(targetId??'').split(':');return ((kind==='pronoun-cloze'||kind==='sein-cloze')&&GRAMMAR_TARGETS.has(pronoun))||(['professions-pronoun','professions-sein'].includes(kind)&&['ich','du','er','wir','ihr','sie_plural','sie_formal'].includes(pronoun))||(kind==='demonstrative-statement'&&['singular','plural'].includes(pronoun))||(kind==='yesno-transform'&&['pronoun','noun'].includes(pronoun))||(kind==='yesno-translation'&&['du','er','ihr','sie_plural','sie_formal','noun'].includes(pronoun));}
 function checkGrammarState(id,p,check){
  const g=p?.grammar;
  check(!!g,'GRAMMAR_SECTION_MISSING');
@@ -92,7 +122,7 @@ function checkGrammarState(id,p,check){
   check(!!sessions.get(a.sessionId),'GRAMMAR_ATTEMPT_SESSION_MISSING');
   check(!!questions.get(a.result?.attemptId),'GRAMMAR_ATTEMPT_QUESTION_MISSING');
   check(a.result?.targetId===a.targetId,'GRAMMAR_ATTEMPT_TARGET_MISMATCH');
-  check(a.result?.xpDelta===(a.result?.right?(a.result?.state?.mastered&&a.result?.state?.masteryBonusGranted?60:10):0),'GRAMMAR_ATTEMPT_XP');
+  check(a.result?.xpDelta===(a.result?.right?((g.rewards??[]).some(r=>r.attemptId===a.result?.attemptId)?60:10):0),'GRAMMAR_ATTEMPT_XP');
  }
  const wordXp=(p.attempts??[]).reduce((n,a)=>n+(a.xpDelta??0),0),grammarXp=(g.attempts??[]).reduce((n,a)=>n+(a.result?.xpDelta??0),0);
  check(p.profile.xp===wordXp+grammarXp,'GRAMMAR_COMBINED_XP');
@@ -120,6 +150,8 @@ function restorationErrors(source,restored){
  const errors=[],ids=new Map(),oldIds=new Set([source.profile.id]);
  const definitions=[['words','id'],['topics','id'],['aids','id'],['sessions','id'],['questions','attemptId']];
  for(const [collection,key]of definitions)for(const row of source[collection]??[])oldIds.add(row[key]);
+ for(const row of source.grammar?.sessions??[])oldIds.add(row.id);
+ for(const row of source.grammar?.questions??[])oldIds.add(row.question.attemptId);
  function pair(oldId,newId){
   if(typeof newId!=='string'||!newId||oldIds.has(newId)||ids.has(newId))errors.push('REGENERATED_ID_INVALID');
   else ids.set(newId,oldId);
@@ -129,9 +161,11 @@ function restorationErrors(source,restored){
   const original=source[collection]??[],copy=restored[collection]??[];
   for(let i=0;i<Math.min(original.length,copy.length);i++)pair(original[i][key],copy[i][key]);
  }
+ for(const [index,row] of (source.grammar?.sessions??[]).entries())pair(row.id,restored.grammar?.sessions?.[index]?.id);
+ for(const [index,row] of (source.grammar?.questions??[]).entries())pair(row.question.attemptId,restored.grammar?.questions?.[index]?.question?.attemptId);
  const references=new Set(['id','profileId','wordId','topicId','aidId','sessionId','attemptId']);
  function normalize(value,key=''){
-  if(typeof value==='string'&&references.has(key))return ids.get(value)??'UNMAPPED_REFERENCE:'+value;
+  if(typeof value==='string'&&references.has(key)){if(key==='id'&&['ich','du','er','sie_feminine','es','wir','ihr','sie_plural','sie_formal','bin','bist','ist','sind','seid'].includes(value))return value;return ids.get(value)??'UNMAPPED_REFERENCE:'+value;}
   if(key==='content'&&typeof value==='string'){
    // Legacy opaque helper content is preserved byte-for-byte. Structured aid
    // content must preserve all fields and the embedded word reference.
@@ -150,4 +184,20 @@ function restorationErrors(source,restored){
  const copy=normalize(restored);copy.profile.name=source.profile.name;
  for(const key of new Set([...Object.keys(source),...Object.keys(copy)]))if(stable(copy[key])!==stable(original(source[key])))errors.push(key);
  return errors;
+}
+
+// Strict same-ID graph comparison for force-stop/reboot and in-place upgrades.
+// V2 -> V3 changes the catalog declaration only; all learning rows stay exact.
+export function compareBackupGraphs(before,after,{upgrade=false}={}) {
+ const errors=[];
+ if(!before?.profiles?.length||before.profiles.length!==after?.profiles?.length)return {ok:false,errors:['GRAPH_PROFILE_COUNT']};
+ for(const source of before.profiles){
+  const target=after.profiles.find(p=>p.profile.id===source.profile.id);
+  if(!target){errors.push('GRAPH_PROFILE_MISSING:'+source.profile.id);continue;}
+  const expected=structuredClone(source),actual=structuredClone(target);
+  if(upgrade&&!expected.grammar)expected.grammar={catalogVersions:[1,2],progress:[],sessions:[],questions:[],attempts:[],rewards:[]};
+  if(upgrade&&expected.grammar?.catalogVersion===1){delete expected.grammar.catalogVersion;expected.grammar.catalogVersions=[1,2];}
+  if(stable(expected)!==stable(actual))errors.push('GRAPH_CHANGED:'+source.profile.name);
+ }
+ return {ok:errors.length===0,errors};
 }

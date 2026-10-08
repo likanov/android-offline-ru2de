@@ -25,10 +25,12 @@ function fixture(t) {
   put(dir, 'regression/previous.apk', 'synthetic previous APK');
   put(dir, 'regression/provenance.json', { commit: '19b2e0c1cf36eda73159aff9bb2d94b757d24144', sha256: digest('synthetic previous APK'), sourceMapVerified: true });
   put(dir, 'regression/generation.png', 'synthetic screenshot'); put(dir, 'regression/generation.xml', '<hierarchy/>');
+  put(dir,'regression/schema6-provenance.json',{schemaVersion:6,sha256:digest('synthetic previous APK'),package:'com.personal.germanvocabulary',certificateSha256:certificate,commit:'d'.repeat(40),sourceMapVerified:true});
   const report = {
+    schema6Upgrade:{apk:'regression/previous.apk',apkSha256:digest('synthetic previous APK'),package:'com.personal.germanvocabulary',certificateSha256:certificate,finalCertificateSha256:certificate,provenancePath:'regression/schema6-provenance.json',beforeEvidence:'regression/device.log',afterEvidence:'regression/device.log',stateValidation:{ok:true}},
     status: 'passed', exitCode: 0, blockers: [], commit: 'a'.repeat(40),
     apk: { path: 'app-release.apk', sha256: digest(apk) }, model: { path: 'model/' + modelManifest.fileName, sha256: modelManifest.sha256, manifestPath: 'model/model-manifest.json', manifest: modelManifest },
-    scenarios: REQUIRED_SCENARIOS.map(id => { put(dir, `regression/${id}.xml`, `<testsuite><testcase name="${id}"/></testsuite>`); return { id, status: 'passed', junit: `regression/${id}.xml` }; }),
+    scenarios: REQUIRED_SCENARIOS.map(id => { put(dir, `regression/${id}.xml`, `<testsuite><testcase name="${id}"/></testsuite>`); return { id, status: 'passed', junit: `regression/${id}.xml`,apkSha256:digest(apk),stateEvidence:'regression/device.log',stateValidation:{ok:true} }; }),
     generations: ['association', 'example', 'text', 'rule'].map(mode => ({ mode, runtime: 'llama.rn', modelSha256: modelManifest.sha256, text: 'Synthetic generated text.', screenshot: 'regression/generation.png', hierarchy: 'regression/generation.xml' })),
     network: { wifi: false, mobile: false }, crashCount: 0, anrCount: 0, logcat: 'regression/device.log',
     deviceLogs: [{ phase: 'primary', path: 'regression/device.log', crashCount: 0, anrCount: 0 }, { phase: 'upgrade', path: 'regression/device.log', crashCount: 0, anrCount: 0 }],

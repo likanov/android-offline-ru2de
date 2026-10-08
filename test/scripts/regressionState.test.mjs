@@ -40,3 +40,11 @@ test('grammar_state_checks_target_and_joint_ledger',()=>{
  assert.equal(result.ok,false,'a grammar attempt without its answered question must not pass');
  assert.ok(result.errors.some(error=>error.includes('GRAMMAR_')));
 });
+
+test('v3_state_comparison_checks_both_catalogs',async()=>{
+ const module=await import('../../scripts/regression-state.mjs');
+ assert.equal(typeof module.compareBackupGraphs,'function');
+ const source={version:3,profiles:[{profile:{id:'p',name:'R',xp:0},grammar:{catalogVersions:[1,2],progress:[{targetId:'sein-cloze:ich'},{targetId:'yesno-transform:noun'}],questions:[{question:{catalogVersion:2,presentation:'sentence',expected:{sentences:['Ist das ein Haus?']}}}],rewards:[{targetId:'sein-cloze:ich',amount:50},{targetId:'yesno-transform:noun',amount:50}]}}]};
+ assert.equal(module.compareBackupGraphs(source,structuredClone(source)).ok,true);
+ for(const mutate of [b=>b.profiles[0].grammar.catalogVersions.pop(),b=>b.profiles[0].grammar.questions[0].question.expected.sentences[0]='bad',b=>b.profiles[0].grammar.rewards.pop()]){const after=structuredClone(source);mutate(after);assert.equal(module.compareBackupGraphs(source,after).ok,false);}
+});

@@ -1,0 +1,717 @@
+appId: com.personal.germanvocabulary
+name: extended-vocabulary.nine-type-editor
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "A1 — словарь"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1noun"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия noun"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Существительное"
+      }
+    }
+  },
+  {
+    "tapOn": "Существительное"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "der — мужской род"
+      }
+    }
+  },
+  {
+    "tapOn": "der — мужской род"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1adjective"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия adjective"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Прилагательное"
+      }
+    }
+  },
+  {
+    "tapOn": "Прилагательное"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1number"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия number"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Числительное"
+      }
+    }
+  },
+  {
+    "tapOn": "Числительное"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1verb"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия verb"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Глагол"
+      }
+    }
+  },
+  {
+    "tapOn": "Глагол"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1pronoun"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия pronoun"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Местоимение"
+      }
+    }
+  },
+  {
+    "tapOn": "Местоимение"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1adverb"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия adverb"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Наречие"
+      }
+    }
+  },
+  {
+    "tapOn": "Наречие"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1preposition"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия preposition"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Предлог"
+      }
+    }
+  },
+  {
+    "tapOn": "Предлог"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1conjunction"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия conjunction"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Союз"
+      }
+    }
+  },
+  {
+    "tapOn": "Союз"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-add"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-de"
+    }
+  },
+  {
+    "inputText": "R1phrase"
+  },
+  {
+    "tapOn": {
+      "id": "word-ru"
+    }
+  },
+  {
+    "inputText": "регрессия phrase"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выбрать часть речи"
+      }
+    }
+  },
+  {
+    "tapOn": "Выбрать часть речи"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Выражение"
+      }
+    }
+  },
+  {
+    "tapOn": "Выражение"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  }
+]

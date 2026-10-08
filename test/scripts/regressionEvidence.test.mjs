@@ -53,3 +53,10 @@ test('maestro_transport_failure_is_unverified_and_assertion_failure_stays_failed
  assert.equal(maestroOutcome(1,'<failure>DeviceServerDiedException: DEADLINE_EXCEEDED</failure>').exitCode,2);
  assert.equal(maestroOutcome(1,'<failure>Assertion is false</failure>').exitCode,1);
 });
+
+test('full_report_requires_new_blocks',async()=>{
+ const {validateRegressionReport}=await import('../../scripts/regression-report.mjs');
+ const result=validateRegressionReport({status:'passed',runMode:{type:'block',block:'grammar-lektion2'},scenarios:[]});
+ for(const block of ['extended-vocabulary','grammar-lektion2'])assert.ok(result.errors.includes('SCENARIO_NOT_PASSED:'+block));
+ assert.ok(result.errors.includes('FULL_RUN_REQUIRED'));
+});

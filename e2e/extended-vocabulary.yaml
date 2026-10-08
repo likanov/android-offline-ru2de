@@ -1,0 +1,15 @@
+appId: com.personal.germanvocabulary
+name: extended-vocabulary
+---
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-training"
+    }
+  }
+]

@@ -194,3 +194,57 @@ preserves original host paths; `regression/report.json` relocates artifact paths
 and references the delivered files. [Release report](release-report.md) records
 identities and limitations; [installation](install-android.md) describes local
 transfer and upgrade. Product changes require a new APK and a full new run.
+
+## A1 / Lektion 2 regression (schema 8)
+
+Generate the additional V3 fixture with the SQL integration project. Legacy
+`REGRESSION_FIXTURE_OUTPUT` (V1) and `GRAMMAR_FIXTURE_OUTPUT` (V2) stay unchanged.
+
+```sh
+LEKTION2_FIXTURE_OUTPUT=/absolute/artifacts/lektion2-backup-v3.json \
+REGRESSION_FIXTURE_DAY=2026-10-08 \
+npm test -- --runInBand --runTestsByPath test/integration/regressionFixtures.test.ts
+```
+
+Add these arguments to the normal runner invocation (all existing APK, model,
+AVD, legacy fixture, Task5 and schema5 arguments remain required):
+
+```sh
+--lektion2-fixture /absolute/artifacts/lektion2-backup-v3.json \
+--schema6-apk /absolute/artifacts/before/installed-schema6.apk
+```
+
+Use `--block extended-vocabulary` or `--block grammar-lektion2` for focused
+runs. Omit `--block` for a full report. A block report cannot pass the full
+validator. Every new scenario records the final APK hash, JUnit result and an
+exported JSON state checkpoint; skipped checks and mismatched hashes fail.
+
+The V3 fixture has unique `A1 — …` profiles: dictionary with a mastered Stuhl,
+new pronoun and pending typed number; mixed catalog history with old mastery,
+new streak 19 and several review dates; five lesson profiles; formal Sie; and an
+empty dictionary imported via BackupService. All answers use the production
+repositories/services. The two shipped CSVs are copied to Downloads and selected
+through DocumentsUI. The V3 roundtrip compares every exported graph value, with
+only regenerated UUIDs and the restored profile name normalized.
+
+`--schema6-apk` requires an adjacent `<apk>.provenance.json` with schemaVersion 6,
+package, SHA-256, certificateSha256, full source commit and sourceMapVerified.
+Preflight independently inspects package and signing certificate and rejects
+an identical final APK. Keep the original APK and source-map provenance before
+building. Do not fabricate provenance when the source association is unknown.
+The provenance record can describe limitations of the retained source map.
+
+The old `--grammar-previous-apk` now executes an actual schema5 upgrade on the
+separate upgrade AVD. It requires adjacent `release-manifest.json`, its matching
+APK hash/certificate and the source commit's schema5 migration. The original
+Task5 upgrade remains separate. The new schema6 phase creates word history and
+a grammar answer through UI, exports **before** installation, installs final
+with `adb install -r`, exports after and compares all retained learning data.
+No phase injects a host database. These upgrades never target a physical phone.
+
+The new flows remain `implemented-unverified` until run on Android. Inspect the
+Maestro keyboard-open images: prompt, answer input and submit must all be visible.
+The full run still requires the existing audible-audio and generated-language
+observations; do not mark them reviewed without inspecting the retained run.
+The rule/help check asserts the production local error rule and conserved XP;
+it does not count as a real model-generation observation.

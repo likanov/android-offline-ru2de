@@ -507,11 +507,35 @@
     "coverage": "implemented-unverified",
     "required": true,
     "checks": [
-      {"id":"grammar-core.pronouns-sein-choice","status":"implemented-unverified","flow":"checks/grammar-core.pronouns-sein-choice.yaml","state":true},
-      {"id":"grammar-core.typing-case-context","status":"implemented-unverified","flow":"checks/grammar-core.typing-case-context.yaml","state":true},
-      {"id":"grammar-core.reference-no-xp","status":"implemented-unverified","flow":"checks/grammar-core.reference-no-xp.yaml","state":true},
-      {"id":"grammar-core.empty-dictionary-fallback","status":"implemented-unverified","flow":"checks/grammar-core.empty-dictionary-fallback.yaml"},
-      {"id":"grammar-core.keyboard-320dp","status":"implemented-unverified","flow":"checks/grammar-core.keyboard-320dp.yaml","device":"display"}
+      {
+        "id": "grammar-core.pronouns-sein-choice",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-core.pronouns-sein-choice.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-core.typing-case-context",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-core.typing-case-context.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-core.reference-no-xp",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-core.reference-no-xp.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-core.empty-dictionary-fallback",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-core.empty-dictionary-fallback.yaml"
+      },
+      {
+        "id": "grammar-core.keyboard-320dp",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-core.keyboard-320dp.yaml",
+        "device": "display"
+      }
     ]
   },
   {
@@ -522,11 +546,36 @@
     "coverage": "implemented-unverified",
     "required": true,
     "checks": [
-      {"id":"grammar-progress.twenty-ui-answers","status":"implemented-unverified","flow":"checks/grammar-progress.twenty-ui-answers.yaml","state":true},
-      {"id":"grammar-progress.nineteen-error","status":"implemented-unverified","flow":"checks/grammar-progress.nineteen-error.yaml","state":true},
-      {"id":"grammar-progress.bonus-once-double-submit","status":"implemented-unverified","flow":"checks/grammar-progress.bonus-once-double-submit.yaml","state":true},
-      {"id":"grammar-progress.reviews-difficult","status":"implemented-unverified","flow":"checks/grammar-progress.reviews-difficult.yaml","state":true},
-      {"id":"grammar-progress.combined-summary","status":"implemented-unverified","flow":"checks/grammar-progress.combined-summary.yaml","state":true}
+      {
+        "id": "grammar-progress.twenty-ui-answers",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-progress.twenty-ui-answers.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-progress.nineteen-error",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-progress.nineteen-error.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-progress.bonus-once-double-submit",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-progress.bonus-once-double-submit.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-progress.reviews-difficult",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-progress.reviews-difficult.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-progress.combined-summary",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-progress.combined-summary.yaml",
+        "state": true
+      }
     ]
   },
   {
@@ -537,10 +586,32 @@
     "coverage": "implemented-unverified",
     "required": true,
     "checks": [
-      {"id":"grammar-persistence.profile-isolation","status":"implemented-unverified","flow":"checks/grammar-persistence.profile-isolation.yaml","state":true},
-      {"id":"grammar-persistence.force-stop-reboot","status":"implemented-unverified","flow":"checks/grammar-persistence.force-stop-reboot.yaml","state":true,"device":"reboot"},
-      {"id":"grammar-persistence.word-dependency-edit","status":"implemented-unverified","flow":"checks/grammar-persistence.word-dependency-edit.yaml","state":true},
-      {"id":"grammar-persistence.sqlite-five-six-upgrade","status":"implemented-unverified","flow":"checks/grammar-persistence.sqlite-five-six-upgrade.yaml","state":true,"device":"upgrade-provenance"}
+      {
+        "id": "grammar-persistence.profile-isolation",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-persistence.profile-isolation.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-persistence.force-stop-reboot",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-persistence.force-stop-reboot.yaml",
+        "state": true,
+        "device": "reboot"
+      },
+      {
+        "id": "grammar-persistence.word-dependency-edit",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-persistence.word-dependency-edit.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-persistence.sqlite-five-six-upgrade",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-persistence.sqlite-five-six-upgrade.yaml",
+        "state": true,
+        "device": "upgrade-provenance"
+      }
     ]
   },
   {
@@ -551,10 +622,130 @@
     "coverage": "implemented-unverified",
     "required": true,
     "checks": [
-      {"id":"grammar-transfer-assistant.v1-v2-roundtrip","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.v1-v2-roundtrip.yaml","state":true},
-      {"id":"grammar-transfer-assistant.invalid-backup-atomicity","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.invalid-backup-atomicity.yaml","state":true},
-      {"id":"grammar-transfer-assistant.no-model-rule","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.no-model-rule.yaml","device":"model-unavailable"},
-      {"id":"grammar-transfer-assistant.real-model-cancel","status":"implemented-unverified","flow":"checks/grammar-transfer-assistant.real-model-cancel.yaml","device":"four-generations"}
+      {
+        "id": "grammar-transfer-assistant.v1-v2-roundtrip",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-transfer-assistant.v1-v2-roundtrip.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-transfer-assistant.invalid-backup-atomicity",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-transfer-assistant.invalid-backup-atomicity.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-transfer-assistant.no-model-rule",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-transfer-assistant.no-model-rule.yaml",
+        "device": "model-unavailable"
+      },
+      {
+        "id": "grammar-transfer-assistant.real-model-cancel",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-transfer-assistant.real-model-cancel.yaml",
+        "device": "four-generations"
+      }
+    ]
+  },
+  {
+    "id": "extended-vocabulary",
+    "flow": "extended-vocabulary.yaml",
+    "phase": "main",
+    "expectation": "Real UI submissions with retained V3 graph evidence",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {
+        "id": "extended-vocabulary.nine-type-editor",
+        "status": "implemented-unverified",
+        "flow": "checks/extended-vocabulary.nine-type-editor.yaml",
+        "state": true
+      },
+      {
+        "id": "extended-vocabulary.both-csv-duplicates-topics",
+        "status": "implemented-unverified",
+        "flow": "checks/extended-vocabulary.both-csv-duplicates-topics.yaml",
+        "state": true
+      },
+      {
+        "id": "extended-vocabulary.search-sie-numbers",
+        "status": "implemented-unverified",
+        "flow": "checks/extended-vocabulary.search-sie-numbers.yaml",
+        "state": true
+      },
+      {
+        "id": "extended-vocabulary.typed-number",
+        "status": "implemented-unverified",
+        "flow": "checks/extended-vocabulary.typed-number.yaml",
+        "state": true
+      },
+      {
+        "id": "extended-vocabulary.backup3-roundtrip",
+        "status": "implemented-unverified",
+        "flow": "checks/extended-vocabulary.backup3-roundtrip.yaml",
+        "state": true
+      }
+    ]
+  },
+  {
+    "id": "grammar-lektion2",
+    "flow": "grammar-lektion2.yaml",
+    "phase": "main",
+    "expectation": "Real UI submissions with retained V3 graph evidence",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {
+        "id": "grammar-lektion2.five-lessons",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.five-lessons.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion2.sentence-correct-error",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.sentence-correct-error.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion2.sie-context",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.sie-context.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion2.reference-helper",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.reference-helper.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion2.force-stop",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.force-stop.yaml",
+        "state": true,
+        "device": "force-stop"
+      },
+      {
+        "id": "grammar-lektion2.reboot",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.reboot.yaml",
+        "state": true,
+        "device": "reboot"
+      },
+      {
+        "id": "grammar-lektion2.empty-dictionary",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.empty-dictionary.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion2.schema6-eight-upgrade",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion2.schema6-eight-upgrade.yaml",
+        "state": true
+      }
     ]
   }
 ]

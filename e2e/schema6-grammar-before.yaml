@@ -1,0 +1,33 @@
+appId: com.personal.germanvocabulary
+name: schema6-grammar-before
+---
+[
+  {
+    "runFlow": {
+      "file": "helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-grammar-start"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-option-ich"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  }
+]

@@ -428,3 +428,12 @@ test('device_log_capture_pulls_device_file_instead_of_streaming_large_logcat_std
  assert.match(s,/readFileSync\(path,'utf8'\)/,'local logcat evidence should still be scanned for crashes and ANRs');
  assert.doesNotMatch(s,/logcat','-d','-v','threadtime'\],\{allowFailure:true,maxBuffer:128\*1024\*1024\}/,'large logcat capture must not depend on spawnSync stdout buffering');
 });
+
+test('new_blocks_have_executable_unique_checks',()=>{
+ const ids=new Set();
+ for(const block of ['extended-vocabulary','grammar-lektion2']){
+  const row=MATRIX.find(r=>r.id===block);assert.ok(row,block);
+  assert.ok(row.checks.length>=5);
+  for(const check of row.checks){assert.ok(!ids.has(check.id));ids.add(check.id);const commands=JSON.parse(readFileSync(resolve(root,check.flow),'utf8').split('---\n')[1]);assert.ok(commands.some(c=>c.tapOn||c.runFlow));assert.ok(commands.some(c=>c.assertVisible||c.runFlow));}
+ }
+});

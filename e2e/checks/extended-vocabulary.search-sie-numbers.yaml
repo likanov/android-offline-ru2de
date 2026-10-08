@@ -1,0 +1,70 @@
+appId: com.personal.germanvocabulary
+name: extended-vocabulary.search-sie-numbers
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "A1 — словарь"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-dictionary"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-dictionary"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "eraseText": 100
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "inputText": "Sie"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "assertVisible": ".*Вы.*"
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "eraseText": 100
+  },
+  {
+    "tapOn": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "inputText": "22"
+  },
+  {
+    "hideKeyboard": null
+  },
+  {
+    "assertVisible": ".*zweiundzwanzig.*"
+  }
+]

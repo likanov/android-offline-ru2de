@@ -109,10 +109,12 @@ export function validateBlockRegressionReport(report, block) {
       require(/<testcase\b/.test(xml)&&!/<(?:failure|error|skipped)\b/.test(xml),`JUNIT_NOT_PASSED:${id}`);
       require(xml.includes(`name="${id}"`),`JUNIT_ID_MISSING:${id}`);
     }
+    if(['extended-vocabulary','grammar-lektion2'].includes(block))require(item?.apkSha256===report?.apk?.sha256,`SCENARIO_APK_MISMATCH:${id}`);
     if(check.state)require(artifact(item?.stateEvidence)&&item?.stateValidation?.ok===true,`STATE_EVIDENCE_MISSING:${id}`);
     if(check.device==='four-generations')require(Array.isArray(report?.generations)&&report.generations.some(g=>g.mode==='grammar-error'&&g.modelSha256===report?.model?.sha256&&typeof g.text==='string'&&g.text.trim()&&artifact(g.screenshot)&&artifact(g.hierarchy)),`REAL_GENERATION_MISSING:grammar-error`);
   }
   require((report?.crashCount??0)===0&&(report?.anrCount??0)===0,'CRASH_ANR_NOT_VERIFIED');
+  if (block === 'grammar-lektion2')errors.push(...validateSchema6ReportEvidence(report).errors);
   if (block === 'dictionary') errors.push(...validateDictionaryUxEvidence(report).errors);
   if (block === 'question-ui') errors.push(...validateQuestionUiEvidence(report).errors);
   return {ok:errors.length===0,errors};
@@ -129,6 +131,7 @@ export function validateRegressionReport(report) {
     if (artifact(value?.path)) require(/^[a-f0-9]{64}$/.test(value.sha256 ?? '') && sha256File(value.path)===value.sha256, `${kind.toUpperCase()}_SHA256_MISMATCH`);
   }
   require(report?.status==='passed','RUN_NOT_COMPLETE');
+  require(report?.runMode?.type!=='block','FULL_RUN_REQUIRED');
   require(/^[a-f0-9]{40}$/.test(report?.commit ?? ''),'COMMIT_MISSING');
   const scenarios = Array.isArray(report?.scenarios) ? report.scenarios : [];
   for (const id of REQUIRED_SCENARIOS) {
@@ -143,6 +146,7 @@ export function validateRegressionReport(report) {
       require(xml.includes(`name="${id}"`),`JUNIT_ID_MISSING:${id}`);
     }
   }
+  for(const block of MATRIX.filter(row=>['extended-vocabulary','grammar-lektion2'].includes(row.id)))for(const check of block.checks){const row=scenarios.find(s=>s.id===check.id);require(row?.apkSha256===report?.apk?.sha256,`SCENARIO_APK_MISMATCH:${check.id}`);if(check.state)require(artifact(row?.stateEvidence)&&row?.stateValidation?.ok===true,`STATE_EVIDENCE_MISSING:${check.id}`);}
   for (const mode of ['association','example','text','rule']) {
     const g=report?.generations?.find(row=>row.mode===mode);
     require(g?.runtime==='llama.rn' && g.modelSha256===report?.model?.sha256 && typeof g.text==='string' && g.text.trim().length>0 && artifact(g.screenshot) && artifact(g.hierarchy),`REAL_GENERATION_MISSING:${mode}`);
@@ -168,6 +172,7 @@ export function validateRegressionReport(report) {
     let provenance;try{provenance=JSON.parse(readFileSync(report.upgrade.provenancePath,'utf8'));}catch{}
     require(provenance?.commit===report.upgrade.previousCommit && provenance.sha256===report.upgrade.apkSha256 && provenance.sourceMapVerified===true,'UPGRADE_PROVENANCE_INVALID');
   }
+  errors.push(...validateSchema6ReportEvidence(report).errors);
   if (report?.dictionaryUx) errors.push(...validateDictionaryUxEvidence(report).errors);
   if (report?.questionUi) errors.push(...validateQuestionUiEvidence(report).errors);
   return {ok:errors.length===0,errors};
@@ -175,4 +180,27 @@ export function validateRegressionReport(report) {
 if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   try { const result=validateRegressionReport(JSON.parse(readFileSync(process.argv[2],'utf8'))); console.log(JSON.stringify(result,null,2)); process.exitCode=result.ok?0:1; }
   catch(error) { console.error(String(error)); process.exitCode=1; }
+}
+
+export function validateSchema6Upgrade(value) {
+ const errors=[];
+ const check=(ok,label)=>{if(!ok)errors.push(label);};
+ check(/^[a-f0-9]{64}$/.test(value?.apkSha256??'')&&value.apkSha256!==value.finalSha256,'SCHEMA6_APK_NOT_DISTINCT');
+ check(value?.package==='com.personal.germanvocabulary','SCHEMA6_PACKAGE_MISMATCH');
+ check(/^[a-f0-9]{64}$/.test(value?.certificateSha256??'')&&value.certificateSha256===value.finalCertificateSha256,'SCHEMA6_CERTIFICATE_MISMATCH');
+ const p=value?.provenance;
+ check(p?.schemaVersion===6&&p.sourceMapVerified===true&&/^[a-f0-9]{40}$/.test(p.commit??'')&&p.sha256===value.apkSha256&&p.package===value.package&&p.certificateSha256===value.certificateSha256,'SCHEMA6_PROVENANCE_INVALID');
+ return {ok:errors.length===0,errors};
+}
+
+function validateSchema6ReportEvidence(report) {
+ const value=report?.schema6Upgrade,errors=[];
+ const artifact=path=>typeof path==='string'&&existsSync(path)&&statSync(path).isFile()&&statSync(path).size>0;
+ if(!value)return {ok:false,errors:['SCHEMA6_UPGRADE_MISSING']};
+ let provenance;try{provenance=JSON.parse(readFileSync(value.provenancePath,'utf8'));}catch{}
+ errors.push(...validateSchema6Upgrade({...value,provenance,finalSha256:report?.apk?.sha256}).errors);
+ if(!artifact(value.apk)||sha256File(value.apk)!==value.apkSha256)errors.push('SCHEMA6_APK_HASH_MISMATCH');
+ for(const key of ['beforeEvidence','afterEvidence'])if(!artifact(value[key]))errors.push('SCHEMA6_'+key.toUpperCase()+'_MISSING');
+ if(value.stateValidation?.ok!==true)errors.push('SCHEMA6_GRAPH_NOT_VERIFIED');
+ return {ok:errors.length===0,errors};
 }

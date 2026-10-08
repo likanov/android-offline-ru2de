@@ -1,0 +1,125 @@
+appId: com.personal.germanvocabulary
+name: grammar-lektion2.reference-helper
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "A1 — yesno-transform"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion2-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion2-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion2-yesno-transform"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion2-yesno-transform"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-reference-open"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Общий вопрос"
+      }
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-reference-yesno-word-order"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Назад к заданию"
+      }
+    }
+  },
+  {
+    "tapOn": "Назад к заданию"
+  },
+  {
+    "tapOn": {
+      "id": "grammar-error-open"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-error-reference-text"
+    }
+  },
+  {
+    "takeScreenshot": "lektion2-helper-rule"
+  }
+]
