@@ -1,0 +1,50 @@
+appId: com.personal.germanvocabulary
+name: save-word-return-dictionary
+---
+[
+  {
+    "runFlow": {
+      "file": "ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Сохранить слово"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "word-save"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "${CARD_TEXT}"
+      }
+    }
+  },
+  {
+    "assertVisible": "${CARD_TEXT}"
+  },
+  {
+    "runFlow": {
+      "file": "ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Назад в словарь"
+      }
+    }
+  },
+  {
+    "tapOn": "Назад в словарь"
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-search"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "dictionary-add"
+    }
+  }
+]

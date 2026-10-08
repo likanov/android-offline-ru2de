@@ -280,7 +280,7 @@ name: grammar-lektion2.five-lessons
     }
   },
   {
-    "takeScreenshot": "${CHECK_ID}-keyboard-open"
+    "takeScreenshot": "${CHECK_ID}-demonstrative-statement-keyboard-open"
   },
   {
     "tapOn": {
@@ -394,7 +394,7 @@ name: grammar-lektion2.five-lessons
     }
   },
   {
-    "takeScreenshot": "${CHECK_ID}-keyboard-open"
+    "takeScreenshot": "${CHECK_ID}-yesno-transform-keyboard-open"
   },
   {
     "tapOn": {
@@ -508,7 +508,7 @@ name: grammar-lektion2.five-lessons
     }
   },
   {
-    "takeScreenshot": "${CHECK_ID}-keyboard-open"
+    "takeScreenshot": "${CHECK_ID}-yesno-translation-keyboard-open"
   },
   {
     "tapOn": {

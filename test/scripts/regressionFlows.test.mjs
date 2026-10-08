@@ -437,3 +437,22 @@ test('new_blocks_have_executable_unique_checks',()=>{
   for(const check of row.checks){assert.ok(!ids.has(check.id));ids.add(check.id);const commands=JSON.parse(readFileSync(resolve(root,check.flow),'utf8').split('---\n')[1]);assert.ok(commands.some(c=>c.tapOn||c.runFlow));assert.ok(commands.some(c=>c.assertVisible||c.runFlow));}
  }
 });
+
+test('nine_type_editor_saves_through_shared_card_return_helper',()=>{
+ const steps=JSON.parse(readFileSync(resolve(root,'checks/extended-vocabulary.nine-type-editor.yaml'),'utf8').split('---\n')[1]);
+ const saves=steps.filter(s=>s.runFlow?.file==='../helpers/save-word-return-dictionary.yaml');
+ assert.equal(saves.length,9);
+ assert.equal(new Set(saves.map(s=>s.runFlow.env.WORD_DE)).size,9);
+ assert.equal(saves[0].runFlow.env.CARD_TEXT,'der R1noun');
+ const commands=JSON.parse(readFileSync(resolve(root,'helpers/save-word-return-dictionary.yaml'),'utf8').split('---\n')[1]);
+ const save=commands.findIndex(c=>c.tapOn?.id==='word-save');
+ const card=commands.findIndex(c=>c.assertVisible==='${CARD_TEXT}');
+ const back=commands.findIndex(c=>c.tapOn==='Назад в словарь');
+ const dictionary=commands.findIndex(c=>c.assertVisible?.id==='dictionary-search');
+ assert.ok(save>=0&&card>save&&back>card&&dictionary>back);
+});
+test('lektion2_sentence_keyboard_captures_have_unique_lesson_names',()=>{
+ const commands=JSON.parse(readFileSync(resolve(root,'checks/grammar-lektion2.five-lessons.yaml'),'utf8').split('---\n')[1]);
+ const names=commands.filter(c=>c.takeScreenshot).map(c=>c.takeScreenshot);
+ assert.equal(names.length,3);assert.equal(new Set(names).size,3);
+});

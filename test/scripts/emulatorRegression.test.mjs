@@ -37,11 +37,17 @@ function completeReport(f) {
   const scenarios=REQUIRED_SCENARIOS.map(id=>{
     const junit=join(f.root,id+'.xml');
     writeFileSync(junit,`<testsuite tests="1" failures="0"><testcase name="${id}"/></testsuite>`);
-    const grammarState = id.startsWith('grammar-') && ['grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-progress.twenty-ui-answers','grammar-progress.nineteen-error','grammar-progress.bonus-once-double-submit','grammar-progress.reviews-difficult','grammar-progress.combined-summary','grammar-persistence.profile-isolation','grammar-persistence.force-stop-reboot','grammar-persistence.word-dependency-edit','grammar-persistence.sqlite-five-six-upgrade','grammar-transfer-assistant.v1-v2-roundtrip','grammar-transfer-assistant.invalid-backup-atomicity'].includes(id);
-    return grammarState||id.startsWith('extended-vocabulary')||id.startsWith('grammar-lektion2') ? {id,status:'passed',junit,apkSha256:sha256File(f.apk),stateEvidence:artifact,stateValidation:{ok:true}} : {id,status:'passed',junit};
+    return {id,status:'passed',junit,apkSha256:sha256File(f.apk),stateEvidence:artifact,stateValidation:{ok:true}};
   });
   const schema6Provenance=join(f.root,'schema6-provenance.json');writeFileSync(schema6Provenance,JSON.stringify({schemaVersion:6,sha256:sha256File(previousApk),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),commit:'d'.repeat(40),sourceMapVerified:true}));
-  return {schema6Upgrade:{apk:previousApk,apkSha256:sha256File(previousApk),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),provenancePath:schema6Provenance,beforeEvidence:artifact,afterEvidence:artifact,stateValidation:{ok:true}},status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
+  const manifestPath=join(f.root,'release-manifest.json'),sourceMigrationPath=join(f.root,'schema5-source.ts'),beforeEvidence=join(f.root,'schema5-before.json'),afterEvidence=join(f.root,'schema5-after.json');
+  writeFileSync(manifestPath,JSON.stringify({apk:'old.apk',files:{'old.apk':{sha256:sha256File(previousApk)}},applicationId:'com.personal.germanvocabulary',sourceCommit:'d'.repeat(40),certificateSha256:'c'.repeat(64)}));
+  writeFileSync(sourceMigrationPath,'PRAGMA user_version=5;');
+  const profile={profile:{id:'p',name:'Миграция UI',xp:250},attempts:Array.from({length:20},(_,i)=>({attemptId:String(i),xpDelta:i===19?60:10})),rewards:[{amount:50}]};
+  writeFileSync(beforeEvidence,JSON.stringify({version:1,profiles:[profile]}));writeFileSync(afterEvidence,JSON.stringify({version:3,profiles:[{...profile,grammar:{catalogVersions:[1,2],progress:[],sessions:[],questions:[],attempts:[],rewards:[]}}]}));
+  Object.assign(scenarios.find(s=>s.id==='grammar-persistence.sqlite-five-six-upgrade'),{beforeEvidence,stateEvidence:afterEvidence});
+  const schema5Upgrade={apk:previousApk,apkSha256:sha256File(previousApk),manifestPath,sourceMigrationPath,sourceCommit:'d'.repeat(40),certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),beforeEvidence,afterEvidence,stateValidation:{ok:true}};
+  return {schema5Upgrade,schema6Upgrade:{apk:previousApk,apkSha256:sha256File(previousApk),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),provenancePath:schema6Provenance,beforeEvidence:artifact,afterEvidence:artifact,stateValidation:{ok:true}},status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
     model:{path:join(f.modelDir,'model.gguf'),sha256:f.hash},scenarios,
     generations:['association','example','text','rule'].map(mode=>({mode,runtime:'llama.rn',modelSha256:f.hash,text:'Der Stuhl. Стул.',screenshot:artifact,hierarchy:artifact})),
     network:{wifi:false,mobile:false},crashCount:0,anrCount:0,logcat:artifact,deviceLogs:[{phase:'primary-final',path:primaryLog,crashCount:0,anrCount:0},{phase:'upgrade-final',path:upgradeLog,crashCount:0,anrCount:0}],
@@ -246,5 +252,22 @@ test('new_report_checks_reject_missing_skipped_and_other_apk_evidence',()=>{
     const report=completeReport(f);mutation(report);assert.equal(validateRegressionReport(report).ok,false);
    }
   }
+ }finally{rmSync(f.root,{recursive:true,force:true});}
+});
+
+test('full_report_requires_legacy_apk_state_and_schema5_evidence',()=>{
+ const f=inputs();try{
+  let report=completeReport(f);report.scenarios.find(s=>s.id==='learning.twenty-ui-answers').apkSha256='f'.repeat(64);
+  assert.ok(validateRegressionReport(report).errors.includes('SCENARIO_APK_MISMATCH:learning.twenty-ui-answers'));
+  report=completeReport(f);delete report.scenarios.find(s=>s.id==='learning.twenty-ui-answers').stateEvidence;
+  assert.ok(validateRegressionReport(report).errors.includes('STATE_EVIDENCE_MISSING:learning.twenty-ui-answers'));
+  report=completeReport(f);delete report.schema5Upgrade;
+  assert.ok(validateRegressionReport(report).errors.includes('SCHEMA5_UPGRADE_MISSING'));
+ }finally{rmSync(f.root,{recursive:true,force:true});}
+});
+
+test('schema5_evidence_rejects_missing_provenance_checkpoints_and_changed_graph',()=>{
+ const f=inputs();try{
+  for(const mutate of [r=>delete r.schema5Upgrade.manifestPath,r=>delete r.schema5Upgrade.beforeEvidence,r=>delete r.schema5Upgrade.afterEvidence,r=>r.schema5Upgrade.apkSha256='f'.repeat(64),r=>r.schema5Upgrade.finalCertificateSha256='f'.repeat(64),r=>writeFileSync(r.schema5Upgrade.afterEvidence,JSON.stringify({version:3,profiles:[]}))]){const r=completeReport(f);mutate(r);assert.equal(validateRegressionReport(r).ok,false);}
  }finally{rmSync(f.root,{recursive:true,force:true});}
 });

@@ -137,7 +137,9 @@ async function preflight() {
       const source=manifest?.sourceCommit?execute('git',['show',manifest.sourceCommit+':src/core/migrations.ts'],{allowFailure:true}):null;
       if(signature.status!==0||badging.status!==0||!badging.stdout?.includes("name='com.personal.germanvocabulary'")||!certificate||!report.apk.signature?.includes(certificate)||hash===report.apk.sha256)blockers.push('SCHEMA5_APK_INVALID');
       if(manifest?.files?.[basename(apk)]?.sha256!==hash||manifest?.certificateSha256!==certificate||source?.status!==0||!source.stdout?.includes('PRAGMA user_version=5'))blockers.push('SCHEMA5_PROVENANCE_INVALID');
-      report.schema5Upgrade={apk,apkSha256:hash,manifestPath,sourceCommit:manifest?.sourceCommit,certificateSha256:certificate};
+      const sourceMigrationPath=join(reportDir,'schema5-source-migrations.ts');
+      if(source?.status===0)writeFileSync(sourceMigrationPath,source.stdout);
+      report.schema5Upgrade={apk,apkSha256:hash,manifestPath,sourceMigrationPath,sourceCommit:manifest?.sourceCommit,certificateSha256:certificate,finalCertificateSha256:report.apk.signature?.match(/certificate SHA-256 digest: ([a-f0-9]+)/)?.[1]};
     }
 
     if (!options.block || options.block === 'dictionary') {
@@ -417,7 +419,7 @@ async function runCatalogUpgrade(schema) {
  validation.ok=validation.errors.length===0;
  const scenario=report.scenarios.find(s=>s.id===id);
  Object.assign(scenario,{apkSha256:report.apk.sha256,stateEvidence:join(reportDir,`schema${schema}-after.json`),beforeEvidence:join(reportDir,`schema${schema}-before.json`),stateValidation:validation});
- if(schema===6)Object.assign(report.schema6Upgrade,{beforeEvidence:scenario.beforeEvidence,afterEvidence:scenario.stateEvidence,stateValidation:validation});
+ Object.assign(report[schema===6?'schema6Upgrade':'schema5Upgrade'],{beforeEvidence:scenario.beforeEvidence,afterEvidence:scenario.stateEvidence,stateValidation:validation});
  if(!validation.ok){scenario.status='failed';throw Error('UPGRADE_GRAPH_CHANGED:'+validation.errors.join(';'));}
  captureDeviceLog(devicePhase+'-final');
 }

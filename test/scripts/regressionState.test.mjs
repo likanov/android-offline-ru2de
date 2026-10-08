@@ -48,3 +48,16 @@ test('v3_state_comparison_checks_both_catalogs',async()=>{
  assert.equal(module.compareBackupGraphs(source,structuredClone(source)).ok,true);
  for(const mutate of [b=>b.profiles[0].grammar.catalogVersions.pop(),b=>b.profiles[0].grammar.questions[0].question.expected.sentences[0]='bad',b=>b.profiles[0].grammar.rewards.pop()]){const after=structuredClone(source);mutate(after);assert.equal(module.compareBackupGraphs(source,after).ok,false);}
 });
+
+test('v3_roundtrip_uses_new_profiles_after_multiple_prior_name_collisions',()=>{
+ const make=(id,name)=>({profile:{id,name,xp:0},words:[],attempts:[],rewards:[],progress:[],grammar:{catalogVersions:[1,2],sessions:[],questions:[],attempts:[],progress:[],rewards:[]}});
+ for(const count of [1,2]){
+  const profiles=[make('p','A1 — словарь'),...Array.from({length:count},(_,i)=>make('old'+i,'A1 — словарь восстановлено '+(i+2)))];
+  const before={version:3,profiles};
+  const names=['A1 — словарь восстановлено '+(count+2),...profiles.slice(1).map(p=>p.profile.name+' восстановлено 2')];
+  const after={version:3,profiles:[...structuredClone(profiles),...profiles.map((p,i)=>make('new'+i,names[i]))]};
+  assert.deepEqual(verifyScenarioState('extended-vocabulary.backup3-roundtrip',after,{before}),{ok:true,errors:[]});
+  after.profiles.at(-1).grammar.catalogVersions=[1];
+  assert.equal(verifyScenarioState('extended-vocabulary.backup3-roundtrip',after,{before}).ok,false);
+ }
+});

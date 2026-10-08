@@ -93,6 +93,11 @@ test('v3_fixture_roundtrip_retains_every_graph_and_state_checker_rejects_missing
  try{
   const fixture=await createLektion2RegressionBackup('2026-10-08');
   const service=new BackupService(h.db);await service.restore(service.preview(JSON.stringify(fixture)));
+  // Pre-existing suffix-2 and suffix-3 profiles must never be mistaken for the
+  // new copies made by the final restore.
+  const initial=await service.exportAll();
+  await service.restore(service.preview(JSON.stringify(initial)));
+  await service.restore(service.preview(JSON.stringify(initial)));
   const before=await service.exportAll();await service.restore(service.preview(JSON.stringify(before)));const after=await service.exportAll();
   await writeFile(dir+'/before.json',JSON.stringify(before));await writeFile(dir+'/after.json',JSON.stringify(after));
   const code=`import{readFileSync}from'node:fs';import{verifyScenarioState}from'./scripts/regression-state.mjs';const before=JSON.parse(readFileSync(process.argv[1])),after=JSON.parse(readFileSync(process.argv[2]));const result=verifyScenarioState('extended-vocabulary.backup3-roundtrip',after,{before});if(!result.ok)throw Error(JSON.stringify(result));const reward=after.profiles.find(p=>p.grammar.rewards.length);reward.grammar.rewards.pop();if(verifyScenarioState('extended-vocabulary.backup3-roundtrip',after,{before}).ok)throw Error('accepted lost reward');`;

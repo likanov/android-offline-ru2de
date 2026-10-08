@@ -82,20 +82,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1noun",
+        "CARD_TEXT": "der R1noun"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -159,20 +150,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1adjective",
+        "CARD_TEXT": "R1adjective"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -236,20 +218,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1number",
+        "CARD_TEXT": "R1number"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -313,20 +286,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1verb",
+        "CARD_TEXT": "R1verb"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -390,20 +354,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1pronoun",
+        "CARD_TEXT": "R1pronoun"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -467,20 +422,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1adverb",
+        "CARD_TEXT": "R1adverb"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -544,20 +490,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1preposition",
+        "CARD_TEXT": "R1preposition"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -621,20 +558,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1conjunction",
+        "CARD_TEXT": "R1conjunction"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   },
   {
@@ -698,20 +626,11 @@ name: extended-vocabulary.nine-type-editor
   },
   {
     "runFlow": {
-      "file": "../helpers/ensure-visible.yaml",
+      "file": "../helpers/save-word-return-dictionary.yaml",
       "env": {
-        "TARGET_TEXT": "Сохранить слово"
+        "WORD_DE": "R1phrase",
+        "CARD_TEXT": "R1phrase"
       }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "word-save"
-    }
-  },
-  {
-    "assertVisible": {
-      "id": "dictionary-search"
     }
   }
 ]

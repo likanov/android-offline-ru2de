@@ -10,7 +10,7 @@ function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'grammar-regression-review-'));
   const apk = join(root, 'app.apk'), model = join(root, 'model.gguf'), junit = join(root, 'case.xml'), state = join(root, 'state.json');
   writeFileSync(apk, 'apk'); writeFileSync(model, 'GGUF model'); writeFileSync(junit, '<testsuite><testcase name="grammar-progress.twenty-ui-answers"/></testsuite>'); writeFileSync(state, '{"ok":true}');
-  const rows = scenarioIdsForBlock('grammar-progress').map(id => { const path = join(root, `${id}.xml`); writeFileSync(path, `<testsuite><testcase name="${id}"/></testsuite>`); return { id, status: 'passed', junit: path, stateEvidence: state, stateValidation: { ok: true } }; });
+  const rows = scenarioIdsForBlock('grammar-progress').map(id => { const path = join(root, `${id}.xml`); writeFileSync(path, `<testsuite><testcase name="${id}"/></testsuite>`); return { id, status: 'passed', apkSha256:sha256File(apk), junit: path, stateEvidence: state, stateValidation: { ok: true } }; });
   return { root, report: { status: 'passed', runId: 'run-1', runMode: { type: 'block', block: 'grammar-progress' }, apk: { path: apk, sha256: sha256File(apk) }, model: { path: model, sha256: sha256File(model) }, scenarios: rows, crashCount: 0, anrCount: 0 }, observations: { runId: 'run-1', apkSha256: sha256File(apk), modelSha256: sha256File(model), audioAudible: true, languageQuality: 'reviewed', languageNotes: 'Checked German prompts.', tts: 'offline-tested', artifacts: [rows[0].junit, state] } };
 }
 

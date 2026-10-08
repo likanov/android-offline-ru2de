@@ -87,7 +87,17 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
   if(id.endsWith('typed-number')){const added=p?.attempts.filter(a=>!b?.attempts.some(x=>x.attemptId===a.attemptId))??[];check(added.length===1&&added[0].right===1&&added[0].xpDelta===10,'NUMBER_TYPED_ATTEMPT');check(p?.questions.some(q=>q.attemptId===added[0]?.attemptId&&q.payload.kind==='typing'),'NUMBER_TYPED_QUESTION');}
   if(id.endsWith('backup3-roundtrip')){
    check(backup.version===3&&before?.version===3,'V3_EXPORT_REQUIRED');check(backup.profiles.length===before?.profiles.length*2,'V3_RESTORE_COUNT');
-   for(const source of before?.profiles??[]){check(stable(part(source.profile.name))===stable(source),'V3_ORIGINAL_CHANGED');const restored=backup.profiles.find(p=>p.profile.id!==source.profile.id&&p.profile.name===source.profile.name+' восстановлено 2');for(const error of restorationErrors(source,restored))check(false,'V3_RESTORE:'+source.profile.name+':'+error);}
+   const beforeIds=new Set((before?.profiles??[]).map(p=>p.profile.id));
+   const names=new Set((before?.profiles??[]).map(p=>p.profile.name));
+   const additions=backup.profiles.filter(p=>!beforeIds.has(p.profile.id));
+   check(additions.length===before?.profiles.length,'V3_NEW_PROFILE_COUNT');
+   for(const source of before?.profiles??[]){
+    check(stable(backup.profiles.find(p=>p.profile.id===source.profile.id))===stable(source),'V3_ORIGINAL_CHANGED');
+    let name=source.profile.name,n=2;while(names.has(name))name=source.profile.name+' восстановлено '+n++;
+    names.add(name);
+    const candidates=additions.filter(p=>p.profile.name===name);check(candidates.length===1,'V3_RESTORE_NAME:'+name);
+    for(const error of restorationErrors(source,candidates[0]))check(false,'V3_RESTORE:'+source.profile.name+':'+error);
+   }
   }
  }
  if(id.startsWith('grammar-lektion2.')){
