@@ -1,0 +1,301 @@
+de,ru,pos,gender,plural,example_de,example_ru,note,icon,topic
+hallo,привет,phrase,,,"Hallo, Anna!","Привет, Анна!",,,A1 · Знакомство и общение
+Guten Morgen,доброе утро,phrase,,,"Guten Morgen, Herr Weber!","Доброе утро, господин Вебер!",,,A1 · Знакомство и общение
+Guten Tag,добрый день,phrase,,,"Guten Tag, Frau Müller!","Добрый день, госпожа Мюллер!",,,A1 · Знакомство и общение
+Guten Abend,добрый вечер,phrase,,,"Guten Abend, Frau Klein!","Добрый вечер, госпожа Кляйн!",,,A1 · Знакомство и общение
+Auf Wiedersehen,до свидания,phrase,,,"Auf Wiedersehen, Herr Braun!","До свидания, господин Браун!",,,A1 · Знакомство и общение
+tschüss,пока,phrase,,,"Tschüss, bis morgen!","Пока, до завтра!",,,A1 · Знакомство и общение
+bitte,пожалуйста,phrase,,,"Ein Wasser, bitte.","Одну воду, пожалуйста.",Вежливое выражение; также употребляется в ответ на благодарность.,,A1 · Знакомство и общение
+danke,спасибо,phrase,,,Danke für das Buch!,Спасибо за книгу!,,,A1 · Знакомство и общение
+Entschuldigung,извините,phrase,,,"Entschuldigung, wo ist der Bahnhof?","Извините, где вокзал?",,,A1 · Знакомство и общение
+ja,да,phrase,,,"Ja, ich komme.","Да, я приду.",Краткий утвердительный ответ.,,A1 · Знакомство и общение
+nein,нет,phrase,,,"Nein, ich habe keine Zeit.","Нет, у меня нет времени.",Краткий отрицательный ответ.,,A1 · Знакомство и общение
+ich,я,pronoun,,,Ich heiße Anna.,Меня зовут Анна.,,,A1 · Знакомство и общение
+du,ты,pronoun,,,Du wohnst in Berlin.,Ты живёшь в Берлине.,,,A1 · Знакомство и общение
+er,он,pronoun,,,Er kommt aus Bremen.,Он из Бремена.,,,A1 · Знакомство и общение
+sie,она / они,pronoun,,,Anna ist hier. Sie wartet.,Анна здесь. Она ждёт.,Она: sie ist hier. Они: sie sind hier. Значение определяется контекстом.,,A1 · Знакомство и общение
+Sie,Вы (вежливое обращение),pronoun,,,"Wo wohnen Sie, Frau Weber?","Где Вы живёте, госпожа Вебер?",Вежливое обращение к одному или нескольким людям; всегда прописная S.,,A1 · Знакомство и общение
+wir,мы,pronoun,,,Wir lernen Deutsch.,Мы учим немецкий.,,,A1 · Знакомство и общение
+ihr,"вы (неформально, несколько человек)",pronoun,,,Ihr seid Freunde.,Вы друзья.,Обращение к нескольким людям на ты.,,A1 · Знакомство и общение
+heißen,называться,verb,,,Ich heiße Anton.,Меня зовут Антон.,,,A1 · Знакомство и общение
+kommen,"приходить, приезжать",verb,,,Ich komme morgen.,Я приду завтра.,,,A1 · Знакомство и общение
+sprechen,говорить,verb,,,Wir sprechen Deutsch.,Мы говорим по-немецки.,,,A1 · Знакомство и общение
+verstehen,понимать,verb,,,Ich verstehe die Frage.,Я понимаю вопрос.,,,A1 · Знакомство и общение
+fragen,спрашивать,verb,,,Ich frage den Lehrer.,Я спрашиваю учителя.,,,A1 · Знакомство и общение
+antworten,отвечать,verb,,,Anna antwortet schnell.,Анна отвечает быстро.,,,A1 · Знакомство и общение
+Name,имя,noun,m,Namen,Mein Name ist Anton.,Меня зовут Антон.,,,A1 · Знакомство и общение
+Sprache,язык,noun,f,Sprachen,Ich lerne eine Sprache.,Я учу один язык.,,,A1 · Знакомство и общение
+Frage,вопрос,noun,f,Fragen,Die Frage ist einfach.,Вопрос простой.,,,A1 · Знакомство и общение
+Antwort,ответ,noun,f,Antworten,Die Antwort ist richtig.,Ответ правильный.,,,A1 · Знакомство и общение
+und,и,conjunction,,,Anna und Anton kommen.,Анна и Антон придут.,,,A1 · Знакомство и общение
+oder,или,conjunction,,,Tee oder Kaffee?,Чай или кофе?,,,A1 · Знакомство и общение
+Mensch,человек,noun,m,Menschen,Dieser Mensch ist freundlich.,Этот человек дружелюбный.,,,A1 · Семья и люди
+Kind,ребёнок,noun,n,Kinder,Das Kind spielt im Garten.,Ребёнок играет в саду.,,,A1 · Семья и люди
+Mädchen,девочка,noun,n,Mädchen,Das Mädchen liest ein Buch.,Девочка читает книгу.,Средний грамматический род из-за суффикса -chen.,,A1 · Семья и люди
+Mann,мужчина,noun,m,Männer,Der Mann wartet hier.,Мужчина ждёт здесь.,,,A1 · Семья и люди
+Frau,женщина,noun,f,Frauen,Die Frau kommt aus Berlin.,Женщина из Берлина.,,,A1 · Семья и люди
+Junge,мальчик,noun,m,Jungen,Der Junge spielt Fußball.,Мальчик играет в футбол.,,,A1 · Семья и люди
+Familie,семья,noun,f,Familien,Meine Familie wohnt in Bonn.,Моя семья живёт в Бонне.,,,A1 · Семья и люди
+Mutter,мать,noun,f,Mütter,Meine Mutter liest.,Моя мать читает.,,,A1 · Семья и люди
+Vater,отец,noun,m,Väter,Mein Vater kocht.,Мой отец готовит.,,,A1 · Семья и люди
+Bruder,брат,noun,m,Brüder,Mein Bruder ist Lehrer.,Мой брат учитель.,,,A1 · Семья и люди
+Schwester,сестра,noun,f,Schwestern,Meine Schwester lernt Deutsch.,Моя сестра учит немецкий.,,,A1 · Семья и люди
+Sohn,сын,noun,m,Söhne,Mein Sohn spielt.,Мой сын играет.,,,A1 · Семья и люди
+Tochter,дочь,noun,f,Töchter,Meine Tochter schläft.,Моя дочь спит.,,,A1 · Семья и люди
+Großmutter,бабушка,noun,f,Großmütter,Meine Großmutter kommt heute.,Моя бабушка придёт сегодня.,,,A1 · Семья и люди
+Großvater,дедушка,noun,m,Großväter,Mein Großvater wohnt hier.,Мой дедушка живёт здесь.,,,A1 · Семья и люди
+Freund,друг,noun,m,Freunde,Mein Freund heißt Max.,Моего друга зовут Макс.,,,A1 · Семья и люди
+Freundin,подруга,noun,f,Freundinnen,Meine Freundin heißt Lena.,Мою подругу зовут Лена.,,,A1 · Семья и люди
+Nachbar,сосед,noun,m,Nachbarn,Mein Nachbar ist nett.,Мой сосед милый.,,,A1 · Семья и люди
+Nachbarin,соседка,noun,f,Nachbarinnen,Meine Nachbarin hilft mir.,Моя соседка помогает мне.,,,A1 · Семья и люди
+Baby,младенец,noun,n,Babys,Das Baby schläft.,Младенец спит.,,,A1 · Семья и люди
+leben,жить,verb,,,Wir leben in Deutschland.,Мы живём в Германии.,,,A1 · Семья и люди
+wohnen,проживать,verb,,,Ich wohne in einer Wohnung.,Я живу в квартире.,,,A1 · Семья и люди
+besuchen,посещать,verb,,,Ich besuche meine Schwester.,Я навещаю свою сестру.,,,A1 · Семья и люди
+helfen,помогать,verb,,,Ich helfe meinem Vater.,Я помогаю своему отцу.,,,A1 · Семья и люди
+lieben,любить,verb,,,Ich liebe meine Familie.,Я люблю свою семью.,,,A1 · Семья и люди
+alt,старый,adjective,,,Das Haus ist alt.,Дом старый.,,,A1 · Семья и люди
+jung,молодой,adjective,,,Mein Bruder ist jung.,Мой брат молодой.,,,A1 · Семья и люди
+freundlich,дружелюбный,adjective,,,Die Nachbarin ist freundlich.,Соседка дружелюбная.,,,A1 · Семья и люди
+verheiratet,"женатый, замужняя",adjective,,,Anna ist verheiratet.,Анна замужем.,,,A1 · Семья и люди
+ledig,"неженатый, незамужняя",adjective,,,Max ist ledig.,Макс не женат.,,,A1 · Семья и люди
+Tisch,стол,noun,m,Tische,Der Tisch steht in der Küche.,Стол стоит на кухне.,,,A1 · Дом и быт
+Stuhl,стул,noun,m,Stühle,Der Stuhl steht am Tisch.,Стул стоит у стола.,,,A1 · Дом и быт
+Schrank,шкаф,noun,m,Schränke,Der Schrank ist im Schlafzimmer.,Шкаф в спальне.,,,A1 · Дом и быт
+Lampe,лампа,noun,f,Lampen,Die Lampe ist an.,Лампа включена.,,,A1 · Дом и быт
+Vase,ваза,noun,f,Vasen,Die Vase steht am Fenster.,Ваза стоит у окна.,,,A1 · Дом и быт
+Bild,картина,noun,n,Bilder,Das Bild hängt an der Wand.,Картина висит на стене.,Здесь картина; Bild также изображение или фотография.,,A1 · Дом и быт
+Haus,дом,noun,n,Häuser,Das Haus hat einen Garten.,У дома есть сад.,,,A1 · Дом и быт
+Zimmer,комната,noun,n,Zimmer,Mein Zimmer ist klein.,Моя комната маленькая.,,,A1 · Дом и быт
+Spielzeug,игрушка,noun,n,Spielzeuge,Das Spielzeug liegt auf dem Boden.,Игрушка лежит на полу.,Spielzeuge — отдельные игрушки; собирательное Spielzeug обычно без множественного числа.,,A1 · Дом и быт
+Wohnung,квартира,noun,f,Wohnungen,Die Wohnung hat drei Zimmer.,В квартире три комнаты.,,,A1 · Дом и быт
+Küche,кухня,noun,f,Küchen,Die Küche ist hell.,Кухня светлая.,,,A1 · Дом и быт
+Bad,ванная комната,noun,n,Bäder,Das Bad ist klein.,Ванная комната маленькая.,,,A1 · Дом и быт
+Bett,кровать,noun,n,Betten,Das Bett steht am Fenster.,Кровать стоит у окна.,,,A1 · Дом и быт
+Sofa,диван,noun,n,Sofas,Das Sofa ist bequem.,Диван удобный.,,,A1 · Дом и быт
+Tür,дверь,noun,f,Türen,Die Tür ist offen.,Дверь открыта.,,,A1 · Дом и быт
+Fenster,окно,noun,n,Fenster,Das Fenster ist zu.,Окно закрыто.,,,A1 · Дом и быт
+Schlüssel,ключ,noun,m,Schlüssel,Der Schlüssel liegt auf dem Tisch.,Ключ лежит на столе.,,,A1 · Дом и быт
+Garten,сад,noun,m,Gärten,Der Garten ist schön.,Сад красивый.,,,A1 · Дом и быт
+Wand,стена,noun,f,Wände,Die Wand ist weiß.,Стена белая.,,,A1 · Дом и быт
+Boden,пол,noun,m,Böden,Der Boden ist sauber.,Пол чистый.,Здесь пол в помещении.,,A1 · Дом и быт
+Waschmaschine,стиральная машина,noun,f,Waschmaschinen,Die Waschmaschine ist im Bad.,Стиральная машина в ванной.,,,A1 · Дом и быт
+Kühlschrank,холодильник,noun,m,Kühlschränke,Die Milch ist im Kühlschrank.,Молоко в холодильнике.,,,A1 · Дом и быт
+putzen,"чистить, убирать",verb,,,Ich putze das Bad.,Я убираю ванную комнату.,,,A1 · Дом и быт
+waschen,"мыть, стирать",verb,,,Ich wasche meine Hände.,Я мою руки.,,,A1 · Дом и быт
+öffnen,открывать,verb,,,Ich öffne das Fenster.,Я открываю окно.,,,A1 · Дом и быт
+schließen,закрывать,verb,,,Ich schließe die Tür.,Я закрываю дверь.,,,A1 · Дом и быт
+groß,"большой, высокий",adjective,,,Das Haus ist groß.,Дом большой.,,,A1 · Дом и быт
+klein,маленький,adjective,,,Die Küche ist klein.,Кухня маленькая.,,,A1 · Дом и быт
+sauber,чистый,adjective,,,Das Zimmer ist sauber.,Комната чистая.,,,A1 · Дом и быт
+in,в,preposition,,,Die Lampe ist in der Küche.,Лампа на кухне.,Место: in + Dativ; направление: in + Akkusativ.,,A1 · Дом и быт
+Brot,хлеб,noun,n,Brote,Das Brot ist frisch.,Хлеб свежий.,Brote — отдельные буханки или виды хлеба.,,A1 · Еда и напитки
+Brötchen,булочка,noun,n,Brötchen,Ich esse ein Brötchen.,Я ем булочку.,,,A1 · Еда и напитки
+Butter,сливочное масло,noun,f,,Die Butter ist im Kühlschrank.,Сливочное масло в холодильнике.,В этом значении обычного множественного числа нет.,,A1 · Еда и напитки
+Käse,сыр,noun,m,Käse,Ich kaufe einen Käse.,Я покупаю один сыр.,Множественное Käse — отдельные сыры или сорта; как продукт обычно без множественного числа.,,A1 · Еда и напитки
+Milch,молоко,noun,f,,Ich trinke Milch.,Я пью молоко.,Как напиток обычно без множественного числа.,,A1 · Еда и напитки
+Wasser,вода,noun,n,,Ich trinke Wasser.,Я пью воду.,Как вещество обычно без множественного числа.,,A1 · Еда и напитки
+Kaffee,кофе,noun,m,Kaffees,Ich bestelle zwei Kaffees.,Я заказываю два кофе.,Kaffees — порции или сорта; как напиток обычно без множественного числа.,,A1 · Еда и напитки
+Tee,чай,noun,m,Tees,Dieser Tee ist heiß.,Этот чай горячий.,Tees — сорта или порции; как напиток обычно без множественного числа.,,A1 · Еда и напитки
+Saft,сок,noun,m,Säfte,Der Saft ist kalt.,Сок холодный.,,,A1 · Еда и напитки
+Apfel,яблоко,noun,m,Äpfel,Ich esse einen Apfel.,Я ем яблоко.,,,A1 · Еда и напитки
+Banane,банан,noun,f,Bananen,Die Banane ist gelb.,Банан жёлтый.,,,A1 · Еда и напитки
+Orange,апельсин,noun,f,Orangen,Ich kaufe eine Orange.,Я покупаю апельсин.,,,A1 · Еда и напитки
+Kartoffel,картофелина,noun,f,Kartoffeln,Ich schäle eine Kartoffel.,Я чищу одну картофелину.,,,A1 · Еда и напитки
+Tomate,помидор,noun,f,Tomaten,Die Tomate ist rot.,Помидор красный.,,,A1 · Еда и напитки
+Ei,яйцо,noun,n,Eier,Ich koche ein Ei.,Я варю яйцо.,,,A1 · Еда и напитки
+Fleisch,мясо,noun,n,,Ich esse kein Fleisch.,Я не ем мясо.,Как пищевой продукт обычно без множественного числа.,,A1 · Еда и напитки
+Fisch,рыба,noun,m,Fische,Der Fisch ist frisch.,Рыба свежая.,,,A1 · Еда и напитки
+Reis,рис,noun,m,,Ich koche Reis.,Я варю рис.,Как пищевой продукт обычно без множественного числа.,,A1 · Еда и напитки
+Suppe,суп,noun,f,Suppen,Die Suppe ist warm.,Суп тёплый.,,,A1 · Еда и напитки
+Salat,салат,noun,m,Salate,Ich mache einen Salat.,Я делаю салат.,,,A1 · Еда и напитки
+Kuchen,пирог,noun,m,Kuchen,Der Kuchen ist süß.,Пирог сладкий.,,,A1 · Еда и напитки
+Zucker,сахар,noun,m,,Ich nehme keinen Zucker.,Я не беру сахар.,Как вещество обычно без множественного числа.,,A1 · Еда и напитки
+Salz,соль,noun,n,,Die Suppe braucht Salz.,Супу нужна соль.,Как приправа обычно без множественного числа.,,A1 · Еда и напитки
+essen,"есть, кушать",verb,,,Wir essen Brot.,Мы едим хлеб.,,,A1 · Еда и напитки
+trinken,пить,verb,,,Ich trinke Tee.,Я пью чай.,,,A1 · Еда и напитки
+kochen,"готовить, варить",verb,,,Wir kochen eine Suppe.,Мы варим суп.,,,A1 · Еда и напитки
+bestellen,заказывать,verb,,,Ich bestelle einen Kaffee.,Я заказываю кофе.,,,A1 · Еда и напитки
+frisch,свежий,adjective,,,Das Brot ist frisch.,Хлеб свежий.,,,A1 · Еда и напитки
+lecker,вкусный,adjective,,,Der Kuchen ist lecker.,Пирог вкусный.,,,A1 · Еда и напитки
+ohne,без,preposition,,,Ich trinke Tee ohne Zucker.,Я пью чай без сахара.,После ohne используется Akkusativ.,,A1 · Еда и напитки
+Tasche,сумка,noun,f,Taschen,Meine Tasche ist blau.,Моя сумка синяя.,,,A1 · Покупки и одежда
+Laden,магазин,noun,m,Läden,Der Laden ist offen.,Магазин открыт.,,,A1 · Покупки и одежда
+Supermarkt,супермаркет,noun,m,Supermärkte,Ich gehe in den Supermarkt.,Я иду в супермаркет.,,,A1 · Покупки и одежда
+Preis,цена,noun,m,Preise,Der Preis ist hoch.,Цена высокая.,,,A1 · Покупки и одежда
+Geld,деньги,noun,n,,Ich habe kein Geld.,У меня нет денег.,В повседневном значении обычно без множественного числа.,,A1 · Покупки и одежда
+Kasse,касса,noun,f,Kassen,Ich bezahle an der Kasse.,Я плачу на кассе.,,,A1 · Покупки и одежда
+Hemd,рубашка,noun,n,Hemden,Das Hemd ist weiß.,Рубашка белая.,,,A1 · Покупки и одежда
+Hose,брюки,noun,f,Hosen,Die Hose ist schwarz.,Брюки чёрные.,"Одна пара брюк по-немецки die Hose, единственное число.",,A1 · Покупки и одежда
+Kleid,платье,noun,n,Kleider,Das Kleid ist rot.,Платье красное.,,,A1 · Покупки и одежда
+Jacke,куртка,noun,f,Jacken,Die Jacke ist warm.,Куртка тёплая.,,,A1 · Покупки и одежда
+Schuh,"туфля, ботинок",noun,m,Schuhe,Der Schuh ist braun.,Ботинок коричневый.,,,A1 · Покупки и одежда
+Socke,носок,noun,f,Socken,Die Socke ist grau.,Носок серый.,,,A1 · Покупки и одежда
+Mütze,шапка,noun,f,Mützen,Die Mütze ist grün.,Шапка зелёная.,,,A1 · Покупки и одежда
+kaufen,покупать,verb,,,Ich kaufe eine Jacke.,Я покупаю куртку.,,,A1 · Покупки и одежда
+bezahlen,платить,verb,,,Ich bezahle das Brot.,Я плачу за хлеб.,,,A1 · Покупки и одежда
+kosten,стоить,verb,,,Das Hemd kostet zehn Euro.,Рубашка стоит десять евро.,,,A1 · Покупки и одежда
+suchen,искать,verb,,,Ich suche meine Tasche.,Я ищу свою сумку.,,,A1 · Покупки и одежда
+brauchen,нуждаться,verb,,,Ich brauche neue Schuhe.,Мне нужны новые ботинки.,,,A1 · Покупки и одежда
+tragen,носить,verb,,,Ich trage eine Jacke.,Я ношу куртку.,,,A1 · Покупки и одежда
+billig,дешёвый,adjective,,,Die Hose ist billig.,Брюки дешёвые.,,,A1 · Покупки и одежда
+teuer,дорогой (по цене),adjective,,,Das Kleid ist teuer.,Платье дорогое.,,,A1 · Покупки и одежда
+neu,новый,adjective,,,Die Jacke ist neu.,Куртка новая.,,,A1 · Покупки и одежда
+weiß,белый,adjective,,,Das Hemd ist weiß.,Рубашка белая.,,,A1 · Покупки и одежда
+schwarz,чёрный,adjective,,,Die Tasche ist schwarz.,Сумка чёрная.,,,A1 · Покупки и одежда
+rot,красный,adjective,,,Die Mütze ist rot.,Шапка красная.,,,A1 · Покупки и одежда
+blau,"голубой, синий",adjective,,,Das Kleid ist blau.,Платье синее.,,,A1 · Покупки и одежда
+grün,зелёный,adjective,,,Das Hemd ist grün.,Рубашка зелёная.,,,A1 · Покупки и одежда
+grau,серый,adjective,,,Die Hose ist grau.,Брюки серые.,,,A1 · Покупки и одежда
+braun,коричневый,adjective,,,Der Schuh ist braun.,Ботинок коричневый.,,,A1 · Покупки и одежда
+gelb,жёлтый,adjective,,,Die Jacke ist gelb.,Куртка жёлтая.,,,A1 · Покупки и одежда
+Stift,карандаш,noun,m,Stifte,Ich schreibe mit einem Stift.,Я пишу письменной принадлежностью.,Stift — общее название письменной принадлежности; карандаш точнее Bleistift. Исходный перевод урока сохранён.,,A1 · Работа и учёба
+Computer,компьютер,noun,m,Computer,Ich arbeite am Computer.,Я работаю за компьютером.,,,A1 · Работа и учёба
+Lehrer,учитель,noun,m,Lehrer,Der Lehrer erklärt die Aufgabe.,Учитель объясняет задание.,,,A1 · Работа и учёба
+Übung,упражнение,noun,f,Übungen,Die Übung ist einfach.,Упражнение простое.,,,A1 · Работа и учёба
+Buch,книга,noun,n,Bücher,Ich lese ein Buch.,Я читаю книгу.,,,A1 · Работа и учёба
+Wort,слово,noun,n,Wörter,Ich lerne ein Wort.,Я учу одно слово.,Wörter — отдельные слова; Worte — связное высказывание.,,A1 · Работа и учёба
+Schule,школа,noun,f,Schulen,Die Schule ist in der Nähe.,Школа поблизости.,,,A1 · Работа и учёба
+Kurs,курс,noun,m,Kurse,Der Kurs beginnt morgen.,Курс начинается завтра.,,,A1 · Работа и учёба
+Arbeit,работа,noun,f,,Meine Arbeit beginnt um acht.,Моя работа начинается в восемь.,"Здесь работа, занятие, обычно без множественного числа; Arbeiten — отдельные работы или задания.",,A1 · Работа и учёба
+Beruf,профессия,noun,m,Berufe,Was ist dein Beruf?,Какая у тебя профессия?,,,A1 · Работа и учёба
+Büro,офис,noun,n,Büros,Das Büro ist im Zentrum.,Офис в центре.,,,A1 · Работа и учёба
+Kollege,коллега (мужчина),noun,m,Kollegen,Mein Kollege heißt Paul.,Моего коллегу зовут Пауль.,,,A1 · Работа и учёба
+Kollegin,коллега (женщина),noun,f,Kolleginnen,Meine Kollegin heißt Anna.,Мою коллегу зовут Анна.,,,A1 · Работа и учёба
+Student,студент,noun,m,Studenten,Der Student lernt Deutsch.,Студент учит немецкий.,,,A1 · Работа и учёба
+Studentin,студентка,noun,f,Studentinnen,Die Studentin liest.,Студентка читает.,,,A1 · Работа и учёба
+Lehrerin,учительница,noun,f,Lehrerinnen,Die Lehrerin erklärt das Wort.,Учительница объясняет слово.,,,A1 · Работа и учёба
+Hausaufgabe,домашнее задание,noun,f,Hausaufgaben,Ich mache meine Hausaufgabe.,Я делаю своё домашнее задание.,,,A1 · Работа и учёба
+Papier,бумага,noun,n,,Ich schreibe auf Papier.,Я пишу на бумаге.,"Здесь материал, обычно без множественного числа; Papiere — отдельные документы или сорта бумаги.",,A1 · Работа и учёба
+lernen,"учить, учиться",verb,,,Ich lerne Deutsch.,Я учу немецкий.,,,A1 · Работа и учёба
+lesen,читать,verb,,,Wir lesen ein Buch.,Мы читаем книгу.,,,A1 · Работа и учёба
+schreiben,писать,verb,,,Ich schreibe einen Satz.,Я пишу предложение.,,,A1 · Работа и учёба
+arbeiten,работать,verb,,,Anna arbeitet im Büro.,Анна работает в офисе.,,,A1 · Работа и учёба
+erklären,объяснять,verb,,,Ich erkläre die Übung.,Я объясняю упражнение.,,,A1 · Работа и учёба
+üben,упражняться,verb,,,Wir üben jeden Tag.,Мы упражняемся каждый день.,,,A1 · Работа и учёба
+gut,"хороший, добрый",adjective,,,Das Buch ist gut.,Книга хорошая.,,,A1 · Работа и учёба
+schlecht,плохой,adjective,,,Der Text ist schlecht.,Текст плохой.,,,A1 · Работа и учёба
+interessant,интересный,adjective,,,Der Kurs ist interessant.,Курс интересный.,,,A1 · Работа и учёба
+einfach,простой,adjective,,,Die Aufgabe ist einfach.,Задание простое.,,,A1 · Работа и учёба
+schwer,"трудный, тяжёлый",adjective,,,Die Übung ist schwer.,Упражнение трудное.,,,A1 · Работа и учёба
+für,для,preposition,,,Das Buch ist für Anna.,Книга для Анны.,После für используется Akkusativ.,,A1 · Работа и учёба
+Zug,поезд,noun,m,Züge,Der Zug fährt nach Berlin.,Поезд едет в Берлин.,Здесь Zug означает поезд.,,A1 · Город и транспорт
+Straße,улица,noun,f,Straßen,Die Straße ist lang.,Улица длинная.,,,A1 · Город и транспорт
+Stadt,город,noun,f,Städte,Die Stadt ist schön.,Город красивый.,,,A1 · Город и транспорт
+Bahnhof,вокзал,noun,m,Bahnhöfe,Der Bahnhof ist im Zentrum.,Вокзал в центре.,,,A1 · Город и транспорт
+Bus,автобус,noun,m,Busse,Der Bus kommt gleich.,Автобус скоро придёт.,,,A1 · Город и транспорт
+Auto,автомобиль,noun,n,Autos,Das Auto ist neu.,Автомобиль новый.,,,A1 · Город и транспорт
+Fahrrad,велосипед,noun,n,Fahrräder,Mein Fahrrad ist blau.,Мой велосипед синий.,,,A1 · Город и транспорт
+Flughafen,аэропорт,noun,m,Flughäfen,Der Flughafen ist weit weg.,Аэропорт далеко.,,,A1 · Город и транспорт
+Haltestelle,остановка,noun,f,Haltestellen,Die Haltestelle ist hier.,Остановка здесь.,,,A1 · Город и транспорт
+Fahrkarte,проездной билет,noun,f,Fahrkarten,Ich kaufe eine Fahrkarte.,Я покупаю проездной билет.,,,A1 · Город и транспорт
+Taxi,такси,noun,n,Taxis,Das Taxi wartet.,Такси ждёт.,,,A1 · Город и транспорт
+Hotel,гостиница,noun,n,Hotels,Das Hotel ist am Bahnhof.,Гостиница у вокзала.,,,A1 · Город и транспорт
+Restaurant,ресторан,noun,n,Restaurants,Das Restaurant ist offen.,Ресторан открыт.,,,A1 · Город и транспорт
+Post,почта,noun,f,,Die Post ist neben der Bank.,Почта рядом с банком.,Здесь почтовое учреждение; обычного множественного числа нет.,,A1 · Город и транспорт
+Bank,банк,noun,f,Banken,Die Bank ist im Zentrum.,Банк в центре.,"Финансовое учреждение: Banken; скамейки: Bänke, другое значение.",,A1 · Город и транспорт
+Park,парк,noun,m,Parks,Wir gehen in den Park.,Мы идём в парк.,,,A1 · Город и транспорт
+Platz,площадь,noun,m,Plätze,Der Platz ist groß.,Площадь большая.,Здесь городская площадь.,,A1 · Город и транспорт
+Brücke,мост,noun,f,Brücken,Die Brücke ist alt.,Мост старый.,,,A1 · Город и транспорт
+Weg,путь,noun,m,Wege,Der Weg ist kurz.,Путь короткий.,,,A1 · Город и транспорт
+Adresse,адрес,noun,f,Adressen,Ich schreibe meine Adresse.,Я пишу свой адрес.,,,A1 · Город и транспорт
+fahren,ехать,verb,,,Wir fahren mit dem Bus.,Мы едем на автобусе.,,,A1 · Город и транспорт
+gehen,идти,verb,,,Ich gehe zum Bahnhof.,Я иду на вокзал.,,,A1 · Город и транспорт
+nehmen,брать,verb,,,Ich nehme das Buch.,Я беру книгу.,,,A1 · Город и транспорт
+warten,ждать,verb,,,Ich warte auf den Bus.,Я жду автобус.,,,A1 · Город и транспорт
+links,"слева, налево",adverb,,,Die Bank ist links.,Банк слева.,,,A1 · Город и транспорт
+rechts,"справа, направо",adverb,,,Das Hotel ist rechts.,Гостиница справа.,,,A1 · Город и транспорт
+geradeaus,прямо,adverb,,,Gehen Sie geradeaus!,Идите прямо!,,,A1 · Город и транспорт
+hier,здесь,adverb,,,Der Bahnhof ist hier.,Вокзал здесь.,,,A1 · Город и транспорт
+dort,там,adverb,,,Der Bus steht dort.,Автобус стоит там.,,,A1 · Город и транспорт
+mit,с,preposition,,,Ich fahre mit Anna.,Я еду с Анной.,После mit используется Dativ.,,A1 · Город и транспорт
+Tag,день,noun,m,Tage,Der Tag beginnt früh.,День начинается рано.,,,A1 · Время и распорядок
+Woche,неделя,noun,f,Wochen,Eine Woche hat sieben Tage.,В неделе семь дней.,,,A1 · Время и распорядок
+Monat,месяц,noun,m,Monate,Ein Jahr hat zwölf Monate.,В году двенадцать месяцев.,,,A1 · Время и распорядок
+Jahr,год,noun,n,Jahre,Das Jahr beginnt im Januar.,Год начинается в январе.,,,A1 · Время и распорядок
+Stunde,час,noun,f,Stunden,Der Kurs dauert eine Stunde.,Курс длится один час.,,,A1 · Время и распорядок
+Minute,минута,noun,f,Minuten,Ich warte eine Minute.,Я жду одну минуту.,,,A1 · Время и распорядок
+Uhr,часы (прибор),noun,f,Uhren,Die Uhr hängt an der Wand.,Часы висят на стене.,Единственное число обозначает один прибор; при указании времени: um acht Uhr.,,A1 · Время и распорядок
+Termin,назначенная встреча,noun,m,Termine,Ich habe morgen einen Termin.,У меня завтра назначена встреча.,,,A1 · Время и распорядок
+Montag,понедельник,noun,m,Montage,Am Montag arbeite ich.,В понедельник я работаю.,,,A1 · Время и распорядок
+Dienstag,вторник,noun,m,Dienstage,Am Dienstag lerne ich Deutsch.,Во вторник я учу немецкий.,,,A1 · Время и распорядок
+Mittwoch,среда,noun,m,Mittwoche,Am Mittwoch kommt Anna.,В среду придёт Анна.,,,A1 · Время и распорядок
+Donnerstag,четверг,noun,m,Donnerstage,Am Donnerstag lese ich.,В четверг я читаю.,,,A1 · Время и распорядок
+Freitag,пятница,noun,m,Freitage,Am Freitag kochen wir.,В пятницу мы готовим.,,,A1 · Время и распорядок
+Samstag,суббота,noun,m,Samstage,Am Samstag kaufe ich ein.,В субботу я делаю покупки.,,,A1 · Время и распорядок
+Sonntag,воскресенье,noun,m,Sonntage,Am Sonntag schlafe ich lange.,В воскресенье я долго сплю.,,,A1 · Время и распорядок
+heute,сегодня,adverb,,,Heute bin ich zu Hause.,Сегодня я дома.,,,A1 · Время и распорядок
+morgen,завтра,adverb,,,Morgen komme ich.,Завтра я приду.,Наречие morgen со строчной буквы; der Morgen — утро.,,A1 · Время и распорядок
+gestern,вчера,adverb,,,Gestern war ich im Park.,Вчера я был в парке.,,,A1 · Время и распорядок
+jetzt,сейчас,adverb,,,Jetzt habe ich Zeit.,Сейчас у меня есть время.,,,A1 · Время и распорядок
+früh,рано,adverb,,,Ich komme früh.,Я приду рано.,,,A1 · Время и распорядок
+spät,поздно,adverb,,,Ich komme spät.,Я приду поздно.,,,A1 · Время и распорядок
+immer,всегда,adverb,,,Ich trinke immer Tee.,Я всегда пью чай.,,,A1 · Время и распорядок
+oft,часто,adverb,,,Ich lese oft.,Я часто читаю.,,,A1 · Время и распорядок
+manchmal,иногда,adverb,,,Ich koche manchmal.,Я иногда готовлю.,,,A1 · Время и распорядок
+nie,никогда,adverb,,,Ich trinke nie Kaffee.,Я никогда не пью кофе.,,,A1 · Время и распорядок
+aufstehen,вставать,verb,,,Ich stehe um sieben Uhr auf.,Я встаю в семь часов.,Отделяемая приставка auf-.,,A1 · Время и распорядок
+schlafen,спать,verb,,,Das Kind schläft.,Ребёнок спит.,,,A1 · Время и распорядок
+beginnen,"начинаться, начинать",verb,,,Der Kurs beginnt um neun.,Курс начинается в девять.,,,A1 · Время и распорядок
+enden,заканчиваться,verb,,,Der Kurs endet um zehn.,Курс заканчивается в десять.,,,A1 · Время и распорядок
+nach,после; в направлении,preposition,,,Nach der Arbeit gehe ich nach Hause.,После работы я иду домой.,После nach используется Dativ; nach Hause — домой.,,A1 · Время и распорядок
+Kopf,голова,noun,m,Köpfe,Mein Kopf tut weh.,У меня болит голова.,,,A1 · Здоровье и тело
+Auge,глаз,noun,n,Augen,Mein Auge tut weh.,У меня болит глаз.,,,A1 · Здоровье и тело
+Ohr,ухо,noun,n,Ohren,Mein Ohr tut weh.,У меня болит ухо.,,,A1 · Здоровье и тело
+Nase,нос,noun,f,Nasen,Meine Nase ist klein.,Мой нос маленький.,,,A1 · Здоровье и тело
+Mund,рот,noun,m,Münder,Öffnen Sie den Mund!,Откройте рот!,,,A1 · Здоровье и тело
+Zahn,зуб,noun,m,Zähne,Mein Zahn tut weh.,У меня болит зуб.,,,A1 · Здоровье и тело
+Hand,рука (кисть),noun,f,Hände,Ich wasche meine Hände.,Я мою руки.,,,A1 · Здоровье и тело
+Arm,рука (от плеча),noun,m,Arme,Mein Arm tut weh.,У меня болит рука.,,,A1 · Здоровье и тело
+Bein,нога,noun,n,Beine,Mein Bein tut weh.,У меня болит нога.,,,A1 · Здоровье и тело
+Fuß,ступня,noun,m,Füße,Mein Fuß tut weh.,У меня болит ступня.,,,A1 · Здоровье и тело
+Bauch,живот,noun,m,Bäuche,Mein Bauch tut weh.,У меня болит живот.,,,A1 · Здоровье и тело
+Rücken,спина,noun,m,Rücken,Mein Rücken tut weh.,У меня болит спина.,,,A1 · Здоровье и тело
+Arzt,врач (мужчина),noun,m,Ärzte,Der Arzt hilft mir.,Врач помогает мне.,,,A1 · Здоровье и тело
+Ärztin,врач (женщина),noun,f,Ärztinnen,Die Ärztin untersucht mich.,Врач осматривает меня.,,,A1 · Здоровье и тело
+Apotheke,аптека,noun,f,Apotheken,Die Apotheke ist offen.,Аптека открыта.,,,A1 · Здоровье и тело
+Krankenhaus,больница,noun,n,Krankenhäuser,Das Krankenhaus ist in der Nähe.,Больница поблизости.,,,A1 · Здоровье и тело
+Tablette,таблетка,noun,f,Tabletten,Ich nehme eine Tablette.,Я принимаю таблетку.,,,A1 · Здоровье и тело
+Medikament,лекарство,noun,n,Medikamente,Ich brauche ein Medikament.,Мне нужно лекарство.,,,A1 · Здоровье и тело
+Schmerz,боль,noun,m,Schmerzen,Ich habe Schmerzen.,У меня боли.,,,A1 · Здоровье и тело
+Fieber,повышенная температура,noun,n,,Das Kind hat Fieber.,У ребёнка повышенная температура.,В этом значении обычно без множественного числа.,,A1 · Здоровье и тело
+gesund,здоровый,adjective,,,Ich bin gesund.,Я здоров.,,,A1 · Здоровье и тело
+krank,больной,adjective,,,Anna ist krank.,Анна больна.,,,A1 · Здоровье и тело
+müde,уставший,adjective,,,Ich bin müde.,Я устал.,,,A1 · Здоровье и тело
+hungrig,голодный,adjective,,,Ich bin hungrig.,Я голоден.,,,A1 · Здоровье и тело
+durstig,испытывающий жажду,adjective,,,Ich bin durstig.,Я хочу пить.,,,A1 · Здоровье и тело
+wehtun,болеть (причинять боль),verb,,,Mein Kopf tut weh.,У меня болит голова.,Отделяемый глагол: tut weh.,,A1 · Здоровье и тело
+fühlen,чувствовать,verb,,,Ich fühle mich gut.,Я чувствую себя хорошо.,В примере возвратное sich fühlen.,,A1 · Здоровье и тело
+bleiben,оставаться,verb,,,Ich bleibe heute zu Hause.,Я остаюсь сегодня дома.,,,A1 · Здоровье и тело
+anrufen,звонить по телефону,verb,,,Ich rufe die Ärztin an.,Я звоню врачу.,Отделяемая приставка an-.,,A1 · Здоровье и тело
+sein,быть,verb,,,Ich bin gesund.,Я здоров.,"Формы настоящего времени: bin, bist, ist, sind, seid, sind.",,A1 · Здоровье и тело
+Blume,цветок,noun,f,Blumen,Die Blume wächst im Garten.,Цветок растёт в саду.,,,A1 · Досуг и погода
+Zeitung,газета,noun,f,Zeitungen,Ich lese die Zeitung im Park.,Я читаю газету в парке.,,,A1 · Досуг и погода
+Zeitschrift,журнал,noun,f,Zeitschriften,Die Zeitschrift liegt auf dem Sofa.,Журнал лежит на диване.,,,A1 · Досуг и погода
+Musik,музыка,noun,f,,Ich höre Musik.,Я слушаю музыку.,В этом значении обычно без множественного числа.,,A1 · Досуг и погода
+Film,фильм,noun,m,Filme,Der Film beginnt um acht.,Фильм начинается в восемь.,,,A1 · Досуг и погода
+Kino,кинотеатр,noun,n,Kinos,Wir gehen ins Kino.,Мы идём в кинотеатр.,,,A1 · Досуг и погода
+Theater,театр,noun,n,Theater,Das Theater ist im Zentrum.,Театр в центре.,,,A1 · Досуг и погода
+Sport,спорт,noun,m,,Ich mache gern Sport.,Я охотно занимаюсь спортом.,Обычно без множественного числа; виды спорта — Sportarten.,,A1 · Досуг и погода
+Fußball,футбол,noun,m,,Wir spielen Fußball.,Мы играем в футбол.,"Здесь игра; без обычного множественного числа. Мячи: Fußbälle, другое значение.",,A1 · Досуг и погода
+Urlaub,отпуск,noun,m,Urlaube,Ich habe im August Urlaub.,У меня в августе отпуск.,Urlaube — отдельные периоды отпуска.,,A1 · Досуг и погода
+Reise,"поездка, путешествие",noun,f,Reisen,Die Reise dauert eine Woche.,Поездка длится неделю.,,,A1 · Досуг и погода
+Wetter,погода,noun,n,,Das Wetter ist schön.,Погода хорошая.,В этом значении обычно без множественного числа.,,A1 · Досуг и погода
+Sonne,солнце,noun,f,,Die Sonne scheint.,Солнце светит.,"Здесь наше солнце, обычного множественного числа нет; Sonnen — разные звёзды.",,A1 · Досуг и погода
+Regen,дождь,noun,m,,Der Regen ist stark.,Дождь сильный.,В повседневном значении обычно без множественного числа.,,A1 · Досуг и погода
+Schnee,снег,noun,m,,Der Schnee ist weiß.,Снег белый.,Как вещество обычно без множественного числа.,,A1 · Досуг и погода
+Wind,ветер,noun,m,Winde,Der Wind ist kalt.,Ветер холодный.,,,A1 · Досуг и погода
+Sommer,лето,noun,m,Sommer,Im Sommer ist es warm.,Летом тепло.,,,A1 · Досуг и погода
+Winter,зима,noun,m,Winter,Im Winter ist es kalt.,Зимой холодно.,,,A1 · Досуг и погода
+spielen,играть,verb,,,Die Kinder spielen im Garten.,Дети играют в саду.,,,A1 · Досуг и погода
+hören,"слушать, слышать",verb,,,Ich höre Musik.,Я слушаю музыку.,,,A1 · Досуг и погода
+tanzen,танцевать,verb,,,Wir tanzen gern.,Мы охотно танцуем.,,,A1 · Досуг и погода
+schwimmen,плавать,verb,,,Ich schwimme im Sommer.,Я плаваю летом.,,,A1 · Досуг и погода
+reisen,путешествовать,verb,,,Wir reisen mit dem Zug.,Мы путешествуем на поезде.,,,A1 · Досуг и погода
+regnen,идти (о дожде),verb,,,Heute regnet es.,Сегодня идёт дождь.,Безличное es regnet.,,A1 · Досуг и погода
+schön,красивый,adjective,,,Der Garten ist schön.,Сад красивый.,,,A1 · Досуг и погода
+warm,тёплый,adjective,,,Das Wasser ist warm.,Вода тёплая.,,,A1 · Досуг и погода
+kalt,холодный,adjective,,,Der Wind ist kalt.,Ветер холодный.,,,A1 · Досуг и погода
+gern,"охотно, с удовольствием",adverb,,,Ich lese gern.,Я читаю с удовольствием.,,,A1 · Досуг и погода
+draußen,"снаружи, на улице",adverb,,,Die Kinder spielen draußen.,Дети играют на улице.,,,A1 · Досуг и погода
+haben,иметь,verb,,,Wir haben heute Zeit.,У нас сегодня есть время.,,,A1 · Досуг и погода
