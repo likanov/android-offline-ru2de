@@ -8,7 +8,7 @@ function answer(question: GrammarQuestion): GrammarSubmission {
   return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: question.expected.token };
 }
 
-test('v2_roundtrip_preserves_grammar_session_question_and_attempt', async () => {
+test('restore_remaps_all_profile_links_v3_roundtrip_preserves_grammar_session_question_and_attempt', async () => {
   const h = await createGrammarHarness();
   try {
     const profile = await createProfile(h.db, 'Грамматика');
@@ -18,10 +18,11 @@ test('v2_roundtrip_preserves_grammar_session_question_and_attempt', async () => 
     const question = (await h.grammarSessions.next(profile.id, session.id, day))!;
     const result = await h.grammarAnswers.submit(profile.id, session.id, question.attemptId, answer(question), day);
     const backup = await h.backup.exportAll();
-    expect(backup.version).toBe(2);
+    expect(backup.version).toBe(3);
     expect(backup.profiles[0].grammar.attempts[0].result).toEqual(result);
     expect(backup.profiles[0].grammar.questions[0].status).toBe('answered');
-    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(backup)));
+    const legacy = { ...backup, version: 2, profiles: backup.profiles.map(({ grammar, ...part }) => ({ ...part, grammar: { ...grammar, catalogVersion: 1 } })) };
+    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(legacy)));
     const restoredId = restored.profileIds[0];
     const restoredBackup = await h.backup.exportAll();
     const restoredPart = restoredBackup.profiles.find(part => part.profile.id === restoredId)!;
@@ -40,7 +41,7 @@ test('v1_import_is_normalized_with_empty_grammar', async () => {
     const v2 = await h.backup.exportAll();
     const v1 = { ...v2, version: 1, profiles: v2.profiles.map(({ grammar: _grammar, ...part }) => part) };
     const preview = h.backup.preview(JSON.stringify(v1));
-    expect(preview.backup.version).toBe(2);
+    expect(preview.backup.version).toBe(3);
     expect(preview.grammarTargetCount).toBe(0);
     const restored = await h.backup.restore(preview);
     expect(restored.profileIds).toHaveLength(1);

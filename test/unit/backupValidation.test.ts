@@ -7,3 +7,16 @@ test('validated_backup_is_a_detached_allowlisted_value_and_names_are_unique', ()
 test.each([undefined, null, {}, { ...fixture(), version: 2 }, { ...fixture(), createdAt: '2026-02-30T00:00:00.000Z' }, { ...fixture(), createdAt: 'yesterday' }])('rejects_invalid_root_%#', value => { expect(() => validateBackup(value)).toThrow(); });
 test('rejects_unsafe_integer_and_duplicate_identity', () => { const bad = fixture(); bad.profiles[0].profile.xp = Number.MAX_SAFE_INTEGER + 1; expect(() => validateBackup(bad)).toThrow(); const duplicate = fixture(); duplicate.profiles.push(duplicate.profiles[0]); expect(() => validateBackup(duplicate)).toThrow(); });
 test('oversized_json_is_rejected_before_parse', () => { expect(() => new BackupService({} as any).preview(' '.repeat(50 * 1024 * 1024 + 1))).toThrow(/50 МиБ/); });
+
+test('v1_v2_reject_new_parts_and_unsupported_catalogs', () => {
+    const base = validateBackup(fixture());
+    expect(base.version).toBe(3);
+    for (const catalogVersions of [[], [2], [1, 1], [1, 2]]) {
+        const bad = JSON.parse(JSON.stringify(base)); bad.profiles[0].grammar.catalogVersions = catalogVersions;
+        expect(() => validateBackup(bad)).toThrow();
+    }
+    const v2 = { ...base, version: 2, profiles: base.profiles.map(p => ({ ...p, grammar: { ...p.grammar, catalogVersion: 1 } })) };
+    expect(validateBackup(v2).version).toBe(3);
+    v2.profiles[0].grammar.catalogVersion = 2;
+    expect(() => validateBackup(v2)).toThrow();
+});

@@ -2,8 +2,9 @@ import { AppError } from '../../core/errors';
 import { addDays } from '../../core/calendar';
 import { applyAnswer } from '../learning/learningRules';
 import { buildQuestion, germanLabel } from '../learning/questionFactory';
+import { wordParts } from '../dictionary/wordParts';
 import { wordKey } from '../dictionary/wordValidation';
-import type { BackupV1, BackupV2, ProfileBackup, ProfileBackupV2 } from './backupTypes';
+import type { BackupV1, BackupV2, BackupV3, ProfileBackup, ProfileBackupV3, ProfileBackupV2 } from './backupTypes';
 import { validateCombinedLedger, validateGrammarProfile } from './grammarBackupValidation';
 import type { LearningState } from '../learning/learningTypes';
 type Parser = (value: unknown) => unknown;
@@ -30,10 +31,14 @@ const result = object({ attemptId: uuid, right: boolean, xpDelta: oneOf(0, 10, 6
 const question = object({ attemptId: uuid, profileId: uuid, wordId: uuid, revision: integer(1), kind: oneOf('ru-de', 'de-ru', 'typing', 'definite-article', 'indefinite-article', 'listening'), prompt: nonempty, options: array(nonempty), expected: array(nonempty), markerVisible: boolean, reviewStage: nullable(integer(0, 5)), dueDay: nullable(day), nextKindIndex: v => v === undefined ? undefined : integer()(v) });
 const owner = { profileId: uuid }, wordOwner = { ...owner, wordId: uuid }, skill = oneOf('translation', 'writing', 'article', 'listening');
 const profile = object({ id: uuid, name: nonempty, xp: integer(), createdAt: iso });
-const word = object({ id: uuid, ...owner, seedKey: nullable(string), seedDe: nullable(string), de: nonempty, ru: nonempty, pos: oneOf('noun', 'adjective'), gender: nullable(oneOf('m', 'f', 'n')), plural: nullable(string), exampleDe: nullable(string), exampleRu: nullable(string), note: string, icon: nullable(string), revision: integer(1), canonicalKey: string });
+const wordShape = { id: uuid, ...owner, seedKey: nullable(string), seedDe: nullable(string), de: nonempty, ru: nonempty, pos: oneOf('noun', 'adjective'), gender: nullable(oneOf('m', 'f', 'n')), plural: nullable(string), exampleDe: nullable(string), exampleRu: nullable(string), note: string, icon: nullable(string), revision: integer(1), canonicalKey: string };
+const word = object(wordShape);
+const wordV3 = object({ ...wordShape, pos: oneOf(...wordParts.map(part => part.value)) });
 const progress = object({ ...wordOwner, streak: integer(0, 20), learned: flag, bonusAwarded: flag, reviewStage: integer(0, 5), dueDate: nullable(day), difficult: flag, totalErrors: integer(), recoveryErrors: integer(), recoveryCorrect: integer(0, 2) });
 const session = object({ id: uuid, ...owner, mode: oneOf('study', 'review'), wordIds: array(uuid), cursor: integer(), kindIndex: integer(), currentQuestion: nullable(question), result: nullable(result), status: oneOf('active', 'completed', 'cancelled') });
-const part = object({ profile, words: array(word), progress: array(progress), skillStats: array(object({ ...wordOwner, skill, correct: integer(), errors: integer(), revision: integer(1) })), skillHistory: array(object({ attemptId: uuid, ...wordOwner, revision: integer(1), skill, right: flag, day })), topics: array(object({ id: uuid, ...owner, name: nonempty })), wordTopics: array(object({ ...wordOwner, topicId: uuid })), settings: object({ ...owner, dailyGoal: integer(1, 200) }), dailyActivity: array(object({ ...owner, day, correct: integer(), errors: integer(), xp: integer() })), aids: array(object({ id: uuid, ...owner, content: string, stale: flag })), aidWords: array(object({ aidId: uuid, ...wordOwner, revision: integer(1) })), sessions: array(session), questions: array(object({ attemptId: uuid, ...wordOwner, sessionId: uuid, revision: integer(1), payload: question, status: oneOf('active', 'answered', 'cancelled') })), attempts: array(object({ attemptId: uuid, ...wordOwner, sessionId: uuid, right: flag, xpDelta: oneOf(0, 10, 60), result, day })), rewards: array(object({ ...wordOwner, attemptId: uuid, amount: oneOf(50), day })) });
+const partShape = { profile, words: array(word), progress: array(progress), skillStats: array(object({ ...wordOwner, skill, correct: integer(), errors: integer(), revision: integer(1) })), skillHistory: array(object({ attemptId: uuid, ...wordOwner, revision: integer(1), skill, right: flag, day })), topics: array(object({ id: uuid, ...owner, name: nonempty })), wordTopics: array(object({ ...wordOwner, topicId: uuid })), settings: object({ ...owner, dailyGoal: integer(1, 200) }), dailyActivity: array(object({ ...owner, day, correct: integer(), errors: integer(), xp: integer() })), aids: array(object({ id: uuid, ...owner, content: string, stale: flag })), aidWords: array(object({ aidId: uuid, ...wordOwner, revision: integer(1) })), sessions: array(session), questions: array(object({ attemptId: uuid, ...wordOwner, sessionId: uuid, revision: integer(1), payload: question, status: oneOf('active', 'answered', 'cancelled') })), attempts: array(object({ attemptId: uuid, ...wordOwner, sessionId: uuid, right: flag, xpDelta: oneOf(0, 10, 60), result, day })), rewards: array(object({ ...wordOwner, attemptId: uuid, amount: oneOf(50), day })) };
+const part = object(partShape);
+const partV3 = object({ ...partShape, words: array(wordV3) });
 function same(a: unknown, b: unknown) { return JSON.stringify(a) === JSON.stringify(b); }
 function unique(values: string[]) { if (new Set(values).size !== values.length)
     invalid(); }
@@ -187,11 +192,11 @@ export function validateBackupV1(value: unknown): BackupV1 {
     return backup;
 }
 
-function emptyGrammar(): ProfileBackupV2['grammar'] {
-    return { catalogVersion: 1, progress: [], sessions: [], questions: [], attempts: [], rewards: [] };
+function emptyGrammar(): ProfileBackupV3['grammar'] {
+    return { catalogVersions: [1], progress: [], sessions: [], questions: [], attempts: [], rewards: [] };
 }
 
-function wordOnlyPart(part: ProfileBackupV2): ProfileBackup {
+function wordOnlyPart(part: ProfileBackupV3): ProfileBackup {
     const wordXp = part.attempts.reduce((sum, attempt) => sum + attempt.xpDelta, 0);
     const wordDays = new Set(part.attempts.map(attempt => attempt.day));
     return {
@@ -206,7 +211,7 @@ function wordOnlyPart(part: ProfileBackupV2): ProfileBackup {
     } as ProfileBackup;
 }
 
-export function validateBackup(value: unknown): BackupV2 {
+export function validateBackup(value: unknown): BackupV3 {
     if (!value || typeof value !== 'object' || Array.isArray(value)) invalid();
     const source = value as Record<string, unknown>;
     if (source.format !== 'german-vocabulary-backup' || typeof source.createdAt !== 'string') invalid();
@@ -214,24 +219,35 @@ export function validateBackup(value: unknown): BackupV2 {
         const v1 = validateBackupV1(value);
         return {
             format: v1.format,
-            version: 2,
+            version: 3,
             createdAt: v1.createdAt,
             profiles: v1.profiles.map(profile => ({ ...profile, grammar: emptyGrammar() })),
         };
     }
-    if (source.version !== 2 || !Array.isArray(source.profiles)) invalid();
+    if (![2, 3].includes(source.version as number) || !Array.isArray(source.profiles)) invalid();
+    const legacy = source.version === 2;
     const backup = {
         format: source.format,
-        version: 2 as const,
+        version: 3 as const,
         createdAt: source.createdAt,
-        profiles: source.profiles,
-    } as BackupV2;
+        profiles: source.profiles.map(value => {
+            if (!value || typeof value !== 'object' || !value.grammar) invalid();
+            if (legacy) validateGrammarProfile(value as ProfileBackupV2);
+            const { catalogVersion: _legacyVersion, ...grammar } = value.grammar;
+            return { ...value, grammar: legacy ? { ...grammar, catalogVersions: [1] } : value.grammar };
+        }),
+    } as BackupV3;
     // Keep the old strict validator for all vocabulary tables, but validate XP and
     // daily totals against the word ledger only here; grammar is checked below.
     for (const profile of backup.profiles) {
         if (!profile || typeof profile !== 'object' || !('grammar' in profile)) invalid();
-        validateBackupV1({ format: 'german-vocabulary-backup', version: 1, createdAt: backup.createdAt, profiles: [wordOnlyPart(profile)] });
+        const parsed = (legacy ? part : partV3)(wordOnlyPart(profile)) as ProfileBackup;
+        iso(backup.createdAt);
+        checkProfile(parsed);
+        Object.assign(profile, parsed, { profile: (partShape.profile(profile.profile)), dailyActivity: partShape.dailyActivity(profile.dailyActivity) });
         validateGrammarProfile(profile);
+        const { catalogVersions, progress, sessions, questions, attempts, rewards } = profile.grammar;
+        profile.grammar = { catalogVersions, progress, sessions, questions, attempts, rewards };
         validateCombinedLedger(profile);
     }
     const ids = new Set<string>();
@@ -242,10 +258,21 @@ export function validateBackup(value: unknown): BackupV2 {
             if (ids.has(id)) invalid();
             ids.add(id);
         }
-        for (const id of [...profile.attempts.map(row => row.attemptId), ...profile.grammar.attempts.map(row => row.result.attemptId)]) {
+        for (const id of [...profile.questions.map(row => row.attemptId), ...profile.grammar.questions.map(row => row.question.attemptId)]) {
             if (attemptIds.has(id)) invalid();
             attemptIds.add(id);
         }
     }
-    return JSON.parse(JSON.stringify(backup)) as BackupV2;
+    for (const id of attemptIds) if (ids.has(id)) invalid();
+    return JSON.parse(JSON.stringify({ ...backup, profiles: backup.profiles.map(profile => ({ ...Object.fromEntries(Object.keys(partShape).map(key => [key, profile[key as keyof ProfileBackup]])), grammar: profile.grammar })) })) as BackupV3;
+}
+
+/** Validate an explicitly legacy fixture without widening its public schema. */
+export function validateBackupV2(value: unknown): BackupV2 {
+    if (!value || typeof value !== 'object' || (value as Record<string, unknown>).version !== 2) invalid();
+    const backup = validateBackup(value);
+    return { ...backup, version: 2, profiles: backup.profiles.map(({ grammar, ...profile }) => {
+        const { catalogVersions: _versions, ...rows } = grammar;
+        return { ...profile, grammar: { ...rows, catalogVersion: 1 } };
+    }) } as BackupV2;
 }

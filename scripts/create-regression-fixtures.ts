@@ -7,16 +7,16 @@ import { TopicRepository } from '../src/features/topics/topicRepository';
 import { SessionRepository } from '../src/features/learning/sessionRepository';
 import { AnswerService } from '../src/features/learning/answerService';
 import { BackupService } from '../src/features/transfer/backupService';
-import { validateBackup, validateBackupV1 } from '../src/features/transfer/backupValidation';
+import { validateBackup, validateBackupV1, validateBackupV2 } from '../src/features/transfer/backupValidation';
 import { GrammarSessionRepository } from '../src/features/grammar/grammarSessionRepository';
 import { GrammarAnswerService } from '../src/features/grammar/grammarAnswerService';
 import { grammarTargets } from '../src/features/grammar/grammarCatalog';
 import type { GrammarQuestion, GrammarSubmission } from '../src/features/grammar/grammarTypes';
 import type { DayKey } from '../src/features/learning/learningTypes';
-import type { BackupV1, BackupV2 } from '../src/features/transfer/backupTypes';
+import type { BackupV1, BackupV2, BackupV3 } from '../src/features/transfer/backupTypes';
 // Host-only generator. It is never imported by the Android application.
 // Every learning state comes from persisted real questions and AnswerService.
-async function createRegressionBackupV2(today: DayKey): Promise<BackupV2> {
+async function createRegressionBackupV2(today: DayKey): Promise<BackupV3> {
   addDays(today, 0);
   const { db, close } = openTestDb();
   try {
@@ -122,7 +122,11 @@ export async function createGrammarRegressionBackup(today: DayKey): Promise<Back
       await migrate(target.db);
       const service = new BackupService(target.db);
       await service.restore(service.preview(JSON.stringify(exported)));
-      return validateBackup(await service.exportAll());
+      const v3 = await service.exportAll();
+      return validateBackupV2({ ...v3, version: 2, profiles: v3.profiles.map(({ grammar, ...part }) => {
+        const { catalogVersions: _versions, ...rows } = grammar;
+        return { ...part, grammar: { ...rows, catalogVersion: 1 } };
+      }) });
     } finally { target.close(); }
   } finally { source.close(); }
 }

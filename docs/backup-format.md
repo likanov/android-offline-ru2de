@@ -1,8 +1,8 @@
-# Full backup JSON, version 1
+# Full backup JSON, version 3
 
 The system save dialog writes a UTF-8 JSON document. Import reads at most 50 MiB before decoding or parsing; the JavaScript preview also counts UTF-8 bytes before `JSON.parse`. A leading UTF-8 BOM is accepted. The format is local and requires no network access.
 
-The root object has `format: "german-vocabulary-backup"`, `version: 1`, `createdAt` (UTC ISO timestamp with milliseconds), and `profiles`.
+The root object has `format: "german-vocabulary-backup"`, `version: 3`, `createdAt` (UTC ISO timestamp with milliseconds), and `profiles`.
 
 Each profile contains:
 
@@ -34,3 +34,7 @@ Export collects every profile table under one database read transaction. JSON se
 Restoration creates new profiles and preserves existing data. Colliding names gain ` восстановлено 2`, then increasing numbers; collisions among imported profiles are also resolved. Answered results remain answered, so resubmitting a restored attempt returns its saved result and never grants XP or a mastery reward twice. An active lesson can be resumed after selecting its new profile.
 
 Cancellation of either system dialog is quiet. Save errors show a storage message; a failed native write makes a best-effort removal of the newly created incomplete document. A provider may still leave an empty/partial document if it also refuses deletion; such a document cannot pass restore validation.
+
+Version 3 exports all nine word parts: noun, adjective, number, verb, pronoun, adverb, preposition, conjunction, phrase. German text retains case (including Sie) and the NFC normalization applied when words are saved. Each profile includes `grammar` with `catalogVersions: (1|2)[]`, progress, sessions, questions, attempts and rewards. The supported versions come from the active application catalog; currently only `[1]` is registered. Catalog 2 is not accepted until its application integration is enabled.
+
+Imports still accept versions 1 and 2. Their original word schema remains restricted to noun/adjective; version 2 grammar remains restricted to catalog 1 and its legacy target IDs/questions. Validate the source version strictly before migrating it to the internal version 3 representation. Version 1 gains an empty grammar container; version 2 replaces its singular `catalogVersion: 1` with `catalogVersions: [1]`. Grammar and word attempts jointly determine profile XP and daily activity; grammar rewards retain the same replay and uniqueness checks. Older application versions cannot read version 3 files.

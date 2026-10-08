@@ -2,7 +2,8 @@ import type { SqlStore, SqlExecutor, SqlValue } from '../../core/sql';
 import type { Profile } from '../../core/types';
 import { AppError } from '../../core/errors';
 import { notifyProfileChanged } from '../../app/refreshBus';
-import { BACKUP_MAX_BYTES, type BackupV2, type GrammarProfileBackup, type ProfileBackup, type ProfileBackupV2, type RestorePreview } from './backupTypes';
+import { BACKUP_MAX_BYTES, type BackupV3, type GrammarProfileBackupV3, type ProfileBackup, type ProfileBackupV3, type RestorePreview } from './backupTypes';
+import { grammarTargets } from '../grammar/grammarCatalog';
 import { validateBackup } from './backupValidation';
 import { remapBackup } from './backupRemap';
 // Table names and columns are application constants. File values are always bound parameters.
@@ -14,7 +15,7 @@ function decode(row: Row): Row { return Object.fromEntries(Object.entries(row).m
 async function insert(tx: SqlExecutor, table: keyof typeof columns, row: object) { const keys = columns[table].split(','), values = row as Row; await tx.run(`INSERT INTO ${table}(${columns[table]}) VALUES (${keys.map(() => '?').join(',')})`, keys.map(key => jsonColumns.has(key) && values[key] !== null ? JSON.stringify(values[key]) : values[key]) as SqlValue[]); }
 export class BackupService {
     constructor(private db: SqlStore) { }
-    async exportAll(): Promise<BackupV2> {
+    async exportAll(): Promise<BackupV3> {
         const snapshot = await this.db.transaction(async (tx) => {
             const profiles: ProfileBackup[] = [];
             for (const profile of await tx.all<Profile>('SELECT * FROM profiles ORDER BY rowid')) {
@@ -24,18 +25,18 @@ export class BackupService {
                 const attempts = part.attempts as ProfileBackup['attempts'];
                 part.rewards = (part.rewards as Omit<ProfileBackup['rewards'][number], 'day'>[]).map(r => ({ ...r, day: attempts.find(a => a.attemptId === r.attemptId)!.day }));
                 const progressRows = await tx.all<Row>('SELECT * FROM grammar_progress WHERE profileId=? ORDER BY rowid', [profile.id]);
-                const grammar: GrammarProfileBackup = {
-                    catalogVersion: 1,
-                    progress: progressRows.map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV2['grammar']['progress'][number]['targetId'], state: { streak: Number(row.streak), mastered: !!row.mastered, masteryBonusGranted: !!row.masteryBonusGranted, reviewStage: Number(row.reviewStage), dueDay: row.dueDay as string | null, difficult: !!row.difficult, totalErrors: Number(row.totalErrors), recoveryErrors: Number(row.recoveryErrors), recoveryCorrect: Number(row.recoveryCorrect) }, attemptCount: Number(row.attemptCount), variantIndex: Number(row.variantIndex) })),
-                    sessions: (await tx.all<Row>('SELECT * FROM grammar_sessions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ ...row, selection: JSON.parse(String(row.selection)), targetIds: JSON.parse(String(row.targetIds)), currentQuestion: row.currentQuestion ? JSON.parse(String(row.currentQuestion)) : null, result: row.result ? JSON.parse(String(row.result)) : null })) as ProfileBackupV2['grammar']['sessions'],
+                const grammar: GrammarProfileBackupV3 = {
+                    catalogVersions: [...new Set(grammarTargets.map(target => target.catalogVersion))],
+                    progress: progressRows.map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV3['grammar']['progress'][number]['targetId'], state: { streak: Number(row.streak), mastered: !!row.mastered, masteryBonusGranted: !!row.masteryBonusGranted, reviewStage: Number(row.reviewStage), dueDay: row.dueDay as string | null, difficult: !!row.difficult, totalErrors: Number(row.totalErrors), recoveryErrors: Number(row.recoveryErrors), recoveryCorrect: Number(row.recoveryCorrect) }, attemptCount: Number(row.attemptCount), variantIndex: Number(row.variantIndex) })),
+                    sessions: (await tx.all<Row>('SELECT * FROM grammar_sessions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ ...row, selection: JSON.parse(String(row.selection)), targetIds: JSON.parse(String(row.targetIds)), currentQuestion: row.currentQuestion ? JSON.parse(String(row.currentQuestion)) : null, result: row.result ? JSON.parse(String(row.result)) : null })) as ProfileBackupV3['grammar']['sessions'],
                     questions: (await tx.all<Row>('SELECT * FROM grammar_questions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ question: JSON.parse(String(row.payload)), status: row.status as 'active' | 'answered' | 'cancelled' })),
-                    attempts: (await tx.all<Row>('SELECT * FROM grammar_attempts WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, sessionId: String(row.sessionId), targetId: row.targetId as ProfileBackupV2['grammar']['attempts'][number]['targetId'], day: String(row.day), result: JSON.parse(String(row.result)) })),
-                    rewards: (await tx.all<Row>('SELECT * FROM grammar_rewards WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV2['grammar']['rewards'][number]['targetId'], attemptId: String(row.attemptId), amount: 50 as const, day: String(row.day) })),
+                    attempts: (await tx.all<Row>('SELECT * FROM grammar_attempts WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, sessionId: String(row.sessionId), targetId: row.targetId as ProfileBackupV3['grammar']['attempts'][number]['targetId'], day: String(row.day), result: JSON.parse(String(row.result)) })),
+                    rewards: (await tx.all<Row>('SELECT * FROM grammar_rewards WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV3['grammar']['rewards'][number]['targetId'], attemptId: String(row.attemptId), amount: 50 as const, day: String(row.day) })),
                 };
                 part.grammar = grammar;
                 profiles.push(part as ProfileBackup);
             }
-            return { format: 'german-vocabulary-backup' as const, version: 2 as const, createdAt: new Date().toISOString(), profiles: profiles as ProfileBackupV2[] };
+            return { format: 'german-vocabulary-backup' as const, version: 3 as const, createdAt: new Date().toISOString(), profiles: profiles as ProfileBackupV3[] };
         });
         return validateBackup(snapshot);
     }

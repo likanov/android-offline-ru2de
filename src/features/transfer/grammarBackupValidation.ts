@@ -1,7 +1,7 @@
 import { applyAnswer } from '../learning/learningRules';
 import { grammarTargets } from '../grammar/grammarCatalog';
 import { checkGrammarAnswer, validateGrammarQuestion } from '../grammar/grammarQuestionFactory';
-import type { GrammarProfileBackup, ProfileBackupV2 } from './backupTypes';
+import type { GrammarProfileBackupV3, ProfileBackupV3, ProfileBackupV2 } from './backupTypes';
 import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession } from '../grammar/grammarTypes';
 import type { LearningState } from '../learning/learningTypes';
 
@@ -20,7 +20,7 @@ function isDay(value: unknown): value is string {
 function equal(a: unknown, b: unknown): boolean { return JSON.stringify(a) === JSON.stringify(b); }
 function emptyState() { return { streak: 0, mastered: false, masteryBonusGranted: false, reviewStage: 0, dueDay: null, difficult: false, totalErrors: 0, recoveryErrors: 0, recoveryCorrect: 0 } as const; }
 function targetKnown(id: unknown): boolean { return typeof id === 'string' && grammarTargets.some(target => target.id === id); }
-function validateQuestionSnapshot(question: GrammarQuestion, words?: ProfileBackupV2['words']): void {
+function validateQuestionSnapshot(question: GrammarQuestion, words?: ProfileBackupV3['words']): void {
   try { validateGrammarQuestion(question, words); } catch { invalid(); }
 }
 function checkProgress(row: GrammarProgress & { profileId: string }, profileId: string): void {
@@ -34,7 +34,7 @@ function checkProgress(row: GrammarProgress & { profileId: string }, profileId: 
   // Keep the same transition invariants as the live learning engine.
   try { applyAnswer(state, false, state.mastered ? 'review' : 'study', state.dueDay ?? '2026-01-01'); } catch { invalid(); }
 }
-function checkQuestion(row: { question: GrammarQuestion; status: string }, profileId: string, words: ProfileBackupV2['words'], sessions: Map<string, GrammarSession>, attempts: Map<string, { result: GrammarAttemptResult }>): void {
+function checkQuestion(row: { question: GrammarQuestion; status: string }, profileId: string, words: ProfileBackupV3['words'], sessions: Map<string, GrammarSession>, attempts: Map<string, { result: GrammarAttemptResult }>): void {
   const question = row.question;
   if (!['active', 'answered', 'cancelled'].includes(row.status) || question.profileId !== profileId || !isUuid(question.attemptId) || !isUuid(question.sessionId) || !targetKnown(question.targetId) || !['active', 'answered', 'cancelled'].includes(row.status)) invalid();
   const session = sessions.get(question.sessionId);
@@ -53,11 +53,19 @@ function checkQuestion(row: { question: GrammarQuestion; status: string }, profi
   if (row.status === 'answered' && !attempts.has(question.attemptId)) invalid();
 }
 
-export function validateGrammarProfile(part: ProfileBackupV2): void {
+export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2): void {
+  if (part && part.grammar && 'catalogVersion' in part.grammar) {
+    if (part.grammar.catalogVersion !== 1) invalid();
+    const legacyTargets = new Set(grammarTargets.filter(target => target.catalogVersion === 1).map(target => target.id));
+    for (const id of [...part.grammar.progress.map(row => row.targetId), ...part.grammar.sessions.flatMap(row => row.targetIds), ...part.grammar.questions.map(row => row.question.targetId), ...part.grammar.attempts.map(row => row.targetId), ...part.grammar.rewards.map(row => row.targetId)]) if (!legacyTargets.has(id)) invalid();
+    if (part.grammar.questions.some(row => row.question.catalogVersion !== 1)) invalid();
+    const { catalogVersion: _legacyVersion, ...grammar } = part.grammar;
+    return validateGrammarProfile({ ...part, grammar: { ...grammar, catalogVersions: [1] } });
+  }
   if (!isRecord(part) || !isRecord(part.profile) || !isUuid(part.profile.id) || !isRecord(part.grammar)) invalid();
   const profileId = part.profile.id;
-  const grammar = part.grammar as GrammarProfileBackup;
-  if (grammar.catalogVersion !== 1 || !Array.isArray(grammar.progress) || !Array.isArray(grammar.sessions) || !Array.isArray(grammar.questions) || !Array.isArray(grammar.attempts) || !Array.isArray(grammar.rewards)) invalid();
+  const grammar = part.grammar as GrammarProfileBackupV3;
+  if (!Array.isArray(grammar.catalogVersions) || grammar.catalogVersions.length !== new Set(grammarTargets.map(target => target.catalogVersion)).size || new Set(grammar.catalogVersions).size !== grammar.catalogVersions.length || grammar.catalogVersions.some(version => !grammarTargets.some(target => target.catalogVersion === version)) || !Array.isArray(grammar.progress) || !Array.isArray(grammar.sessions) || !Array.isArray(grammar.questions) || !Array.isArray(grammar.attempts) || !Array.isArray(grammar.rewards)) invalid();
   const targetIds = new Set<string>();
   for (const row of grammar.progress) {
     if (targetIds.has(row.targetId)) invalid();
@@ -127,7 +135,7 @@ export function validateGrammarProfile(part: ProfileBackupV2): void {
   for (const progress of grammar.progress) if (progress.state.masteryBonusGranted !== rewardTargets.has(progress.targetId)) invalid();
 }
 
-export function validateCombinedLedger(part: ProfileBackupV2): void {
+export function validateCombinedLedger(part: ProfileBackupV3 | ProfileBackupV2): void {
   const wordXp = part.attempts.reduce((sum, attempt) => sum + attempt.xpDelta, 0);
   const grammarXp = part.grammar.attempts.reduce((sum, attempt) => sum + attempt.result.xpDelta, 0);
   if (part.profile.xp !== wordXp + grammarXp) invalid();

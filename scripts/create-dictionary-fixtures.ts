@@ -7,11 +7,11 @@ import { createProfile } from '../src/features/profiles/profileRepository';
 import { wordKey } from '../src/features/dictionary/wordValidation';
 import { BackupService } from '../src/features/transfer/backupService';
 import { validateBackup } from '../src/features/transfer/backupValidation';
-import type { BackupV2 } from '../src/features/transfer/backupTypes';
+import type { BackupV3 } from '../src/features/transfer/backupTypes';
 import type { DayKey } from '../src/features/learning/learningTypes';
 
 /** Host-only fixtures for the dictionary UX acceptance flows. */
-export async function createDictionaryUxBackup(_day: DayKey = '2026-10-06'): Promise<BackupV2> {
+export async function createDictionaryUxBackup(_day: DayKey = '2026-10-06'): Promise<BackupV3> {
   const source = openTestDb();
   try {
     await migrate(source.db);
@@ -30,7 +30,7 @@ export async function createDictionaryUxBackup(_day: DayKey = '2026-10-06'): Pro
 }
 
 /** A deterministic ten-thousand-word profile used for search timing checks. */
-export async function createDictionaryLargeBackup(_day: DayKey = '2026-10-06'): Promise<BackupV2> {
+export async function createDictionaryLargeBackup(_day: DayKey = '2026-10-06'): Promise<BackupV3> {
   const source = openTestDb();
   try {
     await migrate(source.db);
@@ -54,7 +54,7 @@ export async function createDictionaryLargeBackup(_day: DayKey = '2026-10-06'): 
 }
 
 async function writeRequestedFixtures() {
-  const outputs: [string | undefined, () => Promise<BackupV2>][] = [
+  const outputs: [string | undefined, () => Promise<BackupV3>][] = [
     [process.env.DICTIONARY_FIXTURE_OUTPUT, createDictionaryUxBackup],
     [process.env.DICTIONARY_LARGE_FIXTURE_OUTPUT, createDictionaryLargeBackup],
   ];

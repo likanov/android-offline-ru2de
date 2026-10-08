@@ -46,7 +46,7 @@ test('restored_answered_session_is_not_rewarded_again', async () => {
 test('invalid_or_interrupted_restore_is_atomic', async () => {
     await createProfile(h.db, 'A');
     const service = new BackupService(h.db), data = await service.exportAll(), before = await snapshot();
-    for (const mutate of [(d: any) => d.version = 3, (d: any) => d.profiles[0].words[0].profileId = randomUUID(), (d: any) => d.profiles[0].words[1].id = d.profiles[0].words[0].id, (d: any) => d.createdAt = '2026-02-30T12:00:00.000Z', (d: any) => d.profiles[0].profile.xp = -1, (d: any) => d.profiles[0].profile.xp = 10]) {
+    for (const mutate of [(d: any) => d.version = 4, (d: any) => d.profiles[0].words[0].profileId = randomUUID(), (d: any) => d.profiles[0].words[1].id = d.profiles[0].words[0].id, (d: any) => d.createdAt = '2026-02-30T12:00:00.000Z', (d: any) => d.profiles[0].profile.xp = -1, (d: any) => d.profiles[0].profile.xp = 10]) {
         const bad = JSON.parse(JSON.stringify(data));
         mutate(bad);
         expect(() => service.preview(JSON.stringify(bad))).toThrow();
@@ -77,11 +77,11 @@ test('rejects_corrupt_rewards_schedule_active_content_and_skill_totals', async (
     await h.db.run('UPDATE word_progress SET streak=19 WHERE wordId=?', [w.id]);
     const s = await h.sessions.start(p.id, { mode: 'study', wordIds: [w.id] }, day), q = (await h.sessions.next(p.id, s.id, day))!;
     await h.answers.submit(p.id, s.id, q.attemptId, q.expected[0], day);
-    const service = new BackupService(h.db), mastered = await service.exportAll();
+    const service = new BackupService(h.db), mastered = await service.exportAll(), before = await snapshot();
     const corruptions: [
         string,
         (p: any) => void
-    ][] = [['reward amount', p => p.rewards[0].amount = 100], ['reward date', p => p.rewards[0].day = '2026-10-04'], ['missing reward', p => p.rewards = []], ['schedule', p => p.progress.find((r: any) => r.learned).dueDate = null], ['stage', p => p.progress.find((r: any) => r.learned).reviewStage = 6], ['streak', p => p.progress.find((r: any) => r.learned).streak = 19], ['skill totals', p => p.skillStats[0].correct = 99], ['daily totals', p => p.dailyActivity[0].xp = 0], ['historical reward result', p => { p.attempts[0].result.state = { ...p.attempts[0].result.state, mastered: false, streak: 0, reviewStage: 0, dueDay: null }; p.sessions[0].result = p.attempts[0].result; }]];
+    ][] = [['reward amount', p => p.rewards[0].amount = 100], ['reward date', p => p.rewards[0].day = '2026-10-04'], ['missing reward', p => p.rewards = []], ['duplicate reward', p => p.rewards.push({ ...p.rewards[0] })], ['schedule', p => p.progress.find((r: any) => r.learned).dueDate = null], ['stage', p => p.progress.find((r: any) => r.learned).reviewStage = 6], ['streak', p => p.progress.find((r: any) => r.learned).streak = 19], ['skill totals', p => p.skillStats[0].correct = 99], ['daily totals', p => p.dailyActivity[0].xp = 0], ['historical reward result', p => { p.attempts[0].result.state = { ...p.attempts[0].result.state, mastered: false, streak: 0, reviewStage: 0, dueDay: null }; p.sessions[0].result = p.attempts[0].result; }]];
     for (const [label, mutate] of corruptions) {
         const bad = JSON.parse(JSON.stringify(mastered));
         mutate(bad.profiles[0]);
@@ -93,6 +93,9 @@ test('rejects_corrupt_rewards_schedule_active_content_and_skill_totals', async (
             rejected = true;
         }
         expect({ label, rejected }).toEqual({ label, rejected: true });
+        const preview = service.preview(JSON.stringify(mastered)); preview.backup = bad;
+        await expect(service.restore(preview)).rejects.toThrow();
+        expect(await snapshot()).toEqual(before);
     }
     const review = await h.sessions.start(p.id, { mode: 'review', wordIds: [w.id] }, '2026-10-04');
     await h.sessions.next(p.id, review.id, '2026-10-04');
@@ -169,4 +172,26 @@ test('android_roundtrip_state_validator_accepts_real_remapped_backup_and_duplica
       console.log(JSON.stringify(verifyScenarioState('transfer.json-roundtrip',e.after,e)));`;
     const validation = execFileSync(process.execPath,['--input-type=module','-e',script],{input:JSON.stringify({before,restoreCheckpoint,after}),encoding:'utf8'});
     expect(JSON.parse(validation)).toEqual({ok:true,errors:[]});
+});
+
+test('v3_roundtrip_all_word_parts_and_unicode_and_case_survive_roundtrip', async () => {
+    const p = await createProfile(h.db, 'POS');
+    const parts = ['noun','adjective','number','verb','pronoun','adverb','preposition','conjunction','phrase'] as const;
+    for (const [i, pos] of parts.entries()) await h.words.create(p.id, { de: pos === 'pronoun' ? 'Sie' : pos === 'phrase' ? 'Cafe\u0301' : `Probe${i}`, ru: `перевод${i}`, pos, gender: pos === 'noun' ? 'm' : null });
+    const service = new BackupService(h.db), data = await service.exportAll();
+    expect(data.version).toBe(3);
+    expect(data.profiles[0].grammar).toHaveProperty('catalogVersions', [1]);
+    for (const version of [1, 2]) {
+        const legacy = JSON.parse(JSON.stringify(data)); legacy.version = version;
+        if (version === 1) delete legacy.profiles[0].grammar;
+        else { legacy.profiles[0].grammar.catalogVersion = 1; delete legacy.profiles[0].grammar.catalogVersions; }
+        expect(() => service.preview(JSON.stringify(legacy))).toThrow();
+    }
+    const original = await h.words.list(p.id);
+    const restored = await service.restore(service.preview(JSON.stringify(data)));
+    const words = await h.words.list(restored.profileIds[0]);
+    expect(words.map(w => [w.de, w.ru, w.pos])).toEqual(original.map(w => [w.de, w.ru, w.pos]));
+    expect(words.some(w => w.de === 'Sie')).toBe(true);
+    expect(words.some(w => w.de === 'Café')).toBe(true);
+    expect(await h.words.list(p.id)).toEqual(original);
 });
