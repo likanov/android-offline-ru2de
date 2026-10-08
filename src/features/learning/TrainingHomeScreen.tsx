@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import type { SqlStore } from '../../core/sql';
 import type { TrainingSelection } from './questionTypes';
+import type { GrammarProgressSummary } from '../grammar/grammarProgressRepository';
 import type { GrammarSelection } from '../grammar/grammarTypes';
 import { lektion2Lessons } from '../grammar/grammarPresentation';
 import { Screen } from '../../ui/Screen';
@@ -20,16 +21,19 @@ export function TrainingHomeScreen({ db, profileId, onVocabulary, onGrammar }: {
   const [lektion2Open, setLektion2Open] = useState(false);
   const [words, setWords] = useState<{ mastered: number; totalWords: number; dueCount: number } | null>(null);
   const [grammar, setGrammar] = useState<{ mastered: number; totalTargets: number; dueCount: number } | null>(null);
+  const [lessonSummaries, setLessonSummaries] = useState<Record<string, GrammarProgressSummary>>({});
   const [error, setError] = useState('');
   useEffect(() => {
     let alive = true;
     const load = () => void Promise.all([
       getProgressRepository({ db }).summary(profileId, today),
-      getGrammarServices({ db }).progress.summary(profileId, today),
-    ]).then(([wordSummary, grammarSummary]) => {
+      getGrammarServices({ db }).progress.summary(profileId, today, 'mixed'),
+      Promise.all(lektion2Lessons.map(async ({lesson}) => [lesson, await getGrammarServices({db}).progress.summary(profileId,today,lesson)] as const)),
+    ]).then(([wordSummary, grammarSummary, lessons]) => {
       if (!alive) return;
       setWords({ mastered: wordSummary.mastered, totalWords: wordSummary.totalWords, dueCount: wordSummary.dueCount });
       setGrammar({ mastered: grammarSummary.mastered, totalTargets: grammarSummary.totalTargets, dueCount: grammarSummary.dueCount });
+      setLessonSummaries(Object.fromEntries(lessons));
       setError('');
     }).catch(e => { if (alive) setError(String(e)); });
     load();
@@ -50,7 +54,11 @@ export function TrainingHomeScreen({ db, profileId, onVocabulary, onGrammar }: {
     <Button title="Только sein" onPress={() => onGrammar({ mode: 'study', lesson: 'sein' })} />
     <Button title="Lektion 2 · Профессии и вопросы" variant="secondary" testID="training-lektion2-toggle" onPress={() => setLektion2Open(open => !open)} />
     {lektion2Open ? <View>{lektion2Lessons.map(({ lesson, title }) =>
-      <Button key={lesson} title={title} variant="ghost" testID={`training-lektion2-${lesson}`} onPress={() => onGrammar({ mode: 'study', lesson })} />
+      <View key={lesson}>
+        <Text>{title} · К повторению: {lessonSummaries[lesson]?.dueCount ?? 0}</Text>
+        <Button title={title} variant="ghost" testID={`training-lektion2-${lesson}`} onPress={() => onGrammar({ mode: 'study', lesson })} />
+        <Button title={`Повторить: ${title}`} variant="secondary" testID={`training-lektion2-review-${lesson}`} disabled={!lessonSummaries[lesson]?.dueCount} onPress={() => onGrammar({ mode: 'review', lesson })} />
+      </View>
     )}</View> : null}
   </Screen>;
 }

@@ -1,10 +1,18 @@
+import { archiveLegacyAdjectivePlural } from '../legacyAdjectivePlural';
 import type { SqlExecutor } from '../sql';
 export async function migrateWordParts(tx: SqlExecutor): Promise<void> {
   const incompatible = await tx.first<{id:string}>(`SELECT id FROM words WHERE
     pos NOT IN ('noun','adjective','number','verb','pronoun','adverb','preposition','conjunction','phrase')
     OR (pos='noun' AND (gender IS NULL OR gender NOT IN ('m','f','n')))
-    OR (pos<>'noun' AND (gender IS NOT NULL OR plural IS NOT NULL)) LIMIT 1`);
+    OR (pos<>'noun' AND gender IS NOT NULL)
+    OR (pos NOT IN ('noun','adjective') AND plural IS NOT NULL) LIMIT 1`);
   if (incompatible) throw new Error(`Cannot migrate incompatible word ${incompatible.id}: check part of speech, gender and plural`);
+  const legacy = await tx.all<{id:string;pos:string;gender:null;plural:string;note:string}>(
+    "SELECT id,pos,gender,plural,note FROM words WHERE pos='adjective' AND plural IS NOT NULL");
+  for (const word of legacy) {
+    const archived = archiveLegacyAdjectivePlural(word);
+    await tx.run('UPDATE words SET plural=NULL,note=? WHERE id=?',[archived.note,word.id]);
+  }
   await tx.exec(`CREATE TABLE words_v7(
  id TEXT PRIMARY KEY NOT NULL, profileId TEXT NOT NULL REFERENCES profiles(id),
  seedKey TEXT, seedDe TEXT, de TEXT NOT NULL, ru TEXT NOT NULL,

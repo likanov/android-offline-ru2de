@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {migrate} from '../../src/core/migrations';
 import {profilesSchema} from '../../src/core/migrations/001_profiles';
 import {wordDetailsSchema} from '../../src/core/migrations/002_word_details';
@@ -39,17 +42,36 @@ test('migration_preserves_v6_graph',async()=>{
  }finally{close();}
 });
 test('migration_rejects_incompatible_rows_without_rewriting_them',async()=>{
- const {db,close}=openTestDb();try{await fixture(db);await db.run("UPDATE words SET plural='invalid' WHERE pos='adjective'");const before=await snapshot(db);
+ const {db,close}=openTestDb();try{await fixture(db);await db.exec('PRAGMA ignore_check_constraints=ON');await db.run("UPDATE words SET gender='m' WHERE pos='adjective'");await db.exec('PRAGMA ignore_check_constraints=OFF');const before=await snapshot(db);
  await expect(migrate(db)).rejects.toThrow(/word|слов/i);expect(await snapshot(db)).toEqual(before);expect(await db.first('PRAGMA user_version')).toEqual({user_version:6});expect(await db.first('PRAGMA foreign_keys')).toEqual({foreign_keys:1});
  }finally{close();}
 });
 
 test('migration_rolls_back_after_copy_and_rejects_newer_schema',async()=>{
  const {db,close}=openTestDb();try {
-  await fixture(db);const before=await snapshot(db);
+  await fixture(db);await db.run("UPDATE words SET plural=' alte Form ',note='Existing note' WHERE pos='adjective'");const before=await snapshot(db);
   const failing:SqlStore={...db,schemaTransaction:work=>db.schemaTransaction(tx=>work({...tx,exec:async sql=>{await tx.exec(sql);if(sql.includes('ALTER TABLE words_v7 RENAME'))throw new Error('failure after copy');}}))};
   await expect(migrate(failing)).rejects.toThrow('failure after copy');
   expect(await snapshot(db)).toEqual(before);expect(await db.first('PRAGMA user_version')).toEqual({user_version:6});expect(await db.first('PRAGMA foreign_keys')).toEqual({foreign_keys:1});
   await db.exec('PRAGMA user_version=9');await expect(migrate(db)).rejects.toThrow('Unsupported');expect(await snapshot(db)).toEqual(before);
  }finally{close();}
+});
+
+test('legacy_editor_adjective_plural_is_archived_losslessly_without_graph_changes_on_upgrade_and_restart',async()=>{
+ const directory=mkdtempSync(join(tmpdir(),'legacy-adjective-'));
+ let store=openTestDb(join(directory,'profile.sqlite'));
+ try {
+  await fixture(store.db);
+  // Base 6260542 validateWord trims/NFC-normalizes plural, and its repository
+  // persists adjective plural. Metadata-only edits retain revision and graph.
+  const value='  schöne\n"Form"\t '.normalize('NFC').trim();
+  await store.db.transaction(tx=>tx.run("UPDATE words SET plural=?,note=? WHERE pos='adjective'",[value,'Existing note']));
+  const before=await snapshot(store.db);
+  const expected={...before,words:(before.words as Record<string,unknown>[]).map(w=>w.pos==='adjective'?{...w,plural:null,note:'Existing note\n[Legacy adjective plural: '+JSON.stringify(value)+']'}:w)};
+  await migrate(store.db);expect(await snapshot(store.db)).toEqual(expected);
+  expect(await store.db.first('PRAGMA user_version')).toEqual({user_version:8});
+  store.close();store=openTestDb(join(directory,'profile.sqlite'));
+  await migrate(store.db);expect(await snapshot(store.db)).toEqual(expected);
+  expect(await store.db.all('PRAGMA foreign_key_check')).toEqual([]);
+ }finally{store.close();rmSync(directory,{recursive:true,force:true});}
 });

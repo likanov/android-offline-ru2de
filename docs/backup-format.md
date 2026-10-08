@@ -38,3 +38,15 @@ Cancellation of either system dialog is quiet. Save errors show a storage messag
 Version 3 exports all nine word parts: noun, adjective, number, verb, pronoun, adverb, preposition, conjunction, phrase. German text retains case (including Sie) and the NFC normalization applied when words are saved. Each profile includes `grammar` with `catalogVersions: (1|2)[]`, progress, sessions, questions, attempts and rewards. The supported versions come from the active application catalog; catalogs `[1,2]` are registered. Catalog 2 includes immutable Lektion 2 templates and complete sentence questions. Every target and question version is checked against the catalog registry, and expected answers are reconstructed by the question factory. Template and target IDs remain stable during restore; ownership, session, attempt and legacy word dependency UUIDs are remapped.
 
 Imports still accept versions 1 and 2. Their original word schema remains restricted to noun/adjective; version 2 grammar remains restricted to catalog 1 and its legacy target IDs/questions. Validate the source version strictly before migrating it to the internal version 3 representation. Version 1 gains an empty grammar container; version 2 replaces its singular `catalogVersion: 1` with registered `catalogVersions: [1,2]` after its legacy payload is validated. This metadata does not authorize catalog 2 payloads in a version 2 source. Grammar and word attempts jointly determine profile XP and daily activity; grammar rewards retain the same replay and uniqueness checks. Older application versions cannot read version 3 files.
+
+### Legacy adjective plural compatibility
+
+V1/V2 source data is fully validated before conversion to V3. A legacy adjective
+with a non-null plural and null gender retains that exact plural as a JSON string
+appended to its existing note: a newline followed by
+`[Legacy adjective plural: "original value"]`. The plural field becomes null.
+Existing note text, canonical keys, revisions and learning records are preserved;
+restore still remaps IDs according to the normal restore contract. Schema 6
+upgrades apply the same conversion inside the migration transaction. Conversion
+is idempotent because the plural field is cleared. New V3 backups and CSV imports
+reject non-noun plural metadata.

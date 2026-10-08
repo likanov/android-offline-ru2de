@@ -197,7 +197,7 @@ function restorationErrors(source,restored){
 }
 
 // Strict same-ID graph comparison for force-stop/reboot and in-place upgrades.
-// V2 -> V3 changes the catalog declaration only; all learning rows stay exact.
+// Legacy upgrades may archive adjective plural; all learning rows stay exact.
 export function compareBackupGraphs(before,after,{upgrade=false}={}) {
  const errors=[];
  if(!before?.profiles?.length||before.profiles.length!==after?.profiles?.length)return {ok:false,errors:['GRAPH_PROFILE_COUNT']};
@@ -205,6 +205,11 @@ export function compareBackupGraphs(before,after,{upgrade=false}={}) {
   const target=after.profiles.find(p=>p.profile.id===source.profile.id);
   if(!target){errors.push('GRAPH_PROFILE_MISSING:'+source.profile.id);continue;}
   const expected=structuredClone(source),actual=structuredClone(target);
+  if(upgrade&&[1,2].includes(before.version))for(const word of expected.words??[]){
+   if(word.pos==='adjective'&&word.gender===null&&typeof word.plural==='string'){
+    word.note+='\n[Legacy adjective plural: '+JSON.stringify(word.plural)+']';word.plural=null;
+   }
+  }
   if(upgrade&&!expected.grammar)expected.grammar={catalogVersions:[1,2],progress:[],sessions:[],questions:[],attempts:[],rewards:[]};
   if(upgrade&&expected.grammar?.catalogVersion===1){delete expected.grammar.catalogVersion;expected.grammar.catalogVersions=[1,2];}
   if(stable(expected)!==stable(actual))errors.push('GRAPH_CHANGED:'+source.profile.name);

@@ -195,3 +195,39 @@ test('v3_roundtrip_all_word_parts_and_unicode_and_case_survive_roundtrip', async
     expect(words.some(w => w.de === 'Café')).toBe(true);
     expect(await h.words.list(p.id)).toEqual(original);
 });
+
+test.each([1,2])('legacy_v%s_adjective_plural_is_archived_after_strict_validation_and_restores_atomically',async version=>{
+ const p=await createProfile(h.db,'Legacy');
+ const w=(await h.words.list(p.id)).find(w=>w.pos==='adjective')!;
+ const s=await h.sessions.start(p.id,{mode:'study',wordIds:[w.id]},day);
+ const q=(await h.sessions.next(p.id,s.id,day))!;
+ await h.answers.submit(p.id,s.id,q.attemptId,q.expected[0],day);
+ const service=new BackupService(h.db);
+ const raw:any=await service.exportAll();raw.version=version;
+ if(version===1)delete raw.profiles[0].grammar;
+ else raw.profiles[0].grammar={catalogVersion:1,progress:[],sessions:[],questions:[],attempts:[],rewards:[]};
+ const word=raw.profiles[0].words.find((row:any)=>row.id===w.id);
+ word.plural='  alte\n"Form"  ';word.note='Existing note\n';
+ const exactNote=word.note+'\n[Legacy adjective plural: '+JSON.stringify(word.plural)+']';
+ const before=await snapshot();
+ const invalid=JSON.parse(JSON.stringify(raw));invalid.profiles[0].profile.xp++;
+ expect(()=>service.preview(JSON.stringify(invalid))).toThrow();
+ const preview=service.preview(JSON.stringify(raw));
+ expect(preview.backup.profiles[0].words.find(row=>row.id===w.id)).toEqual({...word,plural:null,note:exactNote});
+ const broken:SqlStore={...h.db,transaction:work=>h.db.transaction(tx=>work({...tx,run:async(sql,params)=>{const result=await tx.run(sql,params);if(sql.startsWith('INSERT INTO words'))throw new Error('disk full');return result;}}))};
+ await expect(new BackupService(broken).restore(preview)).rejects.toThrow('disk full');
+ expect(await snapshot()).toEqual(before);
+ const {profileIds}=await service.restore(preview);
+ const restored=(await h.words.list(profileIds[0])).find(row=>row.de===w.de)!;
+ expect(restored).toMatchObject({plural:null,note:exactNote,revision:w.revision,canonicalKey:word.canonicalKey});
+ expect(await h.wordState(profileIds[0],restored.id)).toEqual(await h.wordState(p.id,w.id));
+ expect((await h.profile(profileIds[0]))!.xp).toBe(10);
+ const again=service.preview(JSON.stringify(await service.exportAll()));
+ expect(again.backup.profiles[1].words.find(row=>row.id===restored.id)!.note).toBe(exactNote);
+});
+
+test('new_v3_non_noun_plural_is_rejected_in_preview',async()=>{
+ await createProfile(h.db,'A');const service=new BackupService(h.db);const raw=await service.exportAll();
+ raw.profiles[0].words.find(w=>w.pos==='adjective')!.plural='new metadata';
+ expect(()=>service.preview(JSON.stringify(raw))).toThrow();
+});

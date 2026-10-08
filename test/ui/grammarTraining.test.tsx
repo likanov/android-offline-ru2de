@@ -1,4 +1,7 @@
-import { getGrammarServices } from '../../src/app/AppServices';
+import { AppServicesContext, getGrammarServices } from '../../src/app/AppServices';
+import { ActiveProfileProvider } from '../../src/app/ActiveProfileProvider';
+import { Navigation } from '../../src/app/navigation';
+import { localDay, addDays } from '../../src/core/calendar';
 import { GrammarAnswerError } from '../../src/features/grammar/grammarAnswerService';
 import { makeGrammarQuestion } from "../../src/features/grammar/grammarQuestionFactory";
 import { GrammarQuestionView } from "../../src/features/grammar/GrammarQuestionView";
@@ -192,4 +195,32 @@ test.each(['profile','day'] as const)('pending_submit_does_not_leak_feedback_aft
   expect(screen.queryByTestId('grammar-result')).toBeNull();
   expect(screen.getByTestId('grammar-answer-input')).toHaveProp('editable',true);
  } finally {view.unmount();submit.mockRestore();h.close();}
+});
+
+test('noun_capitalization_feedback_does_not_claim_sie_error',()=>{
+ const question=makeGrammarQuestion({attemptId:'case',sessionId:'s',profileId:'p',targetId:'yesno-transform:noun',variantIndex:0,responseMode:'typed',reviewStage:null,dueDay:null,words:[]});
+ const view=render(<GrammarQuestionView question={question} busy={false} result={{attemptId:'case',targetId:question.targetId,right:false,xpDelta:0,submittedAnswer:{kind:'typed',text:'Ist das buch neu?'},state:{streak:0,mastered:false,masteryBonusGranted:false,reviewStage:0,dueDay:null,difficult:false,totalErrors:1,recoveryErrors:0,recoveryCorrect:0}}} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ expect(screen.getByText('Проверьте регистр букв.')).toBeTruthy();
+ expect(screen.queryByText(/Sie и sie/)).toBeNull();view.unmount();
+});
+
+test('catalog2_due_review_is_reachable_and_scoped_through_home_selection_and_real_training',async()=>{
+ const h=await createGrammarHarness();const p=await createProfile(h.db,'Review');
+ await h.db.run("INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?, 'yesno-transform:noun',2,20,1,1,0,'2000-01-01',0,0,0,0,20,0)",[p.id]);
+ const view=render(<AppServicesContext.Provider value={{db:h.db}}><ActiveProfileProvider><Navigation /></ActiveProfileProvider></AppServicesContext.Provider>);
+ try {
+  await screen.findByText('Активный профиль: Review');fireEvent.press(screen.getByTestId('nav-training'));
+  await waitFor(()=>expect(screen.getByText('Освоено: 0 / 18')).toBeTruthy());
+  expect(screen.getByTestId('grammar-review-start')).toBeDisabled();
+  fireEvent.press(screen.getByTestId('training-lektion2-toggle'));
+  const review=await screen.findByTestId('training-lektion2-review-yesno-transform');
+  expect(review).toBeEnabled();expect(screen.getByTestId('training-lektion2-review-professions-sein')).toBeDisabled();
+  fireEvent.press(review);
+  fireEvent.changeText(await screen.findByTestId('grammar-answer-input'),'Ist das Buch neu?');
+  fireEvent.press(screen.getByTestId('grammar-submit'));await screen.findByTestId('grammar-result');
+  expect(await h.grammar.getState(p.id,'yesno-transform:noun')).toMatchObject({state:{mastered:true,masteryBonusGranted:true,reviewStage:1,dueDay:addDays(localDay(new Date()),3)}});
+  expect((await h.profile(p.id))!.xp).toBe(10);
+  expect((await h.grammarSessions.resume(p.id))!.selection).toEqual({mode:'review',lesson:'yesno-transform'});
+  expect((await getGrammarServices({db:h.db}).progress.summary(p.id,localDay(new Date()),'yesno-transform')).dueCount).toBe(0);
+ }finally{view.unmount();h.close();}
 });

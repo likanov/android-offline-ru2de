@@ -1,3 +1,4 @@
+import { archiveLegacyAdjectivePlural } from '../../core/legacyAdjectivePlural';
 import { getGrammarCatalogVersions } from '../grammar/grammarCatalog';
 import { AppError } from '../../core/errors';
 import { addDays } from '../../core/calendar';
@@ -222,7 +223,7 @@ export function validateBackup(value: unknown): BackupV3 {
             format: v1.format,
             version: 3,
             createdAt: v1.createdAt,
-            profiles: v1.profiles.map(profile => ({ ...profile, grammar: emptyGrammar() })),
+            profiles: v1.profiles.map(profile => ({ ...profile, words:profile.words.map(archiveLegacyAdjectivePlural), grammar: emptyGrammar() })),
         };
     }
     if (![2, 3].includes(source.version as number) || !Array.isArray(source.profiles)) invalid();
@@ -249,6 +250,7 @@ export function validateBackup(value: unknown): BackupV3 {
         const parsed = (legacy ? part : partV3)(wordOnlyPart(profile)) as ProfileBackup;
         iso(backup.createdAt);
         checkProfile(parsed);
+        if (!legacy && parsed.words.some(word => word.pos !== 'noun' && word.plural !== null)) invalid();
         Object.assign(profile, parsed, { profile: (partShape.profile(profile.profile)), dailyActivity: partShape.dailyActivity(profile.dailyActivity) });
         validateGrammarProfile(profile);
         const { catalogVersions, progress, sessions, questions, attempts, rewards } = profile.grammar;
@@ -269,6 +271,7 @@ export function validateBackup(value: unknown): BackupV3 {
         }
     }
     for (const id of attemptIds) if (ids.has(id)) invalid();
+    if (legacy) for (const profile of backup.profiles) profile.words = profile.words.map(archiveLegacyAdjectivePlural);
     return JSON.parse(JSON.stringify({ ...backup, profiles: backup.profiles.map(profile => ({ ...Object.fromEntries(Object.keys(partShape).map(key => [key, profile[key as keyof ProfileBackup]])), grammar: profile.grammar })) })) as BackupV3;
 }
 

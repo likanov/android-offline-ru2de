@@ -61,3 +61,19 @@ test('v3_roundtrip_uses_new_profiles_after_multiple_prior_name_collisions',()=>{
   assert.equal(verifyScenarioState('extended-vocabulary.backup3-roundtrip',after,{before}).ok,false);
  }
 });
+
+test('upgrade graph permits only exact legacy adjective plural archival',async()=>{
+ const {compareBackupGraphs}=await import('../../scripts/regression-state.mjs');
+ const before={version:2,profiles:[{profile:{id:'p',name:'A'},words:[{id:'w',pos:'adjective',gender:null,plural:' alte\n"Form" ',note:'Keep\n',revision:4,canonicalKey:'old'}]}]};
+ const after=structuredClone(before);after.version=3;
+ after.profiles[0].grammar={catalogVersions:[1,2],progress:[],sessions:[],questions:[],attempts:[],rewards:[]};
+ after.profiles[0].words[0].plural=null;
+ after.profiles[0].words[0].note='Keep\n\n[Legacy adjective plural: '+JSON.stringify(before.profiles[0].words[0].plural)+']';
+ assert.equal(compareBackupGraphs(before,after,{upgrade:true}).ok,true);
+ assert.equal(compareBackupGraphs(before,after).ok,false);
+ for(const mutate of [w=>w.note='discarded',w=>w.revision++,w=>w.canonicalKey='changed',w=>w.plural='retained']){
+  const bad=structuredClone(after);mutate(bad.profiles[0].words[0]);assert.equal(compareBackupGraphs(before,bad,{upgrade:true}).ok,false);
+ }
+ const v3=structuredClone(before);v3.version=3;
+ assert.equal(compareBackupGraphs(v3,after,{upgrade:true}).ok,false);
+});
