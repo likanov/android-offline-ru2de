@@ -89,3 +89,20 @@ test('post_mastery_profiles_navigation_supports_old_direct_and_overflow_layouts'
   execute(commands.slice(start+1,end));assert.ok(profiles);
  }
 });
+test('return_to_training_resumes_retained_feedback_from_home_or_direct_route',()=>{
+ const start=commands.findLastIndex(c=>c.tapOn?.id==='nav-training');assert.ok(start>0);
+ for(const schema of ['Task5',5,6]){
+  let screen=schema===6?'home':'feedback',starts=0,feedback=false;
+  const retained={currentQuestion:{wordId:'Upgradeprobe'},result:{right:true,streak:20}};
+  function execute(rows){for(const c of rows){
+   if(c.runFlow?.when?.visible==='Изучать слова'){if(screen==='home')execute(c.runFlow.commands);}
+   else if(c.tapOn==='Изучать слова'){assert.equal(screen,'home');assert.ok(retained.currentQuestion&&retained.result);screen='feedback';starts++;}
+   else if(c.repeat){} // seeking cannot turn training home into retained feedback
+   else if(c.assertVisible==='Верно!.*'){assert.equal(screen,'feedback','home is not retained answer feedback');feedback=true;}
+   else if(c.runFlow?.when?.true){if(schema!== 'Task5')execute(c.runFlow.commands);}
+   else if(c.assertVisible==='Серия: 20/20')assert.equal(retained.result.streak,20);
+   else assert.fail('unexpected resume command '+JSON.stringify(c));
+  }}
+  execute(commands.slice(start+1));assert.ok(feedback);assert.equal(starts,schema===6?1:0);
+ }
+});

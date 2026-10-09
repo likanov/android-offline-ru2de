@@ -880,6 +880,18 @@ env: {"UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_WORD_RU": "слово обно
     }
   },
   {
+    "runFlow": {
+      "when": {
+        "visible": "Изучать слова"
+      },
+      "commands": [
+        {
+          "tapOn": "Изучать слова"
+        }
+      ]
+    }
+  },
+  {
     "repeat": {
       "while": {
         "notVisible": "Верно!.*"
@@ -919,5 +931,8 @@ env: {"UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_WORD_RU": "слово обно
   },
   {
     "assertVisible": "Верно!.*"
+  },
+  {
+    "assertVisible": "Серия: 20/20"
   }
 ]
