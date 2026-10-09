@@ -195,9 +195,10 @@ function restoreSettings() {
 function screenshot(name) {
   const r=execute(adb,['-s',serial,'exec-out','screencap','-p'],{binary:true});const path=join(reportDir,`${name}.png`);writeFileSync(path,r.stdout);return path;
 }
+export function regressionFlowEnvironment(extra={}) { return {CATALOG_BASELINE:'false',...extra}; }
 function flow(id,file,extra={}) {
   const junit=join(reportDir,`${id}.xml`);
-  const args=['--device',serial,'test','--format','junit','--output',junit,'--test-output-dir',join(reportDir,`${id}-artifacts`),'-e',`REPORT_DIR=${reportDir}`,...Object.entries(extra).flatMap(([k,v])=>['-e',`${k}=${v}`]),join(appRoot,'e2e',file)];
+  const args=['--device',serial,'test','--format','junit','--output',junit,'--test-output-dir',join(reportDir,`${id}-artifacts`),'-e',`REPORT_DIR=${reportDir}`,...Object.entries(regressionFlowEnvironment(extra)).flatMap(([k,v])=>['-e',`${k}=${v}`]),join(appRoot,'e2e',file)];
   const r=execute(maestro,args,{allowFailure:true,timeout:20*60*1000});
   const outcome=maestroOutcome(r.status,artifact(junit)?readFileSync(junit,'utf8'):'');
   const row=report.scenarios.find(s=>s.id===id);

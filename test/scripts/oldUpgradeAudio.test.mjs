@@ -56,3 +56,17 @@ test('both_old_topics_visits_share_one_compatibility_navigation_helper',()=>{
  }}
  visit(commands);assert.equal(visits.length,2);
 });
+test('effective_Maestro_env_selects_catalog_for_retained_schemas_and_legacy_for_Task5',async()=>{
+ const {regressionFlowEnvironment}=await import('../../scripts/emulator-regression.mjs');
+ const conditions=commands.filter(c=>c.runFlow?.when?.true).map(c=>c.runFlow.when.true.slice(2,-1));
+ assert.equal(conditions.length,4);
+ for(const baseline of ['schema5','schema6','Task5']){
+  const cli=baseline==='Task5'?{}:{CATALOG_BASELINE:'true'};
+  // Retained commands.json proves flow env defineVariables runs after CLI values.
+  const effective={...(regressionFlowEnvironment?regressionFlowEnvironment(cli):cli),...fixture()};
+  const selected=conditions.map(code=>runInNewContext(code,effective));
+  assert.deepEqual(selected,baseline==='Task5'?[false,false,false,true]:[true,true,true,false],baseline);
+  assert.equal(effective.CATALOG_BASELINE,baseline==='Task5'?'false':'true');
+ }
+ assert.ok(regressionFlowEnvironment,'runner must explicitly supply the Task5 default');
+});

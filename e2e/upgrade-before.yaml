@@ -1,6 +1,6 @@
 appId: com.personal.germanvocabulary
 name: upgrade-before
-env: {"CATALOG_BASELINE": "false", "UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_WORD_RU": "слово обновления", "UPGRADE_ARTICLE": "der", "UPGRADE_INDEFINITE": "ein", "UPGRADE_TOPIC": "Upgradefocus"}
+env: {"UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_WORD_RU": "слово обновления", "UPGRADE_ARTICLE": "der", "UPGRADE_INDEFINITE": "ein", "UPGRADE_TOPIC": "Upgradefocus"}
 ---
 [
   {
