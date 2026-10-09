@@ -1,8 +1,7 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { theme } from './theme';
 
-type Frame = { top: number; bottom: number };
 type RevealContextValue = (target: View | null) => void;
 const RevealContext = createContext<RevealContextValue>(() => {});
 
@@ -13,11 +12,10 @@ export function useQuestionInputReveal(): RevealContextValue {
 export function QuestionScreen({ children, onScrollTo }: React.PropsWithChildren<{ onScrollTo?: (options: { y: number; animated: boolean }) => void }>) {
   const scrollRef = useRef<ScrollView>(null);
   const targetRef = useRef<View | null>(null);
-  const viewportRef = useRef<Frame>({ top: 0, bottom: 0 });
+  const [keyboardOverlap, setKeyboardOverlap] = useState(0);
   const keyboardTopRef = useRef<number | null>(null);
   const scrollOffsetRef = useRef(0);
   const mountedRef = useRef(true);
-  const lastRevealRef = useRef<string | null>(null);
 
   const setScrollRef = (node: ScrollView | null) => {
     scrollRef.current = node;
@@ -28,28 +26,29 @@ export function QuestionScreen({ children, onScrollTo }: React.PropsWithChildren
 
   const reveal = useCallback((target: View | null) => {
     targetRef.current = target;
-    lastRevealRef.current = null;
-    if (!target || !mountedRef.current) return;
-    const keyboardTop = keyboardTopRef.current;
-    const viewport = viewportRef.current;
-    if (keyboardTop == null || viewport.bottom <= viewport.top) return;
-    target.measureInWindow((_, y, __, height) => {
-      if (!mountedRef.current || targetRef.current !== target) return;
-      const targetTop = y;
-      const targetBottom = y + height;
-      const visibleBottom = Math.min(viewport.bottom, keyboardTop) - 8;
-      const visibleTop = viewport.top + 8;
-      let delta = 0;
-      if (targetBottom > visibleBottom) delta = targetBottom - visibleBottom;
-      else if (targetTop < visibleTop) delta = targetTop - visibleTop;
-      if (!delta) return;
-      const key = `${targetTop}:${targetBottom}:${visibleTop}:${visibleBottom}:${delta}`;
-      if (lastRevealRef.current === key) return;
-      lastRevealRef.current = key;
-      const yOffset = Math.max(0, scrollOffsetRef.current + delta);
-      scrollOffsetRef.current = yOffset;
-      onScrollTo?.({ y: yOffset, animated: true });
-      scrollRef.current?.scrollTo({ y: yOffset, animated: true });
+    if (!target || !mountedRef.current || keyboardTopRef.current == null) return;
+    // Android edge-to-edge windows can retain a full-height ScrollView under
+    // the IME. Reserve the covered area so even short content can scroll.
+    // Both measurements must use window coordinates (onLayout is relative).
+    scrollRef.current?.getNativeScrollRef()?.measureInWindow((_, viewportY, __, viewportHeight) => {
+      const keyboardTop = keyboardTopRef.current;
+      if (!mountedRef.current || targetRef.current !== target || keyboardTop == null || viewportHeight <= 0) return;
+      const viewportBottom = viewportY + viewportHeight;
+      setKeyboardOverlap(Math.max(0, viewportBottom - keyboardTop));
+      target.measureInWindow((_, y, __, height) => {
+        if (!mountedRef.current || targetRef.current !== target || keyboardTopRef.current !== keyboardTop) return;
+        const visibleBottom = Math.min(viewportBottom, keyboardTop) - 8;
+        const visibleTop = viewportY + 8;
+        let delta = 0;
+        if (y + height > visibleBottom) delta = y + height - visibleBottom;
+        else if (y < visibleTop) delta = y - visibleTop;
+        if (!delta) return;
+        // Native may clamp a request before the new content padding commits.
+        // Only onScroll updates the actual offset; content layout retries below.
+        const yOffset = Math.max(0, scrollOffsetRef.current + delta);
+        onScrollTo?.({ y: yOffset, animated: true });
+        scrollRef.current?.scrollTo({ y: yOffset, animated: true });
+      });
     });
   }, [onScrollTo]);
 
@@ -57,12 +56,11 @@ export function QuestionScreen({ children, onScrollTo }: React.PropsWithChildren
     mountedRef.current = true;
     const show = Keyboard.addListener('keyboardDidShow', event => {
       keyboardTopRef.current = event.endCoordinates?.screenY ?? null;
-      lastRevealRef.current = null;
       if (targetRef.current) reveal(targetRef.current);
     });
     const hide = Keyboard.addListener('keyboardDidHide', () => {
       keyboardTopRef.current = null;
-      lastRevealRef.current = null;
+      setKeyboardOverlap(0);
     });
     return () => {
       mountedRef.current = false;
@@ -72,10 +70,7 @@ export function QuestionScreen({ children, onScrollTo }: React.PropsWithChildren
     };
   }, [reveal]);
 
-  const onLayout = (event: any) => {
-    const layout = event.nativeEvent.layout;
-    viewportRef.current = { top: layout.y, bottom: layout.y + layout.height };
-    lastRevealRef.current = null;
+  const reconcileLayout = () => {
     if (targetRef.current) reveal(targetRef.current);
   };
 
@@ -85,10 +80,11 @@ export function QuestionScreen({ children, onScrollTo }: React.PropsWithChildren
         <ScrollView
           ref={setScrollRef}
           testID="screen-scroll"
-          onLayout={onLayout}
+          onLayout={reconcileLayout}
+          onContentSizeChange={reconcileLayout}
           onScroll={event => { scrollOffsetRef.current = event.nativeEvent.contentOffset.y; }}
           scrollEventThrottle={100}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, { paddingBottom: 16 + keyboardOverlap }]}
           style={styles.screen}
           keyboardShouldPersistTaps="handled"
         >
