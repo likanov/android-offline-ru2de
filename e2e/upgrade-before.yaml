@@ -113,51 +113,8 @@ env: {"CATALOG_BASELINE": "false", "UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_W
       "commands": [
         {
           "runFlow": {
-            "when": {
-              "visible": {
-                "id": "nav-more"
-              }
-            },
-            "commands": [
-              {
-                "tapOn": {
-                  "id": "nav-more"
-                }
-              },
-              {
-                "repeat": {
-                  "while": {
-                    "notVisible": {
-                      "id": "nav-topics"
-                    }
-                  },
-                  "times": 12,
-                  "commands": [
-                    {
-                      "swipe": {
-                        "from": {
-                          "id": "more-menu-scroll"
-                        },
-                        "direction": "UP",
-                        "duration": 400
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
+            "file": "helpers/old-open-topics.yaml"
           }
-        },
-        {
-          "runFlow": {
-            "file": "helpers/ensure-visible.yaml",
-            "env": {
-              "TARGET_TEXT": "Наборы"
-            }
-          }
-        },
-        {
-          "tapOn": "Наборы"
         },
         {
           "runFlow": {
@@ -645,51 +602,8 @@ env: {"CATALOG_BASELINE": "false", "UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_W
       "commands": [
         {
           "runFlow": {
-            "when": {
-              "visible": {
-                "id": "nav-more"
-              }
-            },
-            "commands": [
-              {
-                "tapOn": {
-                  "id": "nav-more"
-                }
-              },
-              {
-                "repeat": {
-                  "while": {
-                    "notVisible": {
-                      "id": "nav-topics"
-                    }
-                  },
-                  "times": 12,
-                  "commands": [
-                    {
-                      "swipe": {
-                        "from": {
-                          "id": "more-menu-scroll"
-                        },
-                        "direction": "UP",
-                        "duration": 400
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
+            "file": "helpers/old-open-topics.yaml"
           }
-        },
-        {
-          "runFlow": {
-            "file": "helpers/ensure-visible.yaml",
-            "env": {
-              "TARGET_TEXT": "Наборы"
-            }
-          }
-        },
-        {
-          "tapOn": "Наборы"
         },
         {
           "runFlow": {

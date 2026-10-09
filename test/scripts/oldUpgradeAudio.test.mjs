@@ -22,7 +22,8 @@ test('catalog_public_topic_route_is_single_word_before_twenty_answers',()=>{
  for(const schema of [5,6]){
   let created=false,selected=false,one=false,eligible=false,started=false,answers=0,menu=false,topicVisits=0;
   function execute(rows){for(const c of rows){
-   if(c.runFlow?.when?.visible?.id==='nav-more'){if(schema===6)execute(c.runFlow.commands);}
+   if(c.runFlow?.file==='helpers/old-open-topics.yaml')execute(JSON.parse(readFileSync('e2e/helpers/old-open-topics.yaml','utf8').split('---\n')[1]));
+   else if(c.runFlow?.when?.visible?.id==='nav-more'){if(schema===6)execute(c.runFlow.commands);}
    else if(c.tapOn?.id==='nav-more'){assert.equal(schema,6);menu=true;}
    else if(c.tapOn==='Наборы'){assert.ok(schema===5||menu,'schema6 topic requires overflow navigation');menu=false;topicVisits++;}
    else if(c.runFlow?.when?.true){if(c.runFlow.when.true.includes("=== 'true'"))execute(c.runFlow.commands);}
@@ -45,4 +46,13 @@ test('old_audio_branch_verifies_listening_prompt_then_types_and_submits_normal_a
  assert.ok(branch.slice(0,input).some(c=>c.assertVisible?.id==='training-prompt-listening'&&c.assertVisible.text==='Прослушайте слово'));
  assert.ok(branch.slice(input+1).some(c=>c.tapOn==='Проверить'));
  assert.equal(rows.at(-1).assertVisible,'Верно!.*');
+});
+test('both_old_topics_visits_share_one_compatibility_navigation_helper',()=>{
+ const visits=[];
+ function visit(rows){for(const c of rows){
+  if(c.runFlow?.file==='helpers/old-open-topics.yaml')visits.push(c);
+  assert.notEqual(c.runFlow?.when?.visible?.id,'nav-more','version-sensitive Topics routing belongs in the shared helper');
+  if(c.runFlow?.commands)visit(c.runFlow.commands);
+ }}
+ visit(commands);assert.equal(visits.length,2);
 });
