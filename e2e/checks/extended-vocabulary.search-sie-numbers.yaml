@@ -40,9 +40,6 @@ name: extended-vocabulary.search-sie-numbers
     "inputText": "Sie"
   },
   {
-    "hideKeyboard": {}
-  },
-  {
     "assertVisible": ".*Вы.*"
   },
   {
@@ -60,9 +57,6 @@ name: extended-vocabulary.search-sie-numbers
   },
   {
     "inputText": "22"
-  },
-  {
-    "hideKeyboard": {}
   },
   {
     "assertVisible": ".*zweiundzwanzig.*"

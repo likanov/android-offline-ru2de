@@ -554,3 +554,25 @@ test('editor_below_fold_reveals_search_down_content_first_and_keep_reverse_fallb
  }
  assert.equal(save.find(c=>c.runFlow?.env?.TARGET_TEXT==='${CARD_TEXT}').runFlow.file,'ensure-visible.yaml','card title remains top-first');
 });
+
+test('dictionary_search_preserves_foreground_when_ime_has_already_closed',()=>{
+ const commands=JSON.parse(readFileSync(resolve(root,'checks/extended-vocabulary.search-sie-numbers.yaml'),'utf8').split('---\n')[1]);
+ const start=commands.findIndex(c=>c.tapOn?.id==='dictionary-search');
+ assert.ok(start>=0);
+ for(const imeAfterInput of [false,true]){
+  let foreground=true,ime=false,query='';const verified=[];
+  for(const command of commands.slice(start)){
+   assert.ok(foreground,'search must remain in app even if the IME closed before dismissal');
+   if(command.tapOn){assert.equal(command.tapOn.id,'dictionary-search');ime=true;}
+   else if(command.eraseText)query='';
+   else if(command.inputText){query+=command.inputText;ime=imeAfterInput;}
+   else if(command.hideKeyboard){if(ime)ime=false;else foreground=false;}
+   else if(command.back)foreground=false;
+   else if(command.assertVisible){
+    const expected=query==='Sie'?'.*Вы.*':query==='22'?'.*zweiundzwanzig.*':null;
+    assert.equal(command.assertVisible,expected,'retain each query/result assertion');verified.push(query);
+   }else assert.fail('unexpected search command '+JSON.stringify(command));
+  }
+  assert.ok(foreground);assert.deepEqual(verified,['Sie','22']);
+ }
+});
