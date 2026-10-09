@@ -23,6 +23,7 @@ test('catalog_public_topic_route_is_single_word_before_twenty_answers',()=>{
   let created=false,selected=false,one=false,eligible=false,started=false,answers=0,menu=false,topicVisits=0;
   function execute(rows){for(const c of rows){
    if(c.runFlow?.file==='helpers/old-open-topics.yaml')execute(JSON.parse(readFileSync('e2e/helpers/old-open-topics.yaml','utf8').split('---\n')[1]));
+   else if(c.runFlow?.file==='old-open-navigation.yaml')execute(JSON.parse(readFileSync('e2e/helpers/old-open-navigation.yaml','utf8').split('---\n')[1].replaceAll('${OLD_NAV_ID}',c.runFlow.env.OLD_NAV_ID).replaceAll('${OLD_NAV_TEXT}',c.runFlow.env.OLD_NAV_TEXT)));
    else if(c.runFlow?.when?.visible?.id==='nav-more'){if(schema===6)execute(c.runFlow.commands);}
    else if(c.tapOn?.id==='nav-more'){assert.equal(schema,6);menu=true;}
    else if(c.tapOn==='Наборы'){assert.ok(schema===5||menu,'schema6 topic requires overflow navigation');menu=false;topicVisits++;}
@@ -69,4 +70,22 @@ test('effective_Maestro_env_selects_catalog_for_retained_schemas_and_legacy_for_
   assert.equal(effective.CATALOG_BASELINE,baseline==='Task5'?'false':'true');
  }
  assert.ok(regressionFlowEnvironment,'runner must explicitly supply the Task5 default');
+});
+test('post_mastery_profiles_navigation_supports_old_direct_and_overflow_layouts',()=>{
+ const start=commands.findIndex(c=>c.assertVisible==='Серия: 20/20');
+ const end=commands.findIndex((c,i)=>i>start&&c.repeat?.while?.notVisible==='.*250 XP.*');
+ for(const schema of ['Task5',5,6]){
+  let menu=false,profiles=false;
+  function execute(rows,base='e2e',env={}){for(const raw of rows){
+   const c=JSON.parse(JSON.stringify(raw).replace(/\$\{([^}]+)\}/g,(match,key)=>env[key]??match));
+   if(c.runFlow?.file){const file=base+'/'+c.runFlow.file;execute(JSON.parse(readFileSync(file,'utf8').split('---\n')[1]),file.slice(0,file.lastIndexOf('/')),{...env,...c.runFlow.env});}
+   else if(c.runFlow?.when?.visible?.id==='nav-more'){if(schema===6)execute(c.runFlow.commands,base,env);}
+   else if(c.tapOn?.id==='nav-more')menu=true;
+   else if(c.tapOn?.id==='nav-profiles'||c.tapOn==='Профили'){assert.ok(schema!==6||menu,'Profiles is inside schema6 overflow');profiles=true;}
+   else if(c.repeat){} // reveal loops do not change which navigation surface owns Profiles
+   else if(c.assertVisible){}
+   else assert.fail('unexpected post-mastery command '+JSON.stringify(c));
+  }}
+  execute(commands.slice(start+1,end));assert.ok(profiles);
+ }
 });

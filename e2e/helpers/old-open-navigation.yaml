@@ -1,0 +1,53 @@
+appId: com.personal.germanvocabulary
+name: old-open-navigation
+---
+[
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
+          "id": "nav-more"
+        }
+      },
+      "commands": [
+        {
+          "tapOn": {
+            "id": "nav-more"
+          }
+        },
+        {
+          "repeat": {
+            "while": {
+              "notVisible": {
+                "id": "${OLD_NAV_ID}"
+              }
+            },
+            "times": 12,
+            "commands": [
+              {
+                "swipe": {
+                  "from": {
+                    "id": "more-menu-scroll"
+                  },
+                  "direction": "UP",
+                  "duration": 400
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "file": "ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "${OLD_NAV_TEXT}"
+      }
+    }
+  },
+  {
+    "tapOn": "${OLD_NAV_TEXT}"
+  }
+]

@@ -762,8 +762,12 @@ env: {"UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_WORD_RU": "слово обно
     "assertVisible": "Серия: 20/20"
   },
   {
-    "tapOn": {
-      "id": "nav-profiles"
+    "runFlow": {
+      "file": "helpers/old-open-navigation.yaml",
+      "env": {
+        "OLD_NAV_ID": "nav-profiles",
+        "OLD_NAV_TEXT": "Профили"
+      }
     }
   },
   {

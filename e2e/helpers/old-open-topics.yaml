@@ -4,50 +4,11 @@ name: old-open-topics
 [
   {
     "runFlow": {
-      "when": {
-        "visible": {
-          "id": "nav-more"
-        }
-      },
-      "commands": [
-        {
-          "tapOn": {
-            "id": "nav-more"
-          }
-        },
-        {
-          "repeat": {
-            "while": {
-              "notVisible": {
-                "id": "nav-topics"
-              }
-            },
-            "times": 12,
-            "commands": [
-              {
-                "swipe": {
-                  "from": {
-                    "id": "more-menu-scroll"
-                  },
-                  "direction": "UP",
-                  "duration": 400
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "runFlow": {
-      "file": "ensure-visible.yaml",
+      "file": "old-open-navigation.yaml",
       "env": {
-        "TARGET_TEXT": "Наборы"
+        "OLD_NAV_ID": "nav-topics",
+        "OLD_NAV_TEXT": "Наборы"
       }
     }
-  },
-  {
-    "tapOn": "Наборы"
   }
 ]
