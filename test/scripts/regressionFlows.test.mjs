@@ -596,3 +596,25 @@ test('export_dialog_checks_entered_name_after_ime_commit_before_save',()=>{
  assert.throws(()=>submit('b0123456789abcdef 0123456789abcdef.json'),/changed filename/);
  assert.throws(()=>submit(typed+' (1)'),/changed filename/);
 });
+
+test('old_upgrade_training_entry_supports_direct_questions_and_catalog_home',()=>{
+ const commands=JSON.parse(readFileSync(resolve(root,'upgrade-before.yaml'),'utf8').split('---\n')[1]);
+ const entry=commands.findIndex(c=>c.tapOn==='Тренировка');
+ const loop=commands.findIndex((c,i)=>i>entry&&c.repeat?.times===19);
+ assert.ok(entry>=0&&loop>entry);
+ for(const baseline of ['Task5-direct','schema5-direct','schema6-home']){
+  let screen=baseline==='schema6-home'?'home':'question',starts=0,answers=0;
+  function execute(rows){for(const c of rows){
+   if(c.runFlow?.when){assert.equal(c.runFlow.when.visible,'Изучать слова');if(screen==='home')execute(c.runFlow.commands);}
+   else if(c.tapOn==='Изучать слова'){assert.equal(screen,'home');screen='question';starts++;}
+   else if(c.extendedWaitUntil){assert.deepEqual(c.extendedWaitUntil.visible,{id:'training-prompt-.*'});assert.equal(screen,'question','must reach a real question before answering');}
+   else if(c.repeat){for(let i=0;i<c.repeat.times;i++)execute(c.repeat.commands);}
+   else if(c.runFlow?.file==='helpers/old-answer.yaml'){assert.equal(screen,'question','old-answer requires question, not training home');answers++;}
+   else if(c.runFlow?.file==='helpers/ensure-visible.yaml'){assert.equal(c.runFlow.env.TARGET_TEXT,'Продолжить');}
+   else if(c.tapOn==='Продолжить')assert.equal(screen,'question');
+   else assert.fail('unexpected training command '+JSON.stringify(c));
+  }}
+  execute(commands.slice(entry+1,loop+2)); // Original 19-loop and final twentieth answer.
+  assert.equal(starts,baseline==='schema6-home'?1:0);assert.equal(answers,20);
+ }
+});

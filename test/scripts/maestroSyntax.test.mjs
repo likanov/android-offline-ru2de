@@ -9,7 +9,7 @@ import {MATRIX} from '../../scripts/regression-report.mjs';
 // check-syntax is parser-only: this test never selects, boots or contacts a device.
 const flows=[...new Set([
  ...MATRIX.filter(row=>['extended-vocabulary','grammar-lektion2'].includes(row.id)).flatMap(row=>[row.flow,...row.checks.map(c=>c.flow)]),
- 'checks/grammar-persistence.sqlite-five-six-upgrade.yaml','grammar-import-fixture.yaml','helpers/save-word-return-dictionary.yaml','helpers/open-navigation.yaml','helpers/ensure-visible-below.yaml','helpers/export-state.yaml','schema6-grammar-before.yaml',
+ 'checks/grammar-persistence.sqlite-five-six-upgrade.yaml','grammar-import-fixture.yaml','helpers/save-word-return-dictionary.yaml','helpers/open-navigation.yaml','helpers/ensure-visible-below.yaml','helpers/export-state.yaml','upgrade-before.yaml','schema6-grammar-before.yaml',
 ])];
 const maestro=[process.env.MAESTRO_BIN,resolve('../../../work/toolchains/maestro/maestro/bin/maestro')].filter(Boolean).find(path=>existsSync(path));
 const parserHome=maestro?mkdtempSync(join(tmpdir(),'maestro-syntax-test-')):null;

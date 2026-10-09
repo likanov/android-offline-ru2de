@@ -540,6 +540,26 @@ name: upgrade-before
     "tapOn": "Тренировка"
   },
   {
+    "runFlow": {
+      "when": {
+        "visible": "Изучать слова"
+      },
+      "commands": [
+        {
+          "tapOn": "Изучать слова"
+        }
+      ]
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "training-prompt-.*"
+      },
+      "timeout": 15000
+    }
+  },
+  {
     "repeat": {
       "times": 19,
       "commands": [
