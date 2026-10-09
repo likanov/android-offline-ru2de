@@ -619,3 +619,18 @@ test('old_upgrade_training_entry_supports_direct_questions_and_catalog_home',()=
   assert.equal(starts,baseline==='schema6-home'?1:0);assert.equal(answers,20);
  }
 });
+
+test('schema5_upgrade_search_stays_foreground_if_input_already_dismissed_ime',()=>{
+ const commands=JSON.parse(readFileSync(resolve(root,'checks/grammar-persistence.sqlite-five-six-upgrade.yaml'),'utf8').split('---\n')[1]);
+ const start=commands.findIndex(c=>c.inputText==='Upgradeprobe');assert.ok(start>=0);
+ for(const imeAfterInput of [false,true]){
+  let foreground=true,ime=imeAfterInput,verified=false;
+  for(const c of commands.slice(start+1)){
+   assert.ok(foreground,'search must not Back to launcher after IME already closed');
+   if(c.hideKeyboard){if(ime)ime=false;else foreground=false;}
+   else if(c.assertVisible){assert.equal(c.assertVisible,'.*Upgradeprobe.*');verified=true;}
+   else assert.fail('unexpected post-input command '+JSON.stringify(c));
+  }
+  assert.ok(foreground);assert.ok(verified,'retain migrated custom-word assertion');
+ }
+});
