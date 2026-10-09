@@ -80,6 +80,12 @@ name: export-state
     "hideKeyboard": {}
   },
   {
+    "assertVisible": {
+      "id": "android:id/title",
+      "text": "^${EXPORT_NAME}$"
+    }
+  },
+  {
     "tapOn": "SAVE"
   },
   {

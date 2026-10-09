@@ -150,26 +150,20 @@ test('runner_pulls_exported_backup_from_downloads_when_documentsui_ignores_subfo
 });
 
 
-test('runner_pulls_exported_backup_from_private_mirror_when_documentsui_path_is_hidden', async () => {
-  const {pullExportedFile} = await import('../../scripts/emulator-regression.mjs');
-  const calls = [];
-  const result = pullExportedFile({
-    adb: 'adb',
-    serial: 'emulator-5580',
-    filename: 'after-restore.json',
-    destination: '/tmp/after-restore.json',
-    execute(command, args, options) {
-      calls.push({command, args, options});
-      const remote = args[3];
-      return {status: remote === '/data/user/0/com.personal.germanvocabulary/files/last-export.json' ? 0 : 1};
-    },
-  });
-  assert.equal(result.remote, '/data/user/0/com.personal.germanvocabulary/files/last-export.json');
-  assert.deepEqual(calls.map(call => call.args[3]), [
-    '/sdcard/Download/GermanVocabulary/after-restore.json',
-    '/sdcard/Download/after-restore.json',
-    '/data/user/0/com.personal.germanvocabulary/files/last-export.json',
-  ]);
+test('runner_rejects_missing_exact_public_export_even_when_private_mirror_exists', async () => {
+ const {pullExportedFile}=await import('../../scripts/emulator-regression.mjs');const calls=[];
+ assert.throws(()=>pullExportedFile({adb:'adb',serial:'emulator-5580',filename:'b123.json',destination:'/tmp/export.json',execute(command,args){calls.push(args[3]);return {status:args[3].includes('last-export.json')?0:1};}}),/EXPORTED_FILE_NOT_FOUND/);
+ assert.deepEqual(calls,['/sdcard/Download/GermanVocabulary/b123.json','/sdcard/Download/b123.json']);
+});
+
+test('public_export_names_are_opaque_unique_and_keep_logical_evidence_names',async()=>{
+ const {publicExportPlan}=await import('../../scripts/emulator-regression.mjs');
+ const names=new Set();
+ for(const logicalName of ['extended-vocabulary.backup3-roundtrip-operation','transfer.json-roundtrip-restored','imported-lektion2-fixture'])for(let i=0;i<100;i++){
+  const plan=publicExportPlan(logicalName);
+  assert.equal(plan.logicalName,logicalName);assert.equal(plan.evidenceFilename,logicalName+'.json');
+  assert.match(plan.filename,/^b[a-f0-9]{32}\.json$/);assert.ok(!names.has(plan.filename));names.add(plan.filename);
+ }
 });
 
 

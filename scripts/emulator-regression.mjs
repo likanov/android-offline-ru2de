@@ -244,8 +244,16 @@ function recordDictionaryUxEvidence(check) {
  report.dictionaryUx ??={};
  report.dictionaryUx[check.id]={apkSha256:report.apk.sha256,captures,observations};
 }
+export function publicExportPlan(logicalName) {
+ return {logicalName,filename:'b'+randomUUID().replaceAll('-','')+'.json',evidenceFilename:logicalName+'.json'};
+}
+function planExport(logicalName) {
+ const plan=publicExportPlan(logicalName);
+ (report.publicExports??=[]).push(plan);
+ return plan;
+}
 export function exportedBackupCandidates(filename) {
- return ['/sdcard/Download/GermanVocabulary/'+filename, '/sdcard/Download/'+filename, '/data/user/0/'+applicationId+'/files/last-export.json'];
+ return ['/sdcard/Download/GermanVocabulary/'+filename, '/sdcard/Download/'+filename];
 }
 function pullExportedFileInternal({execute, adb, serial, filename, destination}) {
  const attempts=[];
@@ -258,8 +266,10 @@ function pullExportedFileInternal({execute, adb, serial, filename, destination})
 }
 export function pullExportedFile(args) { return pullExportedFileInternal(args); }
 function captureState(name) {
- const filename=name+'.json';flow('export-'+name,'helpers/export-state.yaml',{EXPORT_NAME:filename});
- const path=join(reportDir,filename);pullExportedFileInternal({execute,adb,serial,filename,destination:path});
+ const plan=planExport(name),{filename,evidenceFilename}=plan;flow('export-'+name,'helpers/export-state.yaml',{EXPORT_NAME:filename});
+ const path=join(reportDir,evidenceFilename);
+ const receipt=pullExportedFileInternal({execute,adb,serial,filename,destination:path});
+ Object.assign(plan,{publicPath:receipt.remote,evidencePath:path});
  const backup=JSON.parse(readFileSync(path,'utf8'));if(backup.format!=='german-vocabulary-backup')throw Error('EXPORTED_BACKUP_INVALID');
  latestBackup=backup;return backup;
 }
@@ -343,7 +353,8 @@ async function group(row,baseline) {
   let before=baseline??latestBackup;
   if(check.state&&check.id!=='assistant.helper-save-edit'&&!baseline)before=captureState(check.id+'-before');
   await beforeCheck(check);
-  const extra={...lektion2Answers(before),CHECK_ID:check.id,FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:check.id+'-operation.json',RESTORE_CHECKPOINT_NAME:check.id+'-restored.json'};
+  const operation=planExport(check.id+'-operation'),restored=planExport(check.id+'-restored');
+  const extra={...lektion2Answers(before),CHECK_ID:check.id,FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model.manifest.fileName,EXPORT_NAME:operation.filename,RESTORE_CHECKPOINT_NAME:restored.filename};
   flow(check.id,check.flow,extra);
   report.scenarios.find(s=>s.id===check.id).apkSha256=report.apk.sha256;
   recordDictionaryUxEvidence(check);
@@ -352,9 +363,10 @@ async function group(row,baseline) {
    const after=captureState(check.id+'-after'),today=shell('date','+%Y-%m-%d').stdout.trim();
    let restoreCheckpoint,restoreEvidence;
    if(check.id==='transfer.json-roundtrip'){
-    const filename=check.id+'-restored.json';
-    restoreEvidence=join(reportDir,filename);
-    pullExportedFileInternal({execute,adb,serial,filename,destination:restoreEvidence});
+    const filename=restored.filename;
+    restoreEvidence=join(reportDir,restored.evidenceFilename);
+    const receipt=pullExportedFileInternal({execute,adb,serial,filename,destination:restoreEvidence});
+    Object.assign(restored,{publicPath:receipt.remote,evidencePath:restoreEvidence});
     restoreCheckpoint=JSON.parse(readFileSync(restoreEvidence,'utf8'));
     if(restoreCheckpoint.format!=='german-vocabulary-backup')throw Error('RESTORE_CHECKPOINT_INVALID');
    }

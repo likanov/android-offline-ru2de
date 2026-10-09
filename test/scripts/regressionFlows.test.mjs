@@ -576,3 +576,23 @@ test('dictionary_search_preserves_foreground_when_ime_has_already_closed',()=>{
   assert.ok(foreground);assert.deepEqual(verified,['Sie','22']);
  }
 });
+
+test('export_dialog_checks_entered_name_after_ime_commit_before_save',()=>{
+ const commands=JSON.parse(readFileSync(resolve(root,'helpers/export-state.yaml'),'utf8').split('---\n')[1]);
+ const input=commands.findIndex(c=>c.inputText==='${EXPORT_NAME}');
+ const save=commands.findIndex(c=>c.tapOn==='SAVE');
+ const typed='b0123456789abcdef0123456789abcdef.json';
+ function submit(renderedName){let checked=false;
+  for(const command of commands.slice(input+1,save+1)){
+   if(command.hideKeyboard)checked=false; // IME commit may transform text.
+   if(command.assertVisible?.id==='android:id/title'){
+    const pattern=command.assertVisible.text.replace('${EXPORT_NAME}',typed);
+    assert.ok(new RegExp(pattern).test(renderedName),'changed filename must fail before SAVE');checked=true;
+   }
+   if(command.tapOn==='SAVE')assert.ok(checked,'validate committed filename before SAVE');
+  }
+ }
+ submit(typed);
+ assert.throws(()=>submit('b0123456789abcdef 0123456789abcdef.json'),/changed filename/);
+ assert.throws(()=>submit(typed+' (1)'),/changed filename/);
+});
