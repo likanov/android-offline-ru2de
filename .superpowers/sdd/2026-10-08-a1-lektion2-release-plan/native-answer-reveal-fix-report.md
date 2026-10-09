@@ -29,3 +29,19 @@ Typecheck passes. Full lint exits 0 with 13 existing no-require-imports warnings
 ## Acceptance boundary
 
 This is a source correction with host evidence, not completed native acceptance. Root/R2 must review and build a fresh release APK from the correction, then verify prompt/input/submit together with the IME open for typed vocabulary and grammar, including 320dp and enlarged font. The diagnostic APK predates this correction and is not release proof.
+
+## Native round 2: common coordinate correction
+
+The release from `6cf74e2` created scroll range but failed strict visual acceptance: the submit button was only partially visible above the keyboard. An accessibility assertion on the button did not establish that its label/body were fully visible. The earlier host geometry model used the reported window coordinates for its final visibility assertion and missed the native coordinate-origin difference.
+
+Round 2 evidence directory: `/Users/anton/Documents/Codex/2026-10-03/j/outputs/a1-lektion2-release/r2/diagnostic-reveal2/` (`trace.log`, `open.png`, `open.xml`, `manifest.json`, `source.patch`). With IME open, viewport `measureInWindow` y was -53dp, while native `measure().pageY` was 0dp. Target window y was 119.333dp/height 213.667dp; root pageY was 172.333dp with the same height. Keyboard screenY was 341dp. The physical group bottom was therefore 386dp, although the window callback made it appear to end at 333dp. XML submit bounds were [60,1002][1020,1146]px, with IME top 1023px. No answer was submitted or keyboard manually hidden during this capture.
+
+Local React Native 0.85.3 source explains the difference: `RootViewUtil.getViewportOffset` subtracts `getWindowVisibleDisplayFrame().top` from the native window position. Fabric `DOM.measureInWindow` includes that viewport offset, while `DOM.measure` excludes it. Android keyboard `screenY` is taken from the physical visible-display-frame bottom. This app uses an edge-to-edge root at screen origin, confirmed by root pageY 0 and the native hierarchy.
+
+The minimal round 2 correction measures both viewport and answer via `measure().pageY` on Android, matching keyboard screenY in this app. iOS retains window measurements. Keyboard overlap reservation, layout reconciliation and actual-offset tracking remain. No extra margin or timing delay was introduced; the existing 8dp clearance is unchanged. All temporary diagnostics were removed.
+
+The new Android regression models both measurement origins and asserts the entire physical answer-group bottom against the keyboard edge. With the correct QuestionScreen keyboard listener, reverting to `6cf74e2` gives RED: 386dp > 333dp (other six tests pass). Restoring the correction gives GREEN: all seven focused tests pass. This closes the host model's previous blind spot; it does not replace fresh native visual proof.
+
+Round 2 host verification results are recorded below. A fresh corrected APK, scoped review, and strict prompt/input/full-submit visual proof at default and small/large-font settings remain pending with root/R2.
+
+Round 2 final verification: full Jest **83 suites / 517 tests passed**, log `/private/tmp/reveal2-final-jest.log`; focused reveal **7 passed**; typecheck passed; lint exited 0 with the same 13 existing fixture require-import warnings; `git diff --check` passed. Source contains no temporary trace tags.

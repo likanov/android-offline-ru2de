@@ -2,6 +2,14 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { theme } from './theme';
 
+// Fabric Android measureInWindow includes RootViewUtil's visible-frame offset,
+// whereas keyboard screenY does not. This edge-to-edge app's root coordinates
+// match the screen; measure().pageY excludes that offset. iOS uses window space.
+function measureForKeyboard(target: Pick<View, 'measure' | 'measureInWindow'>, callback: (y: number, height: number) => void) {
+  if (Platform.OS === 'android') target.measure((_, __, ___, height, ____, pageY) => callback(pageY, height));
+  else target.measureInWindow((_, y, __, height) => callback(y, height));
+}
+
 type RevealContextValue = (target: View | null) => void;
 const RevealContext = createContext<RevealContextValue>(() => {});
 
@@ -29,13 +37,15 @@ export function QuestionScreen({ children, onScrollTo }: React.PropsWithChildren
     if (!target || !mountedRef.current || keyboardTopRef.current == null) return;
     // Android edge-to-edge windows can retain a full-height ScrollView under
     // the IME. Reserve the covered area so even short content can scroll.
-    // Both measurements must use window coordinates (onLayout is relative).
-    scrollRef.current?.getNativeScrollRef()?.measureInWindow((_, viewportY, __, viewportHeight) => {
+    // Measure the viewport and answer in the same space as keyboard screenY.
+    const viewport = scrollRef.current?.getNativeScrollRef();
+    if (!viewport) return;
+    measureForKeyboard(viewport, (viewportY, viewportHeight) => {
       const keyboardTop = keyboardTopRef.current;
       if (!mountedRef.current || targetRef.current !== target || keyboardTop == null || viewportHeight <= 0) return;
       const viewportBottom = viewportY + viewportHeight;
       setKeyboardOverlap(Math.max(0, viewportBottom - keyboardTop));
-      target.measureInWindow((_, y, __, height) => {
+      measureForKeyboard(target, (y, height) => {
         if (!mountedRef.current || targetRef.current !== target || keyboardTopRef.current !== keyboardTop) return;
         const visibleBottom = Math.min(viewportBottom, keyboardTop) - 8;
         const visibleTop = viewportY + 8;

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Keyboard, ScrollView, StyleSheet, View } from 'react-native';
+import { Keyboard, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { QuestionScreen, useQuestionInputReveal } from '../../src/ui/QuestionScreen';
 
@@ -113,4 +113,27 @@ test('creates_native_scroll_range_when_keyboard_overlays_content_shorter_than_th
   act(() => { (keyboardEvent![1] as (event: { endCoordinates: { screenY: number } }) => void)({ endCoordinates: { screenY: 341 } }); });
   fireEvent(scroll, 'contentSizeChange', 360, 802.33);
   expect(137.67 + 213.67 - actualOffset).toBeLessThanOrEqual(333);
+});
+
+test('reveals_the_entire_android_answer_when_fabric_window_measurement_subtracts_visible_frame_origin', () => {
+  jest.replaceProperty(Platform, 'OS', 'android');
+  let target: View | undefined;
+  let actualOffset = 11.667;
+  const addListener = jest.spyOn(Keyboard, 'addListener');
+  const scrollTo = jest.fn(({ y }: { y: number }) => { actualOffset = y; });
+  render(<QuestionScreen onScrollTo={scrollTo}><MeasuredAnswer onReady={node => { target = node; }} /></QuestionScreen>);
+  const scroll = screen.getByTestId('screen-scroll');
+  const nativeScroll = screen.UNSAFE_getByType(ScrollView).instance;
+  nativeScroll.getNativeScrollRef = () => nativeScroll;
+  nativeScroll.measureInWindow = (callback: (x: number, y: number, width: number, height: number) => void) => callback(0, -53, 360, 640);
+  nativeScroll.measure = (callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => callback(0, 0, 360, 640, 0, 0);
+  (target as any).measureInWindow = (callback: (x: number, y: number, width: number, height: number) => void) => callback(0, 184 - actualOffset - 53, 360, 213.667);
+  (target as any).measure = (callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => callback(0, 0, 360, 213.667, 0, 184 - actualOffset);
+  fireEvent.scroll(scroll, { nativeEvent: { contentOffset: { y: actualOffset } } });
+  const keyboardEvent = addListener.mock.calls.filter(([name]) => name === 'keyboardDidShow').pop();
+  act(() => { (keyboardEvent![1] as (event: { endCoordinates: { screenY: number } }) => void)({ endCoordinates: { screenY: 341 } }); });
+  fireEvent(scroll, 'contentSizeChange', 360, 855.33);
+  // Assert the physical entire group bottom, not the misleading Fabric window
+  // bottom or an accessibility match on a partially visible submit button.
+  expect(184 + 213.667 - actualOffset).toBeLessThanOrEqual(333);
 });
