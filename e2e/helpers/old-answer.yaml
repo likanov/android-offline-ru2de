@@ -99,6 +99,51 @@ name: old-answer
     "runFlow": {
       "when": {
         "visible": {
+          "id": "training-prompt-listening"
+        }
+      },
+      "commands": [
+        {
+          "assertVisible": {
+            "id": "training-prompt-listening",
+            "text": "Прослушайте слово"
+          }
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Ответ на немецком"
+            }
+          }
+        },
+        {
+          "tapOn": "Ответ на немецком"
+        },
+        {
+          "inputText": "${output.answer.german}"
+        },
+        {
+          "hideKeyboard": {}
+        },
+        {
+          "runFlow": {
+            "file": "ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Проверить"
+            }
+          }
+        },
+        {
+          "tapOn": "Проверить"
+        }
+      ]
+    }
+  },
+  {
+    "runFlow": {
+      "when": {
+        "visible": {
           "id": "training-prompt-definite-article"
         }
       },

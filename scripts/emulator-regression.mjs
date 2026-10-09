@@ -427,7 +427,7 @@ async function runCatalogUpgrade(schema) {
  shell('mkdir','-p','/sdcard/Download/GermanVocabulary');shell('logcat','-c');
  const {before,after}=await runRetainedUpgrade({schema,prepareClock:options=>setClock(fixtureDay+'T12:00:00Z','Europe/Berlin',options),previousApk:options[schema===6?'schema6-apk':'grammar-previous-apk'],finalApk:options.apk,
   install:(path,replace)=>execute(adb,['-s',serial,'install',...(replace?['-r']:[]),path]),
-  flow:id=>flow(id,id+'.yaml'),capture:id=>captureState(id)});
+  flow:id=>flow(id,id+'.yaml',{CATALOG_BASELINE:'true'}),capture:id=>captureState(id)});
  const id=schema===6?'grammar-lektion2.schema6-eight-upgrade':'grammar-persistence.sqlite-five-six-upgrade';
  const check=MATRIX.flatMap(row=>row.checks).find(check=>check.id===id);
  flow(id,check.flow);

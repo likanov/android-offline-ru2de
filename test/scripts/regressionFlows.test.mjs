@@ -598,7 +598,8 @@ test('export_dialog_checks_entered_name_after_ime_commit_before_save',()=>{
 });
 
 test('old_upgrade_training_entry_supports_direct_questions_and_catalog_home',()=>{
- const commands=JSON.parse(readFileSync(resolve(root,'upgrade-before.yaml'),'utf8').split('---\n')[1]);
+ const raw=JSON.parse(readFileSync(resolve(root,'upgrade-before.yaml'),'utf8').split('---\n')[1]);
+ const commands=raw.flatMap(c=>c.runFlow?.when?.true?.includes("!== 'true'")?c.runFlow.commands:[c]);
  const entry=commands.findIndex(c=>c.tapOn==='Тренировка');
  const loop=commands.findIndex((c,i)=>i>entry&&c.repeat?.times===19);
  assert.ok(entry>=0&&loop>entry);

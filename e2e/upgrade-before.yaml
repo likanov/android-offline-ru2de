@@ -1,5 +1,6 @@
 appId: com.personal.germanvocabulary
 name: upgrade-before
+env: {"CATALOG_BASELINE": "false", "UPGRADE_WORD_DE": "Upgradeprobe", "UPGRADE_WORD_RU": "слово обновления", "UPGRADE_ARTICLE": "der", "UPGRADE_INDEFINITE": "ein", "UPGRADE_TOPIC": "Upgradefocus"}
 ---
 [
   {
@@ -103,6 +104,94 @@ name: upgrade-before
   },
   {
     "tapOn": "Создать профиль"
+  },
+  {
+    "runFlow": {
+      "when": {
+        "true": "${CATALOG_BASELINE === 'true'}"
+      },
+      "commands": [
+        {
+          "runFlow": {
+            "when": {
+              "visible": {
+                "id": "nav-more"
+              }
+            },
+            "commands": [
+              {
+                "tapOn": {
+                  "id": "nav-more"
+                }
+              },
+              {
+                "repeat": {
+                  "while": {
+                    "notVisible": {
+                      "id": "nav-topics"
+                    }
+                  },
+                  "times": 12,
+                  "commands": [
+                    {
+                      "swipe": {
+                        "from": {
+                          "id": "more-menu-scroll"
+                        },
+                        "direction": "UP",
+                        "duration": 400
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Наборы"
+            }
+          }
+        },
+        {
+          "tapOn": "Наборы"
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Название нового набора"
+            }
+          }
+        },
+        {
+          "tapOn": "Название нового набора"
+        },
+        {
+          "inputText": "${UPGRADE_TOPIC}"
+        },
+        {
+          "hideKeyboard": {}
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Создать набор"
+            }
+          }
+        },
+        {
+          "tapOn": "Создать набор"
+        },
+        {
+          "assertVisible": "Выбрать набор: ${UPGRADE_TOPIC}"
+        }
+      ]
+    }
   },
   {
     "runFlow": {
@@ -277,7 +366,7 @@ name: upgrade-before
     "eraseText": 100
   },
   {
-    "inputText": "Upgradeprobe"
+    "inputText": "${UPGRADE_WORD_DE}"
   },
   {
     "hideKeyboard": {}
@@ -365,7 +454,7 @@ name: upgrade-before
     "eraseText": 100
   },
   {
-    "inputText": "слово обновления"
+    "inputText": "${UPGRADE_WORD_RU}"
   },
   {
     "hideKeyboard": {}
@@ -374,7 +463,7 @@ name: upgrade-before
     "repeat": {
       "while": {
         "notVisible": {
-          "text": "der — мужской род"
+          "text": "${UPGRADE_ARTICLE} — мужской род"
         }
       },
       "times": 35,
@@ -395,7 +484,7 @@ name: upgrade-before
     "repeat": {
       "while": {
         "notVisible": {
-          "text": "der — мужской род"
+          "text": "${UPGRADE_ARTICLE} — мужской род"
         }
       },
       "times": 18,
@@ -416,7 +505,7 @@ name: upgrade-before
     "repeat": {
       "while": {
         "notVisible": {
-          "text": "der — мужской род"
+          "text": "${UPGRADE_ARTICLE} — мужской род"
         }
       },
       "times": 18,
@@ -435,19 +524,39 @@ name: upgrade-before
   },
   {
     "assertVisible": {
-      "text": "der — мужской род"
+      "text": "${UPGRADE_ARTICLE} — мужской род"
     }
   },
   {
     "runFlow": {
       "file": "helpers/ensure-visible.yaml",
       "env": {
-        "TARGET_TEXT": "der — мужской род"
+        "TARGET_TEXT": "${UPGRADE_ARTICLE} — мужской род"
       }
     }
   },
   {
-    "tapOn": "der — мужской род"
+    "tapOn": "${UPGRADE_ARTICLE} — мужской род"
+  },
+  {
+    "runFlow": {
+      "when": {
+        "true": "${CATALOG_BASELINE === 'true'}"
+      },
+      "commands": [
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "${UPGRADE_TOPIC}"
+            }
+          }
+        },
+        {
+          "tapOn": "${UPGRADE_TOPIC}"
+        }
+      ]
+    }
   },
   {
     "repeat": {
@@ -530,33 +639,143 @@ name: upgrade-before
   },
   {
     "runFlow": {
-      "file": "helpers/ensure-visible.yaml",
-      "env": {
-        "TARGET_TEXT": "Тренировка"
-      }
-    }
-  },
-  {
-    "tapOn": "Тренировка"
-  },
-  {
-    "runFlow": {
       "when": {
-        "visible": "Изучать слова"
+        "true": "${CATALOG_BASELINE === 'true'}"
       },
       "commands": [
         {
-          "tapOn": "Изучать слова"
+          "runFlow": {
+            "when": {
+              "visible": {
+                "id": "nav-more"
+              }
+            },
+            "commands": [
+              {
+                "tapOn": {
+                  "id": "nav-more"
+                }
+              },
+              {
+                "repeat": {
+                  "while": {
+                    "notVisible": {
+                      "id": "nav-topics"
+                    }
+                  },
+                  "times": 12,
+                  "commands": [
+                    {
+                      "swipe": {
+                        "from": {
+                          "id": "more-menu-scroll"
+                        },
+                        "direction": "UP",
+                        "duration": 400
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Наборы"
+            }
+          }
+        },
+        {
+          "tapOn": "Наборы"
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Выбрать набор: ${UPGRADE_TOPIC}"
+            }
+          }
+        },
+        {
+          "tapOn": "Выбрать набор: ${UPGRADE_TOPIC}"
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Слов в наборе: 1"
+            }
+          }
+        },
+        {
+          "assertVisible": "Слов в наборе: 1"
+        },
+        {
+          "assertVisible": "Доступно для изучения: 1"
+        },
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Изучать набор"
+            }
+          }
+        },
+        {
+          "tapOn": "Изучать набор"
+        },
+        {
+          "extendedWaitUntil": {
+            "visible": {
+              "id": "training-prompt-.*"
+            },
+            "timeout": 15000
+          }
         }
       ]
     }
   },
   {
-    "extendedWaitUntil": {
-      "visible": {
-        "id": "training-prompt-.*"
+    "runFlow": {
+      "when": {
+        "true": "${CATALOG_BASELINE !== 'true'}"
       },
-      "timeout": 15000
+      "commands": [
+        {
+          "runFlow": {
+            "file": "helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Тренировка"
+            }
+          }
+        },
+        {
+          "tapOn": "Тренировка"
+        },
+        {
+          "runFlow": {
+            "when": {
+              "visible": "Изучать слова"
+            },
+            "commands": [
+              {
+                "tapOn": "Изучать слова"
+              }
+            ]
+          }
+        },
+        {
+          "extendedWaitUntil": {
+            "visible": {
+              "id": "training-prompt-.*"
+            },
+            "timeout": 15000
+          }
+        }
+      ]
     }
   },
   {
@@ -691,7 +910,7 @@ name: upgrade-before
     "tapOn": "Поиск слов"
   },
   {
-    "inputText": "Upgradeprobe"
+    "inputText": "${UPGRADE_WORD_DE}"
   },
   {
     "hideKeyboard": {}
