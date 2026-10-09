@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import {appendDeviceLog,generationFromHierarchy,completeRegressionReport,offlineRadioState,rootVerified,applicationAlarmEpochs,alarmMatchesLocalTime,maestroOutcome} from './regression-evidence.mjs';
-import {runRetainedUpgrade} from './regression-upgrade.mjs';
+import {runRetainedUpgrade,installReplacementAndLaunch} from './regression-upgrade.mjs';
 import {verifyScenarioState,compareBackupGraphs} from './regression-state.mjs';
 import { MATRIX, validateSchema6Upgrade, REQUIRED_SCENARIOS, sha256File, validateRegressionReport, validateBlockRegressionReport, matrixRowForBlock, scenarioIdsForBlock } from './regression-report.mjs';
 const appRoot=resolve(dirname(fileURLToPath(import.meta.url)),'..');
@@ -428,6 +428,7 @@ async function runCatalogUpgrade(schema) {
  shell('mkdir','-p','/sdcard/Download/GermanVocabulary');shell('logcat','-c');
  const {before,after}=await runRetainedUpgrade({schema,prepareClock:options=>setClock(fixtureDay+'T12:00:00Z','Europe/Berlin',options),previousApk:options[schema===6?'schema6-apk':'grammar-previous-apk'],finalApk:options.apk,
   install:(path,replace)=>execute(adb,['-s',serial,'install',...(replace?['-r']:[]),path]),
+  launch:()=>shell('am','start','-W','-n',applicationId+'/.MainActivity'),
   flow:id=>flow(id,id+'.yaml',{CATALOG_BASELINE:'true'}),capture:id=>captureState(id)});
  const id=schema===6?'grammar-lektion2.schema6-eight-upgrade':'grammar-persistence.sqlite-five-six-upgrade';
  const check=MATRIX.flatMap(row=>row.checks).find(check=>check.id===id);
@@ -460,7 +461,7 @@ async function runUpgradePhase() {
  execute(adb,['-s',serial,'install',options['previous-apk']]);setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
  flow('upgrade-before','upgrade-before.yaml');hierarchy('upgrade-before');screenshot('upgrade-before');
  captureDeviceLog('upgrade-before-install');shell('logcat','-c');
- execute(adb,['-s',serial,'install','-r',options.apk]);shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
+ await installReplacementAndLaunch({finalApk:options.apk,install:path=>execute(adb,['-s',serial,'install','-r',path]),launch:()=>shell('am','start','-W','-n',applicationId+'/.MainActivity')});shell('mkdir','-p','/sdcard/Download/GermanVocabulary');
  latestBackup=captureState('upgrade-baseline');await group(MATRIX.find(row=>row.phase==='upgrade'),latestBackup);
  captureDeviceLog('upgrade-final');
 }

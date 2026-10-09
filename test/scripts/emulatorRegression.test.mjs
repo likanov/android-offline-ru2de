@@ -234,8 +234,8 @@ test('schema6_upgrade_requires_distinct_signed_apk',async()=>{
 test('retained_upgrade_exports_before_install_and_never_injects_database',async()=>{
  const {runRetainedUpgrade}=await import('../../scripts/regression-upgrade.mjs');
  const calls=[];
- const result=await runRetainedUpgrade({schema:6,previousApk:'old.apk',finalApk:'final.apk',install:(path,replace)=>calls.push(['install',path,replace]),flow:id=>calls.push(['flow',id]),capture:id=>{calls.push(['export',id]);return {id};}});
- assert.deepEqual(calls,[['install','old.apk',false],['flow','upgrade-before'],['flow','schema6-grammar-before'],['export','schema6-before'],['install','final.apk',true],['export','schema6-after']]);
+ const result=await runRetainedUpgrade({schema:6,previousApk:'old.apk',finalApk:'final.apk',install:(path,replace)=>calls.push(['install',path,replace]),launch:()=>calls.push(['launch']),flow:id=>calls.push(['flow',id]),capture:id=>{calls.push(['export',id]);return {id};}});
+ assert.deepEqual(calls,[['install','old.apk',false],['flow','upgrade-before'],['flow','schema6-grammar-before'],['export','schema6-before'],['install','final.apk',true],['launch'],['export','schema6-after']]);
  assert.equal(result.before.id,'schema6-before');assert.equal(result.after.id,'schema6-after');
 });
 
@@ -288,7 +288,7 @@ test('catalog_upgrades_set_clock_without_starting_an_uninstalled_activity',async
  for(const schema of [5,6]){
   let installed=false;const calls=[],clockReport={};
   const runShell=(...args)=>{calls.push(args);if(args[0]==='am'&&['start','force-stop'].includes(args[1]))assert.ok(installed,'no Activity operation before old APK install');return {stdout:args[1]==='+%s'?epoch:instant};};
-  await runRetainedUpgrade({schema,previousApk:'old.apk',finalApk:'new.apk',prepareClock:options=>setClock(instant,'Europe/Berlin',{...options,runShell,clockReport}),install:(path)=>{calls.push(['install',path]);installed=true;},flow:id=>{assert.ok(installed);calls.push(['flow',id]);},capture:id=>({id})});
+  await runRetainedUpgrade({schema,previousApk:'old.apk',finalApk:'new.apk',prepareClock:options=>setClock(instant,'Europe/Berlin',{...options,runShell,clockReport}),install:(path)=>{calls.push(['install',path]);installed=true;},launch:()=>{assert.ok(installed);},flow:id=>{assert.ok(installed);calls.push(['flow',id]);},capture:id=>({id})});
   assert.equal(clockReport.clockChanges?.length,1,'deterministic clock must be set');
   assert.ok(calls.findIndex(c=>c[0]==='date'&&c[1]==='-s')<calls.findIndex(c=>c[0]==='install'));
   assert.deepEqual(calls.filter(c=>c[0]==='am'&&['start','force-stop'].includes(c[1])),[]);
@@ -301,4 +301,24 @@ test('clock_changes_relaunch_installed_app_by_default',async()=>{
  const instant='2026-10-09T12:00:00Z';
  setClock(instant,'Europe/Berlin',{clockReport:{},runShell:(...args)=>{calls.push(args);return {stdout:args[1]==='+%s'?String(Date.parse(instant)/1000):instant};}});
  assert.deepEqual(calls.slice(-2),[['am','force-stop','com.personal.germanvocabulary'],['am','start','-n','com.personal.germanvocabulary/.MainActivity']]);
+});
+test('retained_upgrade_foregrounds_replacement_before_public_after_export',async()=>{
+ const {runRetainedUpgrade}=await import('../../scripts/regression-upgrade.mjs');
+ for(const schema of [5,6]){
+  let installed=false,foreground=false;const calls=[];
+  await runRetainedUpgrade({schema,previousApk:'old.apk',finalApk:'final.apk',
+   install:(apk,replace)=>{calls.push(['install',apk,replace]);installed=true;foreground=false;},
+   launch:()=>{assert.ok(installed);calls.push(['launch']);foreground=true;},
+   flow:id=>{assert.ok(installed);calls.push(['flow',id]);foreground=true;},
+   capture:id=>{assert.ok(foreground,'public export requires foreground app after install-r');calls.push(['export',id]);return {id};},
+  });
+  const replace=calls.findIndex(c=>c[0]==='install'&&c[2]);assert.deepEqual(calls.slice(replace),[['install','final.apk',true],['launch'],['export',`schema${schema}-after`]]);
+  assert.equal(calls.filter(c=>c[0]==='launch').length,1,'no launch before old APK installation');
+ }
+});
+test('shared_in_place_upgrade_launches_only_after_successful_replacement',async()=>{
+ const {installReplacementAndLaunch}=await import('../../scripts/regression-upgrade.mjs');const calls=[];
+ await installReplacementAndLaunch({finalApk:'final.apk',install:async(apk,replace)=>{calls.push(['install',apk,replace]);},launch:async()=>calls.push(['launch'])});
+ assert.deepEqual(calls,[['install','final.apk',true],['launch']]);
+ await assert.rejects(installReplacementAndLaunch({finalApk:'bad.apk',install:async()=>{throw Error('install failed');},launch:()=>assert.fail('must not launch failed install')}),/install failed/);
 });
