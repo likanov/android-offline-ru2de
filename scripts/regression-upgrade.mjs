@@ -1,7 +1,8 @@
 // The exported checkpoints come from Android's public backup picker. No private
 // database is pulled, replaced, or injected during an upgrade regression.
-export async function runRetainedUpgrade({schema,previousApk,finalApk,install,flow,capture}) {
+export async function runRetainedUpgrade({schema,previousApk,finalApk,install,flow,capture,prepareClock=()=>{}}) {
  if(![5,6].includes(schema)||!previousApk||previousApk===finalApk)throw Error('UPGRADE_INPUT_INVALID');
+ await prepareClock({relaunchApp:false});
  await install(previousApk,false);
  await flow('upgrade-before');
  if(schema===6)await flow('schema6-grammar-before');

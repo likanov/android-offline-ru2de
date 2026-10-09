@@ -279,13 +279,13 @@ async function deviceRoot() {
  for(let i=0;i<10;i++){const observed=execute(adb,['-s',serial,'shell','id','-u'],{allowFailure:true});if(observed.status===0&&rootVerified({uid:observed.stdout}))return;await delay(1000);}
  throw new Unavailable('DEDICATED_AVD_ROOT_UNAVAILABLE');
 }
-function setClock(instant,zone='Europe/Berlin') {
- shell('settings','put','global','auto_time','0');shell('settings','put','global','auto_time_zone','0');shell('setprop','persist.sys.timezone',zone);
- const epoch=Math.floor(Date.parse(instant)/1000);if(!Number.isFinite(epoch))throw Error('CLOCK_INPUT_INVALID');shell('date','-s','@'+epoch);
- const actual=shell('date','+%s').stdout.trim();if(Math.abs(Number(actual)-epoch)>5)throw new Unavailable('DEVICE_CLOCK_NOT_ACCEPTED');
- shell('am','broadcast','--async','-a','android.intent.action.TIMEZONE_CHANGED','--es','time-zone',zone);shell('am','broadcast','--async','-a','android.intent.action.TIME_SET');
- report.clockChanges??=[];report.clockChanges.push({instant,zone,actual:shell('date','+%Y-%m-%dT%H:%M:%S%z').stdout.trim()});
- shell('am','force-stop',applicationId);shell('am','start','-n',applicationId+'/.MainActivity');
+export function setClock(instant,zone='Europe/Berlin',{relaunchApp=true,runShell=shell,clockReport=report}={}) {
+ runShell('settings','put','global','auto_time','0');runShell('settings','put','global','auto_time_zone','0');runShell('setprop','persist.sys.timezone',zone);
+ const epoch=Math.floor(Date.parse(instant)/1000);if(!Number.isFinite(epoch))throw Error('CLOCK_INPUT_INVALID');runShell('date','-s','@'+epoch);
+ const actual=runShell('date','+%s').stdout.trim();if(Math.abs(Number(actual)-epoch)>5)throw new Unavailable('DEVICE_CLOCK_NOT_ACCEPTED');
+ runShell('am','broadcast','--async','-a','android.intent.action.TIMEZONE_CHANGED','--es','time-zone',zone);runShell('am','broadcast','--async','-a','android.intent.action.TIME_SET');
+ clockReport.clockChanges??=[];clockReport.clockChanges.push({instant,zone,actual:runShell('date','+%Y-%m-%dT%H:%M:%S%z').stdout.trim()});
+ if(relaunchApp){runShell('am','force-stop',applicationId);runShell('am','start','-n',applicationId+'/.MainActivity');}
 }
 function alarmEvidence(name,enabled=true) {
  const dump=shell('dumpsys','alarm').stdout;const path=join(reportDir,'alarm-'+name+'.txt');writeFileSync(path,dump);
@@ -424,8 +424,8 @@ async function runCatalogUpgrade(schema) {
  devicePhase='upgrade-schema'+schema;
  execute('/bin/sh',[join(appRoot,'scripts/prepare-avd.sh'),'--upgrade']);
  await boot('GermanVocabulary_API36_Upgrade',true);snapshotSettings();await deviceRoot();offline();
- shell('mkdir','-p','/sdcard/Download/GermanVocabulary');setClock(fixtureDay+'T12:00:00Z');shell('logcat','-c');
- const {before,after}=await runRetainedUpgrade({schema,previousApk:options[schema===6?'schema6-apk':'grammar-previous-apk'],finalApk:options.apk,
+ shell('mkdir','-p','/sdcard/Download/GermanVocabulary');shell('logcat','-c');
+ const {before,after}=await runRetainedUpgrade({schema,prepareClock:options=>setClock(fixtureDay+'T12:00:00Z','Europe/Berlin',options),previousApk:options[schema===6?'schema6-apk':'grammar-previous-apk'],finalApk:options.apk,
   install:(path,replace)=>execute(adb,['-s',serial,'install',...(replace?['-r']:[]),path]),
   flow:id=>flow(id,id+'.yaml'),capture:id=>captureState(id)});
  const id=schema===6?'grammar-lektion2.schema6-eight-upgrade':'grammar-persistence.sqlite-five-six-upgrade';

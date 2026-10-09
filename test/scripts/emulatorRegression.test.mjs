@@ -280,3 +280,25 @@ test('legacy_grammar_import_uses_exact_validated_fixture_profile_count',async()=
   for(const value of [{...fixture,profiles:[]},{...fixture,version:3},{...fixture,profiles:[{}]}]){writeFileSync(path,JSON.stringify(value));assert.throws(()=>module.grammarFixtureImportEnvironment(path),/GRAMMAR_FIXTURE_INVALID/);}
  }finally{rmSync(f.root,{recursive:true,force:true});}
 });
+
+test('catalog_upgrades_set_clock_without_starting_an_uninstalled_activity',async()=>{
+ const {runRetainedUpgrade}=await import('../../scripts/regression-upgrade.mjs');
+ const {setClock}=await import('../../scripts/emulator-regression.mjs');
+ const instant='2026-10-09T12:00:00Z',epoch=String(Date.parse(instant)/1000);
+ for(const schema of [5,6]){
+  let installed=false;const calls=[],clockReport={};
+  const runShell=(...args)=>{calls.push(args);if(args[0]==='am'&&['start','force-stop'].includes(args[1]))assert.ok(installed,'no Activity operation before old APK install');return {stdout:args[1]==='+%s'?epoch:instant};};
+  await runRetainedUpgrade({schema,previousApk:'old.apk',finalApk:'new.apk',prepareClock:options=>setClock(instant,'Europe/Berlin',{...options,runShell,clockReport}),install:(path)=>{calls.push(['install',path]);installed=true;},flow:id=>{assert.ok(installed);calls.push(['flow',id]);},capture:id=>({id})});
+  assert.equal(clockReport.clockChanges?.length,1,'deterministic clock must be set');
+  assert.ok(calls.findIndex(c=>c[0]==='date'&&c[1]==='-s')<calls.findIndex(c=>c[0]==='install'));
+  assert.deepEqual(calls.filter(c=>c[0]==='am'&&['start','force-stop'].includes(c[1])),[]);
+  assert.ok(calls.findIndex(c=>c[0]==='install')<calls.findIndex(c=>c[0]==='flow'));
+ }
+});
+
+test('clock_changes_relaunch_installed_app_by_default',async()=>{
+ const {setClock}=await import('../../scripts/emulator-regression.mjs');const calls=[];
+ const instant='2026-10-09T12:00:00Z';
+ setClock(instant,'Europe/Berlin',{clockReport:{},runShell:(...args)=>{calls.push(args);return {stdout:args[1]==='+%s'?String(Date.parse(instant)/1000):instant};}});
+ assert.deepEqual(calls.slice(-2),[['am','force-stop','com.personal.germanvocabulary'],['am','start','-n','com.personal.germanvocabulary/.MainActivity']]);
+});
