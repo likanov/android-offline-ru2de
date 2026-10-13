@@ -1,8 +1,5 @@
 appId: com.personal.germanvocabulary
 name: open-grammar-training
-env:
-  PROFILE: Грамматика — 18 целей
-  GRAMMAR_START_ID: training-grammar-start
 ---
 [
   {

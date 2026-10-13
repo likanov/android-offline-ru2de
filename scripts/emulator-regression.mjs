@@ -211,7 +211,7 @@ function restoreSettings() {
 function screenshot(name) {
   const r=execute(adb,['-s',serial,'exec-out','screencap','-p'],{binary:true});const path=join(reportDir,`${name}.png`);writeFileSync(path,r.stdout);return path;
 }
-export function regressionFlowEnvironment(extra={}) { return {CATALOG_BASELINE:'false',...extra}; }
+export function regressionFlowEnvironment(extra={}) { return {CATALOG_BASELINE:'false',PROFILE:'Грамматика — 18 целей',GRAMMAR_START_ID:'training-grammar-start',...extra}; }
 function flow(id,file,extra={}) {
   const junit=join(reportDir,`${id}.xml`);
   const args=['--device',serial,'test','--format','junit','--output',junit,'--test-output-dir',join(reportDir,`${id}-artifacts`),'-e',`REPORT_DIR=${reportDir}`,...Object.entries(regressionFlowEnvironment(extra)).flatMap(([k,v])=>['-e',`${k}=${v}`]),join(appRoot,'e2e',file)];

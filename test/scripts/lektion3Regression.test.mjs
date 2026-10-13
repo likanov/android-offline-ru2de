@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import * as reports from '../../scripts/regression-report.mjs';
 import * as runner from '../../scripts/emulator-regression.mjs';
@@ -38,6 +38,17 @@ test('grammar fixture import uses the exact V2 V3 or V4 profile count without a 
    assert.deepEqual(runner.grammarFixtureImportEnvironment(path,name,version),{BACKUP_FILE:name,PROFILE_COUNT:String(count)});
   }
  }finally{rmSync(dir,{recursive:true,force:true});}
+});
+test('effective Maestro grammar entry preserves an alternate error profile and due-review start',()=>{
+ const header=readFileSync('e2e/helpers/open-grammar-training.yaml','utf8').split('---\n')[0];
+ const local=Object.fromEntries([...header.matchAll(/^  (PROFILE|GRAMMAR_START_ID): (.+)$/gm)].map(m=>[m[1],m[2]]));
+ for(const requested of [{PROFILE:'Грамматика — ошибка 19',GRAMMAR_START_ID:'training-grammar-start'},{PROFILE:'Грамматика — повторение',GRAMMAR_START_ID:'grammar-review-start'}]){
+  // Device commands.json confirms flow defineVariables runs after CLI variables.
+  const effective={...runner.regressionFlowEnvironment(requested),...local};
+  assert.equal(effective.PROFILE,requested.PROFILE);assert.equal(effective.GRAMMAR_START_ID,requested.GRAMMAR_START_ID);
+ }
+ assert.equal(runner.regressionFlowEnvironment().PROFILE,'Грамматика — 18 целей');
+ assert.equal(runner.regressionFlowEnvironment().GRAMMAR_START_ID,'training-grammar-start');
 });
 test('schema8 replacement exports before/after/relaunch and imports the historical fixture before upgrade',async()=>{
  const events=[];const result=await runRetainedUpgrade({schema:8,previousApk:'schema8',finalApk:'latest10',install:async(p,r)=>events.push(['install',p,r]),launch:async()=>events.push(['launch']),flow:async id=>events.push(['flow',id]),capture:async id=>{events.push(['capture',id]);return id;}});
