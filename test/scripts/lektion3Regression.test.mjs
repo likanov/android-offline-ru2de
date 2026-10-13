@@ -30,6 +30,15 @@ test('standalone new blocks require only their own fixtures and baselines while 
  for(const key of ['fixture','grammar-fixture','lektion2-fixture','grammar-rules-fixture','lektion3-fixture','schema8-apk','previous-apk','grammar-previous-apk','schema6-apk','dictionary-fixture','dictionary-large-fixture'])assert.ok(runner.requiredRegressionInputs().includes(key),key);
 });
 test('zero-exit skipped JUnit is not a passed Maestro run',()=>assert.notEqual(maestroOutcome(0,'<testcase><skipped/></testcase>').status,'passed'));
+test('grammar fixture import uses the exact V2 V3 or V4 profile count without a flow default',()=>{
+ const dir=mkdtempSync(tmpdir()+'/grammar-import-count-');
+ try{
+  for(const [version,count,name]of [[2,10,'grammar-backup-v2.json'],[3,10,'lektion2-backup-v3.json'],[4,5,'grammar-rules-backup-v4.json'],[4,7,'lektion3-backup-v4.json'],[3,2,'grammar-rules-schema8-backup-v3.json']]){
+   const path=dir+'/'+name;writeFileSync(path,JSON.stringify({format:'german-vocabulary-backup',version,profiles:Array.from({length:count},(_,i)=>({profile:{id:'p'+i,name:'Profile '+i}}))}));
+   assert.deepEqual(runner.grammarFixtureImportEnvironment(path,name,version),{BACKUP_FILE:name,PROFILE_COUNT:String(count)});
+  }
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
 test('schema8 replacement exports before/after/relaunch and imports the historical fixture before upgrade',async()=>{
  const events=[];const result=await runRetainedUpgrade({schema:8,previousApk:'schema8',finalApk:'latest10',install:async(p,r)=>events.push(['install',p,r]),launch:async()=>events.push(['launch']),flow:async id=>events.push(['flow',id]),capture:async id=>{events.push(['capture',id]);return id;}});
  assert.deepEqual(events,[['install','schema8',false],['flow','schema8-grammar-before'],['capture','schema8-before'],['install','latest10',true],['launch'],['capture','schema8-after'],['launch'],['capture','schema8-repeat']]);assert.equal(result.repeat,'schema8-repeat');

@@ -425,11 +425,11 @@ async function preparePrimaryDevice() {
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/vocabulary.csv'),'/sdcard/Download/GermanVocabulary/'],{timeout:180000});
  execute(adb,['-s',serial,'push',join(appRoot,'e2e/fixtures/invalid-backup.json'),'/sdcard/Download/GermanVocabulary/']);
 }
-export function grammarFixtureImportEnvironment(path) {
+export function grammarFixtureImportEnvironment(path,filename='grammar-backup-v2.json',version=2) {
  let fixture;try{fixture=JSON.parse(readFileSync(path,'utf8'));}catch{throw new Unavailable('GRAMMAR_FIXTURE_INVALID');}
  const profiles=fixture?.profiles;
- if(fixture?.format!=='german-vocabulary-backup'||fixture.version!==2||!Array.isArray(profiles)||!profiles.length||profiles.some(p=>typeof p?.profile?.id!=='string'||!p.profile.id||typeof p.profile.name!=='string'||!p.profile.name)||new Set(profiles.map(p=>p.profile.id)).size!==profiles.length)throw new Unavailable('GRAMMAR_FIXTURE_INVALID');
- return {BACKUP_FILE:'grammar-backup-v2.json',PROFILE_COUNT:String(profiles.length)};
+ if(fixture?.format!=='german-vocabulary-backup'||![2,3,4].includes(version)||fixture.version!==version||!Array.isArray(profiles)||!profiles.length||profiles.some(p=>typeof p?.profile?.id!=='string'||!p.profile.id||typeof p.profile.name!=='string'||!p.profile.name)||new Set(profiles.map(p=>p.profile.id)).size!==profiles.length)throw new Unavailable('GRAMMAR_FIXTURE_INVALID');
+ return {BACKUP_FILE:filename,PROFILE_COUNT:String(profiles.length)};
 }
 async function importRegressionFixture(grammar=false) {
  const file=grammar?'grammar-backup-v2.json':'regression-backup.json';
@@ -448,7 +448,7 @@ function lektion2Answers(backup) {
  return result;
 }
 async function importLektion2Fixture() {
- flow('import-lektion2-fixture','grammar-import-fixture.yaml',{BACKUP_FILE:'lektion2-backup-v3.json'});
+ flow('import-lektion2-fixture','grammar-import-fixture.yaml',grammarFixtureImportEnvironment(options['lektion2-fixture'],'lektion2-backup-v3.json',3));
  latestBackup=captureState('imported-lektion2-fixture');
 }
 async function runCatalogUpgrade(schema) {

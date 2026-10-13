@@ -1,7 +1,5 @@
 appId: com.personal.germanvocabulary
 name: grammar-import-fixture
-env:
-  PROFILE_COUNT: "10"
 ---
 [
   {"runFlow":{"file":"helpers/open-navigation.yaml","env":{"NAV_TARGET":"nav-transfer"}}},
