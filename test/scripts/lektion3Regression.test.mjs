@@ -19,6 +19,13 @@ test('Lektion3 multi-choice submissions reveal the button below long option list
   for(const i of submissions)assert.deepEqual(commands[i-1],{runFlow:{file:'../helpers/ensure-visible-below.yaml',env:{TARGET_TEXT:'Проверить'}}},name+': submit may be below the viewport after selecting options');
  }
 });
+test('keyboard-open flow scrolls the controls above the IME after typing without hiding it',()=>{
+ const steps=JSON.parse(readFileSync('e2e/checks/grammar-lektion3.keyboard-small-large.yaml','utf8').split('---\n')[1]);
+ const commands=steps.find(c=>c.runFlow?.when?.true==="${UI_STAGE === 'keyboard-open'}").runFlow.commands;
+ const input=commands.findIndex(c=>c.inputText),scroll=commands.findIndex(c=>c.swipe?.from?.id==='screen-scroll'&&c.swipe.direction==='UP'),capture=commands.findIndex(c=>c.takeScreenshot);
+ assert.ok(input>=0&&scroll>input&&capture>scroll,'typing can leave submit partly covered; scroll before open capture');
+ assert.equal(commands.some(c=>c.hideKeyboard||c.back),false,'the required capture keeps the real IME visible');
+});
 test('new blocks require every named check and state artifact, APK hash and non-skipped JUnit',()=>{
  const dir=mkdtempSync(tmpdir()+'/l3-contract-');
  try{const file=(name,text)=>{const path=dir+'/'+name;writeFileSync(path,text);return path;};const apk=file('apk','apk'),model=file('model','model'),state=file('state','{}');

@@ -20,3 +20,14 @@ test('active but hidden IME cannot satisfy open keyboard evidence even when boun
   }
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+test('visible IME geometry uses its content inset rather than the transparent full window',async()=>{
+ const {grammarUiCapture}=await import('../../scripts/grammar-ui-evidence.mjs');
+ const source={step:'keyboard-open',width:960,height:1920,density:480,imeId:'com.google.android.inputmethod.latin/.LatinIME',imeDump:'mImeWindowVis=3\ncontentTopInsets=915 visibleTopInsets=915 touchableInsets=3',windowDump:'Window #7 Window{test u0 InputMethod}:\n mViewVisibility=0x0 mHasSurface=true\n Frames: frame=[0,156][960,1920]'};
+ const xml='<hierarchy><node resource-id="grammar-answer-input" bounds="[60,642][900,810]"/><node resource-id="grammar-submit" bounds="[60,1038][900,1182]"/></hierarchy>';
+ assert.equal(grammarUiCapture(xml,source).keyboard.top,1071,'IME content starts below its transparent window area');
+ const root=mkdtempSync(tmpdir()+'/ime-insets-');try{
+  const {writeFileSync}=await import('node:fs');const report={apk:{sha256:'a'.repeat(64)},grammarUi:syntheticGrammarUiEvidence(root,'a'.repeat(64))},r=report.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[0].typed[1];
+  Object.assign(r,grammarUiCapture(xml,source));writeFileSync(r.hierarchy,xml);writeFileSync(r.imeEvidence,JSON.stringify({...source,fontScale:1}));
+  assert.ok(reports.validateGrammarUiEvidence(report).errors.includes('GRAMMAR_UI_IME_OVERLAP:1'),'partly covered submit must still be rejected');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

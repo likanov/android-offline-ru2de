@@ -48,6 +48,13 @@ name: grammar-lektion3.keyboard-small-large
           "inputText": "${KEYBOARD_ANSWER}"
         },
         {
+          "swipe": {
+            "from": { "id": "screen-scroll" },
+            "direction": "UP",
+            "duration": 400
+          }
+        },
+        {
           "assertVisible": {
             "id": "grammar-answer-input"
           }

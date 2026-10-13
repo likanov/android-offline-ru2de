@@ -13,7 +13,13 @@ export function grammarUiCapture(xml,{step,width,height,density,imeId,imeDump,wi
  const imeNodes=nodes.filter(n=>/inputmethod|\.ime(?:\.|$)/i.test(n.package??'')).map(n=>bounds(n.bounds)).filter(b=>b&&b.bottom>b.top);
  const methodWindow=windowDump.split(/(?=Window #\d+ Window\{)/).find(s=>/^Window #\d+ Window\{[^\n]*InputMethod/.test(s.trim()));
  const frame=methodWindow?.match(/(?:mFrame=|frame=)(\[\d+,\d+\]\[\d+,\d+\])/);
- const top=imeNodes.length?Math.min(...imeNodes.map(b=>b.top)):bounds(frame?.[1])?.top;
+ const windowBounds=bounds(frame?.[1]);
+ // The IME window may fill the display above the keyboard with transparent space.
+ // Android reports content/visible insets relative to that window, not the display.
+ const insets=/contentTopInsets=(\d+)\s+visibleTopInsets=(\d+)/.exec(imeDump??'');
+ const inset=insets?Math.min(Number(insets[1]),Number(insets[2])):undefined;
+ const contentTop=windowBounds&&Number.isFinite(inset)&&inset>=0&&inset<windowBounds.bottom-windowBounds.top?windowBounds.top+inset:undefined;
+ const top=contentTop??(imeNodes.length?Math.min(...imeNodes.map(b=>b.top)):windowBounds?.top);
  return {step,viewport:{top:0,bottom:height,width,density},keyboard:{visible,imeId,...(visible?{top}:{})},input:byId('grammar-answer-input'),submit:byId(step==='after-submit'?'grammar-next':'grammar-submit'),result:byId('grammar-result'),options:nodes.filter(n=>n['resource-id']?.startsWith('grammar-multi-option-')).map(n=>({id:n['resource-id'],...bounds(n.bounds)}))};
 }
 export function validateGrammarUiEvidence(report){
