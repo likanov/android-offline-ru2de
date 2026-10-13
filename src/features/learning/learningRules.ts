@@ -1,6 +1,7 @@
 import type {
   DayKey,
   LearningState,
+  LearningPolicy,
   LearningTransition,
 } from "./learningTypes";
 import { addDays } from "../../core/calendar";
@@ -12,7 +13,13 @@ function validCount(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0;
 }
 
-function validateState(state: LearningState): void {
+export function validateLearningState(
+  state: LearningState,
+  policy: LearningPolicy,
+): void {
+  if (policy.requiredCorrect !== 10 && policy.requiredCorrect !== 20) {
+    throw new AppError("VALIDATION", "Invalid learning policy");
+  }
   const counts = [
     state.streak,
     state.reviewStage,
@@ -24,11 +31,11 @@ function validateState(state: LearningState): void {
   if (
     counts.some((value) => !validCount(value)) ||
     flags.some((value) => typeof value !== "boolean") ||
-    state.streak > 20 ||
+    state.streak > policy.requiredCorrect ||
     state.reviewStage > 5 ||
     state.recoveryCorrect > 2 ||
     state.totalErrors < state.recoveryErrors ||
-    state.mastered !== (state.streak === 20) ||
+    state.mastered !== (state.streak === policy.requiredCorrect) ||
     (state.mastered && (!state.masteryBonusGranted || state.dueDay === null)) ||
     (!state.mastered && (state.dueDay !== null || state.reviewStage !== 0)) ||
     state.difficult !== state.recoveryErrors >= 3 ||
@@ -44,8 +51,9 @@ export function applyAnswer(
   right: boolean,
   mode: "study" | "review",
   today: DayKey,
+  policy: LearningPolicy = { requiredCorrect: 20 },
 ): LearningTransition {
-  validateState(state);
+  validateLearningState(state, policy);
   addDays(today, 0);
   if (
     typeof right !== "boolean" ||
@@ -73,7 +81,7 @@ export function applyAnswer(
   }
   if (mode === "study") {
     next.streak = right ? next.streak + 1 : 0;
-    if (next.streak === 20) {
+    if (next.streak === policy.requiredCorrect) {
       next.mastered = true;
       firstMastery = !next.masteryBonusGranted;
       next.masteryBonusGranted = true;

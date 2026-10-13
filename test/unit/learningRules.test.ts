@@ -187,3 +187,8 @@ test("missing answer is rejected without mutating progress", () => {
   ).toThrow(AppError);
   expect(original).toMatchObject({ streak: 7, totalErrors: 0 });
 });
+
+// Catches accidentally changing dictionary learning to the grammar threshold.
+test("word_nine_to_ten_stays_unmastered", () => {
+  expect(applyAnswer(state({streak:9}),true,"study","2026-10-13")).toMatchObject({state:{streak:10,mastered:false,dueDay:null},xpDelta:10,firstMastery:false});
+});

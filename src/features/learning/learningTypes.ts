@@ -26,6 +26,7 @@ export type LearningState = {
   recoveryErrors: number;
   recoveryCorrect: number;
 };
+export type LearningPolicy = { requiredCorrect: 10 | 20 };
 export type LearningTransition = {
   state: LearningState;
   xpDelta: number;
