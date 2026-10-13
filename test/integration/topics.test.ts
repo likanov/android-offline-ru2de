@@ -49,7 +49,7 @@ test('starter_topics_migrate_existing_profiles_and_copy_independently',async()=>
  await store.db.exec(profilesSchema);await store.db.exec(wordDetailsSchema);await store.db.exec(learningSchema);await store.db.exec('PRAGMA user_version=3');
  await store.db.run("INSERT INTO profiles(id,name,xp,createdAt) VALUES ('old','A',0,'2026-10-03')");
  for(const w of starterWords){await store.db.run('INSERT INTO words(id,profileId,seedKey,seedDe,de,ru,pos,gender,canonicalKey) VALUES (?,?,?,?,?,?,?,?,?)',[w.seedKey,'old',w.seedKey,w.de,w.de,w.ru,w.pos,w.gender,wordKey(w)]);await store.db.run('INSERT INTO word_progress(profileId,wordId,streak) VALUES (?,?,8)',['old',w.seedKey]);}
- await migrate(store.db);expect(await store.db.first('PRAGMA user_version')).toEqual({user_version:8});
+ await migrate(store.db);expect(await store.db.first('PRAGMA user_version')).toEqual({user_version:9});
  await migrate(store.db);const p=await createProfile(store.db,'B');
  for(const id of ['old',p.id]){
  expect(await store.db.all('SELECT t.name,count(wt.wordId) n FROM topics t LEFT JOIN word_topics wt ON wt.profileId=t.profileId AND wt.topicId=t.id WHERE t.profileId=? GROUP BY t.id ORDER BY t.name',[id])).toEqual([

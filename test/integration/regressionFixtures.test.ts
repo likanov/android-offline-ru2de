@@ -76,7 +76,7 @@ test('catalog2_fixture_uses_production_v3_export_and_retains_mixed_history',asyn
  expect(backup.version).toBe(3);expect(()=>validateBackup(backup)).not.toThrow();
  const all=backup.profiles.flatMap(p=>p.grammar.attempts);
  expect(all.some(a=>a.targetId==='sein-cloze:ich'&&a.result.state.mastered)).toBe(true);
- expect(all.some(a=>a.targetId==='yesno-transform:pronoun'&&a.result.state.streak===19)).toBe(true);
+ expect(all.some(a=>a.targetId==='yesno-transform:pronoun'&&a.result.state.streak===9)).toBe(true);
  expect(new Set(all.map(a=>a.day)).size).toBeGreaterThan(2);
  const active=backup.profiles.flatMap(p=>p.grammar.sessions).filter(s=>s.currentQuestion&&!s.result).map(s=>s.currentQuestion!);
  expect(active.some(q=>q.catalogVersion===2&&q.presentation==='cloze')).toBe(true);

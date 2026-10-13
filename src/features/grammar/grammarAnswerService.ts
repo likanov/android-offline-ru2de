@@ -1,7 +1,7 @@
 import { getGrammarTarget, getGrammarVariantCount } from './grammarCatalog';
 import { notifyProfileChanged } from '../../app/refreshBus';
 import type { SqlExecutor, SqlStore } from '../../core/sql';
-import { applyAnswer } from '../learning/learningRules';
+import { applyGrammarAnswer } from './grammarLearningRules';
 import type { DayKey, Word } from '../learning/learningTypes';
 import { checkGrammarAnswer } from './grammarQuestionFactory';
 import { readGrammarProgress, writeGrammarProgress } from './grammarRepository';
@@ -130,7 +130,7 @@ export class GrammarAnswerService {
         return {kind:'stale'};
       }
 
-      const transition=applyAnswer(progress.state,right,session.selection.mode,today);
+      const transition=applyGrammarAnswer(progress.state,right,session.selection.mode,today,2);
       const nextProgress={
         ...progress,
         state:transition.state,
@@ -138,6 +138,7 @@ export class GrammarAnswerService {
         variantIndex:(progress.variantIndex+1)%getGrammarVariantCount(question.targetId),
       };
       const result:GrammarAttemptResult={
+        rulesVersion:2,
         attemptId,
         targetId:question.targetId,
         right,

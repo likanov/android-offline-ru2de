@@ -20,9 +20,9 @@ jest.mock("expo-crypto", () => ({
     randomUUID: () => jest.requireActual("crypto").randomUUID(),
 }));
 // Reusable SQL fixture entry point for feature integration tests.
-export async function createWordHarness(path?: string) {
+export async function createWordHarness(path?: string, today?: string) {
     const store = openTestDb(path);
-    await migrate(store.db);
+    await migrate(store.db, today);
     const words = new WordRepository(store.db);
     return { ...store, words, backup: new BackupService(store.db), csv: new CsvImportService(store.db), progress: new ProgressRepository(store.db), topics: new TopicRepository(store.db), reviews: new ReviewRepository(store.db), sessions: new SessionRepository(store.db), answers: new AnswerService(store.db),
         attemptCount: async (attemptId: string) => (await store.db.first<{
@@ -48,8 +48,8 @@ export async function createWordHarness(path?: string) {
         }
     };
 }
-export async function createGrammarHarness(path?: string) {
-    const h = await createWordHarness(path);
+export async function createGrammarHarness(path?: string, today?: string) {
+    const h = await createWordHarness(path, today);
     return { ...h, grammar: new GrammarRepository(h.db), grammarSessions: new GrammarSessionRepository(h.db), grammarAnswers: new GrammarAnswerService(h.db) };
 }
 export async function createAssistantHarness(runtime: LanguageRuntime = new LlamaRuntime(async () => ({ completion: async () => ({ text: 'Das ist ein Stuhl. Это стул.' }), stopCompletion: async () => { }, release: async () => { } })), files: Pick<ModelFiles, 'installedPath'> = { installedPath: async () => '/models/local.gguf' }, path?: string) {

@@ -1,3 +1,6 @@
+import { localDay } from './calendar';
+import type { DayKey } from '../features/learning/learningTypes';
+import { migrateGrammarMastery } from './migrations/009_grammar_mastery';
 import { migrateLektion2 } from './migrations/008_lektion2';
 import { migrateWordParts } from './migrations/007_word_parts';
 import { topicsSchema, seedProfileTopics } from './migrations/004_topics';
@@ -9,14 +12,14 @@ import type { Word } from "../features/learning/learningTypes";
 import { starterWords } from "../data/starterWords";
 import { learningSchema } from "./migrations/003_learning";
 import { grammarSchema, seedGrammarTargets } from './migrations/006_grammar';
-export async function migrate(db: SqlStore): Promise<void> {
+export async function migrate(db: SqlStore, today: DayKey = localDay(new Date())): Promise<void> {
   const current = await db.first<{user_version:number}>("PRAGMA user_version");
-  if ((current?.user_version ?? 0) > 8) throw new Error("Unsupported database version");
+  if ((current?.user_version ?? 0) > 9) throw new Error("Unsupported database version");
   await db.transaction(async (tx) => {
     const version = await tx.first<{ user_version: number }>(
       "PRAGMA user_version",
     );
-    if ((version?.user_version ?? 0) > 8)
+    if ((version?.user_version ?? 0) > 9)
       throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 1) {
       await tx.exec(profilesSchema);
@@ -53,7 +56,7 @@ export async function migrate(db: SqlStore): Promise<void> {
   });
   await db.schemaTransaction(async tx => {
     const version = await tx.first<{user_version:number}>("PRAGMA user_version");
-    if ((version?.user_version ?? 0) > 8) throw new Error("Unsupported database version");
+    if ((version?.user_version ?? 0) > 9) throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 7) {
       await migrateWordParts(tx);
       if ((await tx.all("PRAGMA foreign_key_check")).length) throw new Error("Word migration violates foreign key relationships");
@@ -66,6 +69,14 @@ export async function migrate(db: SqlStore): Promise<void> {
       await migrateLektion2(tx);
       if ((await tx.all("PRAGMA foreign_key_check")).length) throw new Error("Grammar migration violates foreign key relationships");
       await tx.exec("PRAGMA user_version=8");
+    }
+  });
+  await db.schemaTransaction(async tx => {
+    const version=await tx.first<{user_version:number}>("PRAGMA user_version");
+    if ((version?.user_version??0)<9) {
+      await migrateGrammarMastery(tx,today);
+      if ((await tx.all("PRAGMA foreign_key_check")).length) throw new Error("Grammar mastery migration violates foreign key relationships");
+      await tx.exec("PRAGMA user_version=9");
     }
   });
 }

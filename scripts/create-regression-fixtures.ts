@@ -111,7 +111,7 @@ export async function createGrammarRegressionBackup(today: DayKey): Promise<Back
     await respond(errors.id, 'pronoun-cloze:ich', 19, today, false);
 
     const reviews = await createProfile(source.db, 'Грамматика — повторение');
-    await respond(reviews.id, 'sein-cloze:sie_formal', 20, addDays(today, -1));
+    await respond(reviews.id, 'sein-cloze:sie_formal', 10, addDays(today, -1));
     await respond(reviews.id, 'sein-cloze:sie_formal', 1, today, true, 'review');
     // Leave an unanswered question in a second session to verify resume data.
     const resumable = (await sessions.start(reviews.id, { mode: 'study', lesson: 'mixed', targetIds: ['pronoun-cloze:du'] }, today))!;
@@ -158,10 +158,10 @@ export async function createLektion2RegressionBackup(today: DayKey): Promise<Bac
   for(let n=0;n<2;n++){const q=(await ws.next(vocabulary.id,numberSession.id,today))!;await wa.submit(vocabulary.id,numberSession.id,q.attemptId,q.expected[0],today);}
   await ws.next(vocabulary.id,numberSession.id,today);
   const history=await createProfile(source.db,'A1 — история');
-  await respond(history.id,'sein-cloze:ich',20,addDays(today,-10));
+  await respond(history.id,'sein-cloze:ich',10,addDays(today,-10));
   await respond(history.id,'sein-cloze:ich',1,addDays(today,-9),'review');
   await respond(history.id,'sein-cloze:ich',1,addDays(today,-6),'review');
-  await respond(history.id,'yesno-transform:pronoun',19,today);
+  await respond(history.id,'yesno-transform:pronoun',9,today);
   for(const lesson of ['professions-pronoun','professions-sein','demonstrative-statement','yesno-transform','yesno-translation'] as const){
    const p=await createProfile(source.db,'A1 — '+lesson);
    const s=(await gs.start(p.id,{mode:'study',lesson},today))!;await gs.next(p.id,s.id,today);

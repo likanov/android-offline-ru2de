@@ -1,3 +1,7 @@
+import { openTestDb } from '../sqlite';
+import { createSchema8GrammarFixture } from '../fixtures/grammarSchema8';
+import { GrammarSessionRepository } from '../../src/features/grammar/grammarSessionRepository';
+import { migrateGrammarMastery } from '../../src/core/migrations/009_grammar_mastery';
 import { AppServicesContext, getGrammarServices } from '../../src/app/AppServices';
 import { ActiveProfileProvider } from '../../src/app/ActiveProfileProvider';
 import { Navigation } from '../../src/app/navigation';
@@ -28,7 +32,7 @@ test('grammar_saved_streak_is_visible_before_submit', async () => {
   const profile = await createProfile(h.db, 'A');
   await h.db.run("INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?,?,1,7,0,0,0,NULL,0,0,0,0,0,0)", [profile.id, 'pronoun-cloze:ich']);
   const view = render(<GrammarTrainingScreen db={h.db} profileId={profile.id} profileName={profile.name} today="2026-10-03" selection={{ mode: 'study', lesson: 'pronouns', targetIds: ['pronoun-cloze:ich'] }} onReference={jest.fn()} onExplainError={jest.fn()} />);
-  try { expect(await screen.findByText('Серия: 7/20')).toBeTruthy(); expect(screen.queryByText(`Профиль: ${profile.id}`)).toBeNull(); } finally { view.unmount(); h.close(); }
+  try { expect(await screen.findByText('Серия: 7/10')).toBeTruthy(); expect(screen.queryByText(`Профиль: ${profile.id}`)).toBeNull(); } finally { view.unmount(); h.close(); }
 });
 
 test('feedback_hides_expected_before_submit_and_keyboard_submit_and_feedback_visible', async () => {
@@ -105,7 +109,7 @@ test.each([
 
 test('sentence_prompt_has_source_and_no_artificial_blank', () => {
  const question=makeGrammarQuestion({attemptId:'sentence',sessionId:'s',profileId:'p',targetId:'yesno-transform:noun',variantIndex:0,responseMode:'choice',reviewStage:null,dueDay:null,words:[]});
- const view=render(<GrammarQuestionView question={question} result={null} busy={false} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ const view=render(<GrammarQuestionView currentState={null} question={question} result={null} busy={false} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
  expect(screen.getByTestId('grammar-prompt')).toHaveTextContent('Преобразуйте утверждение в вопрос.');
  expect(screen.getByTestId('grammar-source')).toHaveTextContent('Das Buch ist neu.');
  expect(screen.queryByText(/___/)).toBeNull();
@@ -114,7 +118,7 @@ test('sentence_prompt_has_source_and_no_artificial_blank', () => {
 });
 test('sentence_case_error_explains_internal_case_without_marking_correct',()=>{
  const question=makeGrammarQuestion({attemptId:'case',sessionId:'s',profileId:'p',targetId:'yesno-translation:sie_formal',variantIndex:0,responseMode:'typed',reviewStage:null,dueDay:null,words:[]});
- const view=render(<GrammarQuestionView question={question} busy={false} result={{attemptId:'case',targetId:question.targetId,right:false,xpDelta:0,submittedAnswer:{kind:'typed',text:question.feedback.sentenceDe.replace(' Sie ',' sie ')},state:{streak:0,mastered:false,masteryBonusGranted:false,reviewStage:0,dueDay:null,difficult:false,totalErrors:1,recoveryErrors:0,recoveryCorrect:0}}} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ const view=render(<GrammarQuestionView currentState={null} question={question} busy={false} result={{attemptId:'case',targetId:question.targetId,right:false,xpDelta:0,submittedAnswer:{kind:'typed',text:question.feedback.sentenceDe.replace(' Sie ',' sie ')},state:{streak:0,mastered:false,masteryBonusGranted:false,reviewStage:0,dueDay:null,difficult:false,totalErrors:1,recoveryErrors:0,recoveryCorrect:0}}} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
  expect(screen.getByText('Проверьте регистр букв: Sie и sie имеют разное значение.')).toBeTruthy();
  expect(screen.queryByText(/Верно!/)).toBeNull();
  view.unmount();
@@ -146,7 +150,7 @@ test('profile_switch_does_not_submit_old_answer', async () => {
 
 test('german_only_options_before_feedback',()=>{
  const question=makeGrammarQuestion({attemptId:'choices',sessionId:'s',profileId:'p',targetId:'professions-pronoun:ich',variantIndex:0,responseMode:'choice',reviewStage:null,dueDay:null,words:[]});
- const view=render(<GrammarQuestionView question={question} result={null} busy={false} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ const view=render(<GrammarQuestionView currentState={null} question={question} result={null} busy={false} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
  try {
   for(const button of screen.getAllByTestId(/grammar-option-/)) expect(button.props.accessibilityLabel).not.toMatch(/[А-Яа-яЁё]/);
   expect(screen.queryByText(question.feedback.translationRu)).toBeNull();
@@ -199,14 +203,14 @@ test.each(['profile','day'] as const)('pending_submit_does_not_leak_feedback_aft
 
 test('noun_capitalization_feedback_does_not_claim_sie_error',()=>{
  const question=makeGrammarQuestion({attemptId:'case',sessionId:'s',profileId:'p',targetId:'yesno-transform:noun',variantIndex:0,responseMode:'typed',reviewStage:null,dueDay:null,words:[]});
- const view=render(<GrammarQuestionView question={question} busy={false} result={{attemptId:'case',targetId:question.targetId,right:false,xpDelta:0,submittedAnswer:{kind:'typed',text:'Ist das buch neu?'},state:{streak:0,mastered:false,masteryBonusGranted:false,reviewStage:0,dueDay:null,difficult:false,totalErrors:1,recoveryErrors:0,recoveryCorrect:0}}} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
+ const view=render(<GrammarQuestionView currentState={null} question={question} busy={false} result={{attemptId:'case',targetId:question.targetId,right:false,xpDelta:0,submittedAnswer:{kind:'typed',text:'Ist das buch neu?'},state:{streak:0,mastered:false,masteryBonusGranted:false,reviewStage:0,dueDay:null,difficult:false,totalErrors:1,recoveryErrors:0,recoveryCorrect:0}}} onSubmit={jest.fn()} onNext={jest.fn()} onExplainError={jest.fn()} />);
  expect(screen.getByText('Проверьте регистр букв.')).toBeTruthy();
  expect(screen.queryByText(/Sie и sie/)).toBeNull();view.unmount();
 });
 
 test('catalog2_due_review_is_reachable_and_scoped_through_home_selection_and_real_training',async()=>{
  const h=await createGrammarHarness();const p=await createProfile(h.db,'Review');
- await h.db.run("INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?, 'yesno-transform:noun',2,20,1,1,0,'2000-01-01',0,0,0,0,20,0)",[p.id]);
+ await h.db.run("INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?, 'yesno-transform:noun',2,10,1,1,0,'2000-01-01',0,0,0,0,20,0)",[p.id]);
  const view=render(<AppServicesContext.Provider value={{db:h.db}}><ActiveProfileProvider><Navigation /></ActiveProfileProvider></AppServicesContext.Provider>);
  try {
   await screen.findByText('Активный профиль: Review');fireEvent.press(screen.getByTestId('nav-training'));
@@ -223,4 +227,19 @@ test('catalog2_due_review_is_reachable_and_scoped_through_home_selection_and_rea
   expect((await h.grammarSessions.resume(p.id))!.selection).toEqual({mode:'review',lesson:'yesno-transform'});
   expect((await getGrammarServices({db:h.db}).progress.summary(p.id,localDay(new Date()),'yesno-transform')).dueCount).toBe(0);
  }finally{view.unmount();h.close();}
+});
+
+test('resumed_historical_result_displays_current_ten_streak_and_original_xp', async()=>{
+ const h=openTestDb();let view:ReturnType<typeof render>|undefined;
+ try{
+  const f=await createSchema8GrammarFixture(h.db,'2026-10-06');
+  const row=await h.db.first<{id:string}>('SELECT id FROM grammar_sessions WHERE profileId=? AND targetIds=?',[f.profileIds[0],JSON.stringify([f.targetIds[4]])]);
+  await h.db.run("UPDATE grammar_sessions SET status='active' WHERE id=?",[row!.id]);
+  await h.db.schemaTransaction(async tx=>{await migrateGrammarMastery(tx,'2026-10-13');await tx.exec('PRAGMA user_version=9');});
+  view=render(<GrammarTrainingScreen db={h.db} profileId={f.profileIds[0]} today="2026-10-13" selection={{mode:'study',lesson:'pronouns',targetIds:[f.targetIds[4]]}} onReference={jest.fn()} onExplainError={jest.fn()}/>);
+  await screen.findByTestId('grammar-result');
+  expect(screen.getAllByText('Серия: 10/10')).toHaveLength(2);
+  expect(screen.getByText('Верно! +60 XP')).toBeTruthy();expect(screen.getByText('Освоение завершено.')).toBeTruthy();
+  expect((await new GrammarSessionRepository(h.db).resume(f.profileIds[0]))!.result!.state.streak).toBe(20);
+ }finally{view?.unmount();h.close();}
 });

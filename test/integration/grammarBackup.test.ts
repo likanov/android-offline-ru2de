@@ -122,7 +122,7 @@ async function mixedCatalogFixture() {
   const h = await createGrammarHarness();
   const profile = await createProfile(h.db, 'Оба каталога');
   const old = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'pronouns', targetIds: ['pronoun-cloze:ich'] }, day))!;
-  for (let index = 0; index < 20; index++) {
+  for (let index = 0; index < 10; index++) {
     const question = (await h.grammarSessions.next(profile.id, old.id, day))!;
     await h.grammarAnswers.submit(profile.id, old.id, question.attemptId, answer(question), day);
   }
@@ -150,7 +150,7 @@ test('mixed_catalog_roundtrip_preserves_active_sentence', async () => {
   try {
     expect(backup.profiles[0].grammar.catalogVersions).toEqual([1, 2]);
     expect(backup.profiles[0].grammar.progress.find(row => row.targetId === 'pronoun-cloze:ich')!.state.mastered).toBe(true);
-    expect(backup.profiles[0].profile.xp).toBe(250);
+    expect(backup.profiles[0].profile.xp).toBe(150);
     const restored = await h.backup.restore(h.backup.preview(JSON.stringify(backup)));
     const after = (await h.backup.exportAll()).profiles.find(part => part.profile.id === restored.profileIds[0])!;
     expect(withoutRemappedIds(after)).toEqual(withoutRemappedIds(backup.profiles[0]));

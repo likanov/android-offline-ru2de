@@ -72,7 +72,7 @@ test('stale_dependency_cancelled_without_penalty', async () => {
 });
 
 function mastered(targetId: GrammarTargetId, dueDay: string): GrammarProgress {
-  return {targetId,attemptCount:20,variantIndex:2,state:{streak:20,mastered:true,masteryBonusGranted:true,reviewStage:0,dueDay,difficult:false,totalErrors:0,recoveryErrors:0,recoveryCorrect:0}};
+  return {targetId,attemptCount:10,variantIndex:1,state:{streak:10,mastered:true,masteryBonusGranted:true,reviewStage:0,dueDay,difficult:false,totalErrors:0,recoveryErrors:0,recoveryCorrect:0}};
 }
 
 test('queue_fairness_and_review_once', async () => {

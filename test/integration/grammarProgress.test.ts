@@ -4,7 +4,7 @@ import type { GrammarProgress } from '../../src/features/grammar/grammarTypes';
 import type { LearningState } from '../../src/features/learning/learningTypes';
 
 const mastered = (dueDay: string): LearningState => ({
-  streak: 20,
+  streak: 10,
   mastered: true,
   masteryBonusGranted: true,
   reviewStage: 0,

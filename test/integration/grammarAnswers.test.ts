@@ -39,7 +39,7 @@ async function answerSnapshot(h: Harness) {
   return Promise.all(tables.map(table=>h.db.all(`SELECT * FROM ${table} ORDER BY rowid`)));
 }
 
-test('nineteen_to_twenty_awards_sixty_once', async () => {
+test('nine_to_ten_awards_sixty_once', async () => {
   const h = await createGrammarHarness();
   try {
     const profile = await createProfile(h.db, 'Двадцать ответов');
@@ -47,36 +47,36 @@ test('nineteen_to_twenty_awards_sixty_once', async () => {
     const {session} = await startOne(h, profile.id, targetId, 'study');
     let question = (await h.grammarSessions.resume(profile.id))!.currentQuestion!;
     let result;
-    for (let n=1;n<=20;n++) {
+    for (let n=1;n<=10;n++) {
       result = await h.grammarAnswers.submit(profile.id,session.id,question.attemptId,answerFor(question),day);
-      expect(result.xpDelta).toBe(n===20?60:10);
-      if (n<20) question=await nextQuestion(h,profile.id,session.id);
+      expect(result.xpDelta).toBe(n===10?60:10);
+      if (n<10) question=await nextQuestion(h,profile.id,session.id);
     }
-    expect(result).toMatchObject({right:true,state:{streak:20,mastered:true,dueDay:'2026-10-07'}});
-    expect(await h.profile(profile.id)).toMatchObject({xp:250});
-    expect(await h.grammar.getState(profile.id,targetId)).toMatchObject({attemptCount:20,variantIndex:2});
+    expect(result).toMatchObject({right:true,state:{streak:10,mastered:true,dueDay:'2026-10-07'}});
+    expect(await h.profile(profile.id)).toMatchObject({xp:150});
+    expect(await h.grammar.getState(profile.id,targetId)).toMatchObject({attemptCount:10,variantIndex:1});
     expect(await h.db.all('SELECT targetId,attemptId,amount,day FROM grammar_rewards WHERE profileId=?',[profile.id])).toEqual([
       {targetId,attemptId:question.attemptId,amount:50,day},
     ]);
     const repeated = await h.grammarAnswers.submit(profile.id,session.id,question.attemptId,wrongFor(question),day);
     expect(repeated).toEqual(result);
-    expect(await h.profile(profile.id)).toMatchObject({xp:250});
+    expect(await h.profile(profile.id)).toMatchObject({xp:150});
     expect((await h.db.first<{n:number}>('SELECT COUNT(*) n FROM grammar_attempts WHERE attemptId=?',[question.attemptId]))?.n).toBe(1);
   } finally { h.close(); }
 });
 
-test('error_at_nineteen_resets_only_grammar_target', async () => {
+test('error_at_nine_resets_only_grammar_target', async () => {
   const h = await createGrammarHarness();
   try {
     const profile = await createProfile(h.db, 'Ошибка на девятнадцати');
     const targetId: GrammarTargetId = 'pronoun-cloze:du';
     const progress = await h.grammar.getState(profile.id,targetId);
-    await h.grammar.write(profile.id,{...progress,attemptCount:19,variantIndex:1,state:{...progress.state,streak:19}});
+    await h.grammar.write(profile.id,{...progress,attemptCount:9,variantIndex:0,state:{...progress.state,streak:9}});
     const wordsBefore = await h.db.all('SELECT * FROM word_progress ORDER BY rowid');
     const {session,question} = await startOne(h,profile.id,targetId,'study');
     const result = await h.grammarAnswers.submit(profile.id,session.id,question.attemptId,wrongFor(question),day);
     expect(result).toMatchObject({right:false,xpDelta:0,state:{streak:0,totalErrors:1}});
-    expect(await h.grammar.getState(profile.id,targetId)).toMatchObject({attemptCount:20,variantIndex:2,state:{streak:0,totalErrors:1}});
+    expect(await h.grammar.getState(profile.id,targetId)).toMatchObject({attemptCount:10,variantIndex:1,state:{streak:0,totalErrors:1}});
     expect(await h.profile(profile.id)).toMatchObject({xp:0});
     expect(await h.db.all('SELECT * FROM word_progress ORDER BY rowid')).toEqual(wordsBefore);
   } finally { h.close(); }
@@ -88,7 +88,7 @@ test('all_review_intervals_and_error_tomorrow', async () => {
     const profile = await createProfile(h.db, 'Интервалы');
     const targetId: GrammarTargetId = 'sein-cloze:wir';
     const progress = await h.grammar.getState(profile.id,targetId);
-    await h.grammar.write(profile.id,{...progress,attemptCount:19,state:{...progress.state,streak:19}});
+    await h.grammar.write(profile.id,{...progress,attemptCount:9,state:{...progress.state,streak:9}});
     let current = await startOne(h,profile.id,targetId,'study','2026-10-06');
     await h.grammarAnswers.submit(profile.id,current.session.id,current.question.attemptId,answerFor(current.question),'2026-10-06');
     expect(await h.grammar.getState(profile.id,targetId)).toMatchObject({state:{reviewStage:0,dueDay:'2026-10-07'}});
@@ -104,11 +104,11 @@ test('all_review_intervals_and_error_tomorrow', async () => {
     for (const [today,nextStage,dueDay] of reviews) {
       current=await startOne(h,profile.id,targetId,'review',today);
       await h.grammarAnswers.submit(profile.id,current.session.id,current.question.attemptId,answerFor(current.question),today);
-      expect(await h.grammar.getState(profile.id,targetId)).toMatchObject({state:{streak:20,mastered:true,reviewStage:nextStage,dueDay}});
+      expect(await h.grammar.getState(profile.id,targetId)).toMatchObject({state:{streak:10,mastered:true,reviewStage:nextStage,dueDay}});
     }
     current=await startOne(h,profile.id,targetId,'review','2027-03-30');
     const wrong=await h.grammarAnswers.submit(profile.id,current.session.id,current.question.attemptId,wrongFor(current.question),'2027-03-30');
-    expect(wrong).toMatchObject({right:false,xpDelta:0,state:{streak:20,mastered:true,reviewStage:0,dueDay:'2027-03-31'}});
+    expect(wrong).toMatchObject({right:false,xpDelta:0,state:{streak:10,mastered:true,reviewStage:0,dueDay:'2027-03-31'}});
   } finally { h.close(); }
 });
 

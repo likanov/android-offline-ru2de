@@ -35,12 +35,12 @@ test('empty_dictionary_can_finish_lesson', async () => { const h = await createG
     await h.db.run('DELETE FROM word_topics WHERE profileId=?', [p.id]);
     await h.db.run('DELETE FROM words WHERE profileId=?', [p.id]);
     const s = await h.grammarSessions.start(p.id, { mode: 'study', lesson: 'yesno-transform', targetIds: ['yesno-transform:noun'] }, day);
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 10; i++) {
         const q = (await h.grammarSessions.next(p.id, s!.id, day))!;
         await h.grammarAnswers.submit(p.id, s!.id, q.attemptId, answer(q), day);
     }
     expect(await h.grammarSessions.next(p.id, s!.id, day)).toBeNull();
-    expect(await h.profile(p.id)).toMatchObject({ xp: 250 });
+    expect(await h.profile(p.id)).toMatchObject({ xp: 150 });
 }
 finally {
     h.close();
@@ -53,9 +53,9 @@ test('new_target_resets_recovers_and_keeps_mastery_in_all_review_intervals', asy
         const selection = { mode: 'study' as const, lesson: 'professions-sein' as const, targetIds: [targetId] };
         const s = (await h.grammarSessions.start(p.id, selection, day))!;
         async function submit(right: boolean, today = day, sessionId = s.id) { const q = (await h.grammarSessions.next(p.id, sessionId, today))!; return h.grammarAnswers.submit(p.id, sessionId, q.attemptId, right ? answer(q) : q.responseMode === 'typed' ? { kind: 'typed', text: 'falsch' } : { kind: 'choice', optionId: q.options.find(o => o.id !== q.expected.optionId)!.id }, today); }
-        for (let i = 0; i < 19; i++)
+        for (let i = 0; i < 9; i++)
             await submit(true);
-        expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { streak: 19 } });
+        expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { streak: 9 } });
         await submit(false);
         expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { streak: 0 } });
         await submit(false);
@@ -64,9 +64,9 @@ test('new_target_resets_recovers_and_keeps_mastery_in_all_review_intervals', asy
         for (let i = 0; i < 3; i++)
             await submit(true);
         expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { difficult: false } });
-        for (let i = 3; i < 20; i++)
+        for (let i = 3; i < 10; i++)
             await submit(true);
-        expect(await h.profile(p.id)).toMatchObject({ xp: 440 });
+        expect(await h.profile(p.id)).toMatchObject({ xp: 240 });
         expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { mastered: true, dueDay: '2026-10-09' } });
         const intervals = [['2026-10-09', 1, '2026-10-12'], ['2026-10-12', 2, '2026-10-19'], ['2026-10-19', 3, '2026-11-02'], ['2026-11-02', 4, '2026-12-02'], ['2026-12-02', 5, '2027-01-31'], ['2027-01-31', 5, '2027-04-01']] as const;
         for (const [today, reviewStage, dueDay] of intervals) {
@@ -76,7 +76,7 @@ test('new_target_resets_recovers_and_keeps_mastery_in_all_review_intervals', asy
         }
         const review = (await h.grammarSessions.start(p.id, { ...selection, mode: 'review' }, '2027-04-01'))!;
         await submit(false, '2027-04-01', review.id);
-        expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { mastered: true, streak: 20, reviewStage: 0, dueDay: '2027-04-02' } });
+        expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { mastered: true, streak: 10, reviewStage: 0, dueDay: '2027-04-02' } });
     }
     finally {
         h.close();

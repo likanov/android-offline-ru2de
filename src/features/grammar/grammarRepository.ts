@@ -48,9 +48,9 @@ export async function writeGrammarProgress(tx: SqlExecutor, profileId: string, p
   await requireProfileAndTarget(tx, profileId, progress.targetId);
   if (!Number.isInteger(progress.variantIndex) || progress.variantIndex<0 || progress.variantIndex>=getGrammarVariantCount(progress.targetId)) throw new GrammarRepositoryError('VALIDATION', 'Некорректный вариант');
   const s = progress.state;
-  await tx.run(`INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    ON CONFLICT(profileId,targetId) DO UPDATE SET catalogVersion=excluded.catalogVersion,streak=excluded.streak,mastered=excluded.mastered,masteryBonusGranted=excluded.masteryBonusGranted,reviewStage=excluded.reviewStage,dueDay=excluded.dueDay,difficult=excluded.difficult,totalErrors=excluded.totalErrors,recoveryErrors=excluded.recoveryErrors,recoveryCorrect=excluded.recoveryCorrect,attemptCount=excluded.attemptCount,variantIndex=excluded.variantIndex`,
+  await tx.run(`INSERT INTO grammar_progress(profileId,targetId,catalogVersion,rulesVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex)
+    VALUES (?,?,?,2,?,?,?,?,?,?,?,?,?,?,?)
+    ON CONFLICT(profileId,targetId) DO UPDATE SET catalogVersion=excluded.catalogVersion,rulesVersion=2,streak=excluded.streak,mastered=excluded.mastered,masteryBonusGranted=excluded.masteryBonusGranted,reviewStage=excluded.reviewStage,dueDay=excluded.dueDay,difficult=excluded.difficult,totalErrors=excluded.totalErrors,recoveryErrors=excluded.recoveryErrors,recoveryCorrect=excluded.recoveryCorrect,attemptCount=excluded.attemptCount,variantIndex=excluded.variantIndex`,
   [profileId,progress.targetId,getGrammarTarget(progress.targetId).catalogVersion,s.streak,s.mastered?1:0,s.masteryBonusGranted?1:0,s.reviewStage,s.dueDay,s.difficult?1:0,s.totalErrors,s.recoveryErrors,s.recoveryCorrect,progress.attemptCount,progress.variantIndex]);
 }
 
