@@ -7,7 +7,7 @@ import { createGrammarHarness } from '../harness';
 import { persistLegacySiePluralQuestion } from '../fixtures/legacyGrammarQuestion';
 
 const day = '2026-10-06';
-function answer(question: GrammarQuestion): GrammarSubmission {
+function answer(question: GrammarQuestion): GrammarSubmission { if(question.catalogVersion===3) throw new Error('Expected pre-Lektion3 question');
   return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: ('token' in question.expected ? question.expected.token : question.expected.sentences[0]) };
 }
 
@@ -147,7 +147,7 @@ function withoutRemappedIds(value: unknown, ids = new Map<string, string>()): un
 test('mixed_catalog_roundtrip_preserves_active_sentence', async () => {
   const { h, profile, active, backup } = await mixedCatalogFixture();
   try {
-    expect(backup.profiles[0].grammar.catalogVersions).toEqual([1, 2]);
+    expect(backup.profiles[0].grammar.catalogVersions).toEqual([1, 2, 3]);
     expect(backup.profiles[0].grammar.progress.find(row => row.targetId === 'pronoun-cloze:ich')!.state.mastered).toBe(true);
     expect(backup.profiles[0].profile.xp).toBe(150);
     const restored = await h.backup.restore(h.backup.preview(JSON.stringify(backup)));

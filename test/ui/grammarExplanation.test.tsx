@@ -8,7 +8,7 @@ import type { GrammarQuestion, GrammarSubmission } from '../../src/features/gram
 
 const day = '2026-10-06';
 
-function wrongFor(question: GrammarQuestion): GrammarSubmission {
+function wrongFor(question: GrammarQuestion): GrammarSubmission { if(question.catalogVersion===3) throw new Error('Expected pre-Lektion3 question');
   return question.responseMode === 'typed'
     ? { kind: 'typed', text: 'falsch' }
     : { kind: 'choice', optionId: question.options.find(option => option.id !== question.expected.optionId)!.id };

@@ -1,9 +1,10 @@
+import { lektion3Nouns } from '../grammar/lektion3Content';
 import { decodeAidContent } from '../assistant/aidRepository';
 import { randomUUID } from 'expo-crypto';
 import type { BackupV4, GrammarProfileBackupV4, ProfileBackupV4 } from './backupTypes';
 import { validateBackupV4 } from './backupValidation';
 const references = new Set(['id', 'profileId', 'wordId', 'topicId', 'aidId', 'sessionId', 'attemptId', 'afterAttemptId']);
-const grammarOptionIds = new Set(['ich', 'du', 'er', 'sie_feminine', 'es', 'wir', 'ihr', 'sie_plural', 'sie_formal', 'bin', 'bist', 'ist', 'sind', 'seid']);
+const grammarOptionIds = new Set(['ich', 'du', 'er', 'sie_feminine', 'es', 'wir', 'ihr', 'sie_plural', 'sie_formal', 'bin', 'bist', 'ist', 'sind', 'seid', 'der', 'die', 'das', ...lektion3Nouns.map(noun=>noun.id)]);
 function rewrite(value: unknown, ids: ReadonlyMap<string, string>, key = ''): unknown {
     if (typeof value === 'string' && references.has(key)) {
         const mapped = ids.get(value);

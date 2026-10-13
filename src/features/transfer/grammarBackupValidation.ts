@@ -1,6 +1,6 @@
 import { applyGrammarAnswer } from '../grammar/grammarLearningRules';
 import { replayGrammarRules } from './grammarRulesBackupValidation';
-import { grammarTargets, getGrammarTarget, getGrammarVariantCount } from '../grammar/grammarCatalog';
+import { grammarTargets, isGrammarLesson, getGrammarTarget, getGrammarVariantCount } from '../grammar/grammarCatalog';
 import { checkGrammarAnswer, validateGrammarQuestion } from '../grammar/grammarQuestionFactory';
 import type { GrammarProfileBackupV3, GrammarProfileBackupV4, ProfileBackupV4, ProfileBackupV3, ProfileBackupV2 } from './backupTypes';
 import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession, GrammarCatalogVersion } from '../grammar/grammarTypes';
@@ -74,7 +74,7 @@ export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2 |
   if (context.rulesVersion !== 2 && ('rulesVersion' in grammar || 'rulesTransitions' in grammar || grammar.attempts?.some(row => row.result?.rulesVersion !== undefined && row.result.rulesVersion !== 1) || grammar.sessions?.some(row => row.result?.rulesVersion !== undefined && row.result.rulesVersion !== 1))) invalid();
   if (!Array.isArray(grammar.catalogVersions) || (context.rulesVersion === 2 ? grammar.catalogVersions.length === 0 : grammar.catalogVersions.length !== context.catalogVersions.length) || new Set(grammar.catalogVersions).size !== grammar.catalogVersions.length || grammar.catalogVersions.some(version => !context.catalogVersions.includes(version)) || !Array.isArray(grammar.progress) || !Array.isArray(grammar.sessions) || !Array.isArray(grammar.questions) || !Array.isArray(grammar.attempts) || !Array.isArray(grammar.rewards)) invalid();
   for (const id of [...grammar.progress.map(row => row.targetId), ...grammar.sessions.flatMap(row => [...row.targetIds, ...(row.selection?.targetIds ?? [])]), ...grammar.questions.map(row => row.question.targetId), ...grammar.attempts.map(row => row.targetId), ...grammar.rewards.map(row => row.targetId)]) {
-    if (!targetKnown(id) || !grammar.catalogVersions.includes(getGrammarTarget(id).catalogVersion)) invalid();
+    if (!targetKnown(id) || !grammar.catalogVersions.some(version=>version===getGrammarTarget(id).catalogVersion)) invalid();
   }
   const targetIds = new Set<string>();
   for (const row of grammar.progress) {
@@ -86,7 +86,7 @@ export function validateGrammarProfile(part: ProfileBackupV3 | ProfileBackupV2 |
   const sessions = new Map<string, GrammarSession>();
   for (const session of grammar.sessions) {
     if (!session.selection || (session.selection.targetIds !== undefined && (!Array.isArray(session.selection.targetIds) || new Set(session.selection.targetIds).size !== session.selection.targetIds.length || session.selection.targetIds.some(id => !targetKnown(id))))) invalid();
-    if (!isUuid(session.id) || sessions.has(session.id) || session.profileId !== profileId || !['study', 'review'].includes(session.selection.mode) || !['mixed', 'pronouns', 'sein', 'professions-pronoun', 'professions-sein', 'demonstrative-statement', 'yesno-transform', 'yesno-translation'].includes(session.selection.lesson) || !Array.isArray(session.targetIds) || new Set(session.targetIds).size !== session.targetIds.length || session.targetIds.some(id => !targetKnown(id)) || !Number.isInteger(session.cursor) || session.cursor < 0 || !['active', 'completed', 'cancelled'].includes(session.status)) invalid();
+    if (!isUuid(session.id) || sessions.has(session.id) || session.profileId !== profileId || !['study', 'review'].includes(session.selection.mode) || !(context.rulesVersion===2 ? isGrammarLesson(session.selection.lesson) : ['mixed', 'pronouns', 'sein', 'professions-pronoun', 'professions-sein', 'demonstrative-statement', 'yesno-transform', 'yesno-translation'].includes(session.selection.lesson)) || !Array.isArray(session.targetIds) || new Set(session.targetIds).size !== session.targetIds.length || session.targetIds.some(id => !targetKnown(id)) || !Number.isInteger(session.cursor) || session.cursor < 0 || !['active', 'completed', 'cancelled'].includes(session.status)) invalid();
     if (session.status === 'active' && session.currentQuestion === null && session.result !== null) invalid();
     if (session.currentQuestion === null && session.result !== null) invalid();
     const lesson = session.selection.lesson;

@@ -1,5 +1,6 @@
+import { migrateLektion3 } from './migrations/010_lektion3';
 import { localDay } from './calendar';
-import type { DayKey } from '../features/learning/learningTypes';
+import type { DayKey, Word } from '../features/learning/learningTypes';
 import { migrateGrammarMastery } from './migrations/009_grammar_mastery';
 import { migrateLektion2 } from './migrations/008_lektion2';
 import { migrateWordParts } from './migrations/007_word_parts';
@@ -8,18 +9,17 @@ import type { SqlStore } from "./sql";
 import { profilesSchema } from "./migrations/001_profiles";
 import { wordDetailsSchema } from "./migrations/002_word_details";
 import { wordKey } from "../features/dictionary/wordValidation";
-import type { Word } from "../features/learning/learningTypes";
 import { starterWords } from "../data/starterWords";
 import { learningSchema } from "./migrations/003_learning";
 import { grammarSchema, seedGrammarTargets } from './migrations/006_grammar';
 export async function migrate(db: SqlStore, today: DayKey = localDay(new Date())): Promise<void> {
   const current = await db.first<{user_version:number}>("PRAGMA user_version");
-  if ((current?.user_version ?? 0) > 9) throw new Error("Unsupported database version");
+  if ((current?.user_version ?? 0) > 10) throw new Error("Unsupported database version");
   await db.transaction(async (tx) => {
     const version = await tx.first<{ user_version: number }>(
       "PRAGMA user_version",
     );
-    if ((version?.user_version ?? 0) > 9)
+    if ((version?.user_version ?? 0) > 10)
       throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 1) {
       await tx.exec(profilesSchema);
@@ -56,7 +56,7 @@ export async function migrate(db: SqlStore, today: DayKey = localDay(new Date())
   });
   await db.schemaTransaction(async tx => {
     const version = await tx.first<{user_version:number}>("PRAGMA user_version");
-    if ((version?.user_version ?? 0) > 9) throw new Error("Unsupported database version");
+    if ((version?.user_version ?? 0) > 10) throw new Error("Unsupported database version");
     if ((version?.user_version ?? 0) < 7) {
       await migrateWordParts(tx);
       if ((await tx.all("PRAGMA foreign_key_check")).length) throw new Error("Word migration violates foreign key relationships");
@@ -77,6 +77,14 @@ export async function migrate(db: SqlStore, today: DayKey = localDay(new Date())
       await migrateGrammarMastery(tx,today);
       if ((await tx.all("PRAGMA foreign_key_check")).length) throw new Error("Grammar mastery migration violates foreign key relationships");
       await tx.exec("PRAGMA user_version=9");
+    }
+  });
+  await db.schemaTransaction(async tx => {
+    const version=await tx.first<{user_version:number}>("PRAGMA user_version");
+    if ((version?.user_version??0)<10) {
+      await migrateLektion3(tx);
+      if ((await tx.all("PRAGMA foreign_key_check")).length) throw new Error("Lektion3 migration violates foreign key relationships");
+      await tx.exec("PRAGMA user_version=10");
     }
   });
 }

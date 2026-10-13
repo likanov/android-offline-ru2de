@@ -4,7 +4,7 @@ import { lektion2Targets } from '../../src/features/grammar/grammarCatalog';
 import { sameGrammarSelection } from '../../src/features/grammar/grammarSessionRepository';
 import type { GrammarQuestion, GrammarSubmission } from '../../src/features/grammar/grammarTypes';
 const day = '2026-10-08';
-function answer(q: GrammarQuestion): GrammarSubmission { return q.catalogVersion === 2 && q.presentation === 'sentence' ? { kind: 'typed', text: q.expected.sentences[0] } : q.responseMode === 'choice' ? { kind: 'choice', optionId: q.expected.optionId } : { kind: 'typed', text: q.expected.token }; }
+function answer(q: GrammarQuestion): GrammarSubmission { if(q.catalogVersion===3) throw new Error('Expected pre-Lektion3 question'); return q.catalogVersion === 2 && q.presentation === 'sentence' ? { kind: 'typed', text: q.expected.sentences[0] } : q.responseMode === 'choice' ? { kind: 'choice', optionId: q.expected.optionId } : { kind: 'typed', text: q.expected.token }; }
 test('new_goal_starts_at_zero', async () => { const h = await createGrammarHarness(); try {
     const p = await createProfile(h.db, 'New');
     for (const t of lektion2Targets) {
@@ -52,7 +52,7 @@ test('new_target_resets_recovers_and_keeps_mastery_in_all_review_intervals', asy
         const targetId = 'professions-sein:ich' as const;
         const selection = { mode: 'study' as const, lesson: 'professions-sein' as const, targetIds: [targetId] };
         const s = (await h.grammarSessions.start(p.id, selection, day))!;
-        async function submit(right: boolean, today = day, sessionId = s.id) { const q = (await h.grammarSessions.next(p.id, sessionId, today))!; return h.grammarAnswers.submit(p.id, sessionId, q.attemptId, right ? answer(q) : q.responseMode === 'typed' ? { kind: 'typed', text: 'falsch' } : { kind: 'choice', optionId: q.options.find(o => o.id !== q.expected.optionId)!.id }, today); }
+        async function submit(right: boolean, today = day, sessionId = s.id) { const q = (await h.grammarSessions.next(p.id, sessionId, today))!; if(q.catalogVersion!==2)throw new Error('Expected Lektion2'); return h.grammarAnswers.submit(p.id, sessionId, q.attemptId, right ? answer(q) : q.responseMode === 'typed' ? { kind: 'typed', text: 'falsch' } : { kind: 'choice', optionId: q.options.find(o => o.id !== q.expected.optionId)!.id }, today); }
         for (let i = 0; i < 9; i++)
             await submit(true);
         expect(await h.grammar.getState(p.id, targetId)).toMatchObject({ state: { streak: 9 } });

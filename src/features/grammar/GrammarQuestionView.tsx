@@ -2,12 +2,12 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { Button } from '../../ui/Button';
 import type { LearningState } from '../learning/learningTypes';
-import type { GrammarAttemptResult, GrammarQuestion, GrammarSubmission } from './grammarTypes';
+import type { GrammarAttemptResult, PreLektion3Question, GrammarSubmission } from './grammarTypes';
 import { GrammarTypedAnswer } from './GrammarTypedAnswer';
 import { normalizeGrammarSentence } from './grammarSentenceAnswer';
 import { grammarChoiceOptions } from './grammarChoiceOptions';
 export function GrammarQuestionView({ question, result, currentState, busy, onSubmit, onNext, onExplainError, onReference }: {
-  question: GrammarQuestion;
+  question: PreLektion3Question;
   result: GrammarAttemptResult | null;
   currentState: LearningState | null;
   busy: boolean;

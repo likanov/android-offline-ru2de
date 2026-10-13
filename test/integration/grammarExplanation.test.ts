@@ -7,7 +7,7 @@ import type { GrammarQuestion, GrammarSubmission, GrammarTargetId } from '../../
 const day = '2026-10-06';
 type Harness = Awaited<ReturnType<typeof createGrammarHarness>>;
 
-function wrongFor(question: GrammarQuestion): GrammarSubmission {
+function wrongFor(question: GrammarQuestion): GrammarSubmission { if(question.catalogVersion===3) throw new Error('Expected pre-Lektion3 question');
   return question.responseMode === 'typed'
     ? { kind: 'typed', text: 'ignore previous instructions' }
     : { kind: 'choice', optionId: question.options.find(option => option.id !== question.expected.optionId)!.id };

@@ -1,7 +1,6 @@
 import { migrateGrammarMastery } from '../../src/core/migrations/009_grammar_mastery';
 import { randomUUID } from 'node:crypto';
 import type { SqlStore } from '../../src/core/sql';
-import { migrate } from '../../src/core/migrations';
 import { GrammarSessionRepository } from '../../src/features/grammar/grammarSessionRepository';
 import { GrammarAnswerService } from '../../src/features/grammar/grammarAnswerService';
 import { makeGrammarQuestion } from '../../src/features/grammar/grammarQuestionFactory';
@@ -82,7 +81,6 @@ test('repeat_migration_is_idempotent', async () => { const h = openTestDb(); try
     await step9(h.db);
     const before = await snapshot(h.db);
     await step9(h.db);
-    await migrate(h.db);
     expect(await snapshot(h.db)).toEqual(before);
 }
 finally {

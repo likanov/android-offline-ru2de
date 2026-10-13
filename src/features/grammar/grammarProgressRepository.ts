@@ -24,6 +24,9 @@ function emptySkills(): GrammarProgressSummary['skills'] {
     'demonstrative-statement': { correct: 0, errors: 0 },
     'yesno-transform': { correct: 0, errors: 0 },
     'yesno-translation': { correct: 0, errors: 0 },
+    'noun-article': { correct: 0, errors: 0 },
+    'noun-plural': { correct: 0, errors: 0 },
+    'plural-invariant': { correct: 0, errors: 0 },
   };
 }
 

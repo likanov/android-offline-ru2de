@@ -1,5 +1,6 @@
+import { lektion3Targets } from './lektion3Content';
 import { lektion2Templates } from './lektion2Content';
-import type { GrammarKind, LegacyGrammarTarget, GrammarTarget, GrammarTargetId, Lektion2Target, PronounId, SeinForm } from './grammarTypes';
+import type { GrammarKind, LegacyGrammarTarget, GrammarTarget, GrammarTargetId, Lektion2Target, GrammarLesson, GrammarCatalogVersion, PronounId, SeinForm } from './grammarTypes';
 export const pronouns: readonly {id:PronounId;token:string;labelRu:string;sein:SeinForm}[] = [
   {id:'ich',token:'ich',labelRu:'я',sein:'bin'},{id:'du',token:'du',labelRu:'ты',sein:'bist'},
   {id:'er',token:'er',labelRu:'он',sein:'ist'},{id:'sie_feminine',token:'sie',labelRu:'она',sein:'ist'},
@@ -42,7 +43,7 @@ export const lektion2Targets: readonly Lektion2Target[] = [
   {"id": "yesno-translation:sie_formal", "kind": "yesno-translation", "pronounId": "sie_formal", "labelRu": "Вежливое обращение.", "catalogVersion": 2},
   {"id": "yesno-translation:noun", "kind": "yesno-translation", "pronounId": null, "labelRu": "Вопрос с существительным", "catalogVersion": 2},
  ];
-export const allGrammarTargets: readonly GrammarTarget[] = [...grammarTargets, ...lektion2Targets];
+export const allGrammarTargets: readonly GrammarTarget[] = [...grammarTargets, ...lektion2Targets, ...lektion3Targets];
 export function getGrammarTarget(id:GrammarTargetId):GrammarTarget {
   const target = allGrammarTargets.find(t=>t.id===id);
   if (!target) throw new Error('GRAMMAR_TARGET_INVALID');
@@ -50,6 +51,7 @@ export function getGrammarTarget(id:GrammarTargetId):GrammarTarget {
 }
 export function getGrammarVariantCount(id:GrammarTargetId):number {
   const target=getGrammarTarget(id);
-  return target.catalogVersion===1 ? 3 : lektion2Templates.filter(t=>t.targetId===id).length;
+  return target.catalogVersion===1 ? 3 : target.catalogVersion===3 ? (target.kind==='noun-article'?2:target.kind==='noun-plural'?1:12) : lektion2Templates.filter(t=>t.targetId===id).length;
 }
-export function getGrammarCatalogVersions():(1|2)[] { return [1,2]; }
+export function getGrammarCatalogVersions():GrammarCatalogVersion[] { return [1,2,3]; }
+export function isGrammarLesson(value:unknown):value is GrammarLesson { return typeof value==='string' && (['mixed','pronouns','sein'].includes(value)||allGrammarTargets.some(t=>t.catalogVersion!==1&&t.kind===value)); }

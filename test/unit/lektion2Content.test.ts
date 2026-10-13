@@ -3,7 +3,7 @@ import { lektion2Targets, getGrammarTarget, getGrammarVariantCount, getGrammarCa
 
 test('lektion2_has_24_targets_and_complete_source_coverage', () => {
   expect(lektion2Targets).toHaveLength(24);
-  expect(getGrammarCatalogVersions()).toEqual([1, 2]);
+  expect(getGrammarCatalogVersions()).toEqual([1, 2, 3]);
   for (const [exercise, count] of [['2.9',42],['2.10',8],['2.11',10],['2.12',8],['2.13',11],['2.14',20]] as const) {
     expect(new Set(lektion2Templates.filter(t=>t.sourceExercise===exercise && t.sourceItem!==null).map(t=>t.sourceItem)).size).toBe(count);
   }

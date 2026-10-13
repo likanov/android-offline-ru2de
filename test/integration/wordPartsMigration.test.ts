@@ -34,7 +34,7 @@ async function snapshot(db:SqlStore) {
 test('migration_preserves_v6_graph',async()=>{
  const {db,close}=openTestDb();try {
   await fixture(db);const before=await snapshot(db);await migrate(db);
-  expect(await db.first('PRAGMA user_version')).toEqual({user_version:9});
+  expect(await db.first('PRAGMA user_version')).toEqual({user_version:10});
   expect(await snapshot(db)).toEqual(before);expect(await db.all('PRAGMA foreign_key_check')).toEqual([]);
   await migrate(db);expect(await snapshot(db)).toEqual(before);
   const p=(await db.first<{id:string}>('SELECT id FROM profiles'))!;
@@ -53,7 +53,7 @@ test('migration_rolls_back_after_copy_and_rejects_newer_schema',async()=>{
   const failing:SqlStore={...db,schemaTransaction:work=>db.schemaTransaction(tx=>work({...tx,exec:async sql=>{await tx.exec(sql);if(sql.includes('ALTER TABLE words_v7 RENAME'))throw new Error('failure after copy');}}))};
   await expect(migrate(failing)).rejects.toThrow('failure after copy');
   expect(await snapshot(db)).toEqual(before);expect(await db.first('PRAGMA user_version')).toEqual({user_version:6});expect(await db.first('PRAGMA foreign_keys')).toEqual({foreign_keys:1});
-  await db.exec('PRAGMA user_version=10');await expect(migrate(db)).rejects.toThrow('Unsupported');expect(await snapshot(db)).toEqual(before);
+  await db.exec('PRAGMA user_version=11');await expect(migrate(db)).rejects.toThrow('Unsupported');expect(await snapshot(db)).toEqual(before);
  }finally{close();}
 });
 
@@ -69,7 +69,7 @@ test('legacy_editor_adjective_plural_is_archived_losslessly_without_graph_change
   const before=await snapshot(store.db);
   const expected={...before,words:(before.words as Record<string,unknown>[]).map(w=>w.pos==='adjective'?{...w,plural:null,note:'Existing note\n[Legacy adjective plural: '+JSON.stringify(value)+']'}:w)};
   await migrate(store.db);expect(await snapshot(store.db)).toEqual(expected);
-  expect(await store.db.first('PRAGMA user_version')).toEqual({user_version:9});
+  expect(await store.db.first('PRAGMA user_version')).toEqual({user_version:10});
   store.close();store=openTestDb(join(directory,'profile.sqlite'));
   await migrate(store.db);expect(await snapshot(store.db)).toEqual(expected);
   expect(await store.db.all('PRAGMA foreign_key_check')).toEqual([]);

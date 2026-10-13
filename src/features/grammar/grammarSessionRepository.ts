@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { addDays } from '../../core/calendar';
 import type { SqlExecutor, SqlStore } from '../../core/sql';
-import { allGrammarTargets, getGrammarTarget } from './grammarCatalog';
+import { allGrammarTargets, getGrammarTarget, isGrammarLesson } from './grammarCatalog';
 import { grammarResponseMode, makeGrammarQuestion } from './grammarQuestionFactory';
 import { readGrammarProgress, writeGrammarProgress } from './grammarRepository';
 import type { DayKey, Word } from '../learning/learningTypes';
@@ -34,7 +34,7 @@ export function sameGrammarSelection(a: GrammarSelection, b: GrammarSelection): 
 }
 
 function validateSelection(selection: GrammarSelection): void {
-  if (!selection || !['study','review'].includes(selection.mode) || !['mixed','pronouns','sein',...allGrammarTargets.filter(t=>t.catalogVersion===2).map(t=>t.kind)].includes(selection.lesson))
+  if (!selection || !['study','review'].includes(selection.mode) || !isGrammarLesson(selection.lesson))
     throw new GrammarSessionError('VALIDATION','Неизвестный режим занятия');
   if (selection.targetIds && new Set(selection.targetIds).size!==selection.targetIds.length)
     throw new GrammarSessionError('VALIDATION','Грамматические цели повторяются');

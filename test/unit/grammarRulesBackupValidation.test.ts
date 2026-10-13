@@ -19,11 +19,11 @@ test.each([1, 4])('forged_attempt_count_without_ledger_is_rejected_%s', attemptC
 test('catalog_subset_duplicate_and_unknown_versions', () => {
     const data = file();
     data.profiles[0].grammar.catalogVersions = [1];
-    for (const versions of [[1], [2], [1, 2]]) {
+    for (const versions of [[1], [2], [3], [1, 2], [1, 2, 3]]) {
         data.profiles[0].grammar.catalogVersions = versions;
         expect(() => preview(data)).not.toThrow();
     }
-    for (const versions of [[], [1, 1], [3]]) {
+    for (const versions of [[], [1, 1], [4]]) {
         data.profiles[0].grammar.catalogVersions = versions;
         expect(() => preview(data)).toThrow();
     }

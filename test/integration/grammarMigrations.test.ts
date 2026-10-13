@@ -39,12 +39,12 @@ test('migrates_v5_to_v6_without_changing_word_data', async () => {
     await makeV5(opened.db);
     const before = await legacyRows(opened.db);
     await migrate(opened.db);
-    expect(await opened.db.first('PRAGMA user_version')).toEqual({user_version: 9});
-    expect(await opened.db.first('SELECT count(*) AS n FROM grammar_targets')).toEqual({n: 42});
+    expect(await opened.db.first('PRAGMA user_version')).toEqual({user_version: 10});
+    expect(await opened.db.first('SELECT count(*) AS n FROM grammar_targets')).toEqual({n: 82});
     expect(await legacyRows(opened.db)).toEqual(before);
     await expect(migrate(opened.db)).resolves.toBeUndefined();
-    expect(await opened.db.first('SELECT count(*) AS n FROM grammar_targets')).toEqual({n: 42});
-    await opened.db.exec('PRAGMA user_version=10');
+    expect(await opened.db.first('SELECT count(*) AS n FROM grammar_targets')).toEqual({n: 82});
+    await opened.db.exec('PRAGMA user_version=11');
     await expect(migrate(opened.db)).rejects.toThrow('Unsupported database version');
   } finally {
     opened.close();

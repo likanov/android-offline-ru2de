@@ -6,14 +6,14 @@ const day = '2026-10-06';
 
 type Harness = Awaited<ReturnType<typeof createGrammarHarness>>;
 
-function answerFor(question: GrammarQuestion): GrammarSubmission {
+function answerFor(question: GrammarQuestion): GrammarSubmission { if(question.catalogVersion===3) throw new Error('Expected pre-Lektion3 question');
   if(question.catalogVersion===2 && question.presentation==='sentence') return {kind:'typed',text:question.expected.sentences[0]};
   return question.responseMode === 'choice'
     ? {kind:'choice',optionId:question.expected.optionId}
     : {kind:'typed',text:question.expected.token};
 }
 
-function wrongFor(question: GrammarQuestion): GrammarSubmission {
+function wrongFor(question: GrammarQuestion): GrammarSubmission { if(question.catalogVersion===3) throw new Error('Expected pre-Lektion3 question');
   if (question.responseMode === 'typed') return {kind:'typed',text:'falsch'};
   return {kind:'choice',optionId:question.options.find(option=>option.id!==question.expected.optionId)!.id};
 }

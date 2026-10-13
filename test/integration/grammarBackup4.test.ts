@@ -223,3 +223,20 @@ test('zero_history_transition_has_null_anchor_and_accepts_new_version_two_answer
         h.close();
     }
 });
+
+test('backup4_remap_preserves_stable_noun_ids', async()=>{
+ const h=await createGrammarHarness();try{
+  const p=await createProfile(h.db,'Lektion3');const day='2026-10-13';
+  const s=(await h.grammarSessions.start(p.id,{mode:'study',lesson:'plural-invariant'} as any,day))!;
+  const q:any=await h.grammarSessions.next(p.id,s.id,day);
+  await h.grammarAnswers.submit(p.id,s.id,q.attemptId,{kind:'multi-choice',optionIds:['computer','lehrer']} as any,day);
+  const pending:any=await h.grammarSessions.next(p.id,s.id,day);
+  const source=await h.backup.exportAll();expect(source.profiles[0].grammar.catalogVersions).toEqual([1,2,3]);
+  const restored=await h.backup.restore(h.backup.preview(JSON.stringify(source)));
+  const part=(await h.backup.exportAll()).profiles.find(x=>x.profile.id===restored.profileIds[0])!;
+  expect(part.grammar.questions[0].question).toMatchObject({options:q.options,expected:q.expected,feedback:q.feedback});
+  expect(part.grammar.questions[0].question.attemptId).not.toBe(q.attemptId);
+  expect(part.grammar.sessions[0].currentQuestion).toMatchObject({options:pending.options,expected:pending.expected});
+  expect(()=>h.backup.preview(JSON.stringify({...source,version:3}))).toThrow();
+ }finally{h.close();}
+});
