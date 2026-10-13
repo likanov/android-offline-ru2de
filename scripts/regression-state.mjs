@@ -67,6 +67,18 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
    }
   }
  }
+ if(id==='grammar-progress.reviews-difficult'){
+  const p=part('Грамматика — повторение'),b=old('Грамматика — повторение');
+  const prior=b?.grammar?.progress.find(r=>r.targetId==='sein-cloze:sie_formal'),next=p?.grammar?.progress.find(r=>r.targetId==='sein-cloze:sie_formal');
+  const added=p?.grammar?.attempts.filter(a=>!b?.grammar?.attempts.some(old=>old.result.attemptId===a.result.attemptId))??[];
+  check(!!p&&!!b&&prior?.state.mastered&&prior.state.dueDay<=today,'GRAMMAR_DUE_REVIEW_REQUIRED');
+  check(added.length===1&&added[0].targetId==='sein-cloze:sie_formal'&&added[0].day===today&&added[0].result.right===false&&added[0].result.xpDelta===0,'GRAMMAR_WRONG_REVIEW_ATTEMPT');
+  const q=p?.grammar?.questions.find(q=>q.question.attemptId===added[0]?.result.attemptId);
+  check(q?.status==='answered'&&q.question.reviewStage===prior?.state.reviewStage&&q.question.dueDay===prior?.state.dueDay,'GRAMMAR_REVIEW_QUESTION_CONTEXT');
+  check(next?.attemptCount===prior?.attemptCount+1&&next?.state.mastered===true&&next.state.streak===10&&next.state.reviewStage===0&&next.state.dueDay===add(today,1)&&next.state.totalErrors===prior?.state.totalErrors+1,'GRAMMAR_REVIEW_MASTERY_PRESERVED');
+  check(p?.profile.xp===b?.profile.xp&&same(p?.grammar?.rewards,b?.grammar?.rewards),'GRAMMAR_REVIEW_ERROR_NO_XP');
+  check(same(p?.grammar?.attempts.filter(a=>b?.grammar?.attempts.some(old=>old.result.attemptId===a.result.attemptId)),b?.grammar?.attempts),'GRAMMAR_REVIEW_HISTORY_CHANGED');
+ }
  if(id==='assistant.helper-save-edit')check(part('Регрессия UI')?.aids.some(a=>JSON.parse(a.content).text.includes('Проверено')),'HELPER_EDIT_NOT_SAVED');
  if(id==='assistant.helper-cancel-background')check(same(part('Регрессия UI')?.aids,old('Регрессия UI')?.aids),'LATE_HELPER_SAVED');
  if(id==='assistant.helper-profile-dependency'){check(part('Регрессия UI')?.aids.filter(a=>!a.stale).length===0,'STALE_HELPER_VISIBLE');check(part('Второй переименован')?.aids.length===old('Второй переименован')?.aids.length,'CROSS_PROFILE_HELPER');}
@@ -75,7 +87,7 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
  if(id==='resilience.picker-double-answer'){const p=part('Регрессия — трудное'),b=old('Регрессия — трудное');check(p?.attempts.length===b?.attempts.length+1&&p?.profile.xp===b?.profile.xp+10,'DOUBLE_ANSWER_REWARDED');}
  if(id.startsWith('grammar-rules.')||id.startsWith('grammar-lektion3.')){for(const p of backup?.profiles??[])if(p.grammar)checkGrammarState(id,p,check);checkNewGrammarScenario(id,backup,before,{today,fixtureDay},check);}
  else if(id.startsWith('grammar-lektion2.')){for(const p of backup?.profiles??[])if(p.grammar)checkGrammarState(id,p,check);}
- else if(id.startsWith('grammar-'))checkGrammarState(id,(backup?.profiles??[]).find(p=>p?.grammar),check);
+ else if(id.startsWith('grammar-'))checkGrammarState(id,id==='grammar-progress.reviews-difficult'?part('Грамматика — повторение'):(backup?.profiles??[]).find(p=>p?.grammar),check);
  if(id.startsWith('extended-vocabulary.')){
   const p=part('A1 — словарь'),b=old('A1 — словарь');check(!!p,'A1_VOCABULARY_MISSING');
   if(id.endsWith('nine-type-editor'))for(const pos of ['noun','adjective','number','verb','pronoun','adverb','preposition','conjunction','phrase'])check(p?.words.some(w=>w.de==='R1'+pos&&w.pos===pos),'EDITOR_PART:'+pos);
@@ -164,7 +176,7 @@ function checkGrammarState(id,p,check){
  if(id==='grammar-progress.twenty-ui-answers')check((g.attempts??[]).some(a=>a.result?.state?.streak===10),'GRAMMAR_TEN_ANSWERS');
  if(id==='grammar-progress.nineteen-error')check((g.attempts??[]).some(a=>a.result?.right===false),'GRAMMAR_NINETEEN_ERROR');
  if(id==='grammar-progress.bonus-once-double-submit')check((g.rewards??[]).length===new Set((g.rewards??[]).map(r=>r.targetId)).size,'GRAMMAR_BONUS_DUPLICATE');
- if(id==='grammar-progress.reviews-difficult')check((g.progress??[]).some(r=>r.state?.difficult===true||r.state?.reviewStage>0),'GRAMMAR_REVIEW_STATE');
+
  if(id==='grammar-progress.combined-summary')check((g.attempts??[]).length>0&&p.profile.xp===wordXp+grammarXp+transitionXp,'GRAMMAR_COMBINED_SUMMARY');
 }
 function addDaily(map,day,right,xp){const current=map.get(day)??{correct:0,errors:0,xp:0};current.correct+=right?1:0;current.errors+=right?0:1;current.xp+=xp;map.set(day,current);}

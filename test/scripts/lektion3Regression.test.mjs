@@ -78,7 +78,7 @@ test('V4 roundtrip accepts later restored suffixes and rejects a missing or dupl
 
 test('legacy detailed grammar checks enter their profile/question after export and device preparation',async()=>{
  assert.equal(typeof runner.prepareDetailedGrammarCheck,'function');
- for(const id of ['grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-core.empty-dictionary-fallback','grammar-core.keyboard-320dp','grammar-progress.twenty-ui-answers','grammar-progress.nineteen-error','grammar-progress.bonus-once-double-submit','grammar-progress.reviews-difficult','grammar-persistence.profile-isolation','grammar-persistence.force-stop-reboot','grammar-persistence.word-dependency-edit','grammar-transfer-assistant.no-model-rule','grammar-transfer-assistant.real-model-cancel']){
+ for(const id of ['grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-core.empty-dictionary-fallback','grammar-core.keyboard-320dp','grammar-progress.twenty-ui-answers','grammar-progress.nineteen-error','grammar-progress.bonus-once-double-submit','grammar-persistence.profile-isolation','grammar-persistence.force-stop-reboot','grammar-persistence.word-dependency-edit','grammar-transfer-assistant.no-model-rule','grammar-transfer-assistant.real-model-cancel']){
   const events=[];let screen='elsewhere';const before={profiles:[]};
   const result=await runner.prepareDetailedGrammarCheck({id},{capture:async()=>{events.push('capture');screen='transfer';return before;},prepareDevice:async()=>{events.push('device');screen='transfer';},flow:async(name,file,env)=>{events.push('question');assert.equal(screen,'transfer');assert.equal(file,'helpers/open-grammar-training.yaml');assert.ok(env.PROFILE);screen='grammar';}});
   assert.equal(result,before);assert.deepEqual(events,['capture','device','question']);assert.equal(screen,'grammar',id);
@@ -89,4 +89,11 @@ test('schema8 rejects another commit sharing the trusted seven-character prefix'
  const value={apkSha256:reports.SCHEMA8_BASELINE_SHA256,finalSha256:'f'.repeat(64),package:'com.personal.germanvocabulary',certificateSha256:reports.SCHEMA8_BASELINE_CERTIFICATE,finalCertificateSha256:reports.SCHEMA8_BASELINE_CERTIFICATE,provenance:{schemaVersion:8,sourceMapVerified:true,commit:'7828274'+'a'.repeat(33),sha256:reports.SCHEMA8_BASELINE_SHA256,package:'com.personal.germanvocabulary',certificateSha256:reports.SCHEMA8_BASELINE_CERTIFICATE}};
  assert.equal(reports.validateSchema8Upgrade(value).ok,false);
  value.provenance.commit='7828274b5f971281401a87683e72fe14cb6a2b29';assert.equal(reports.validateSchema8Upgrade(value).ok,true);
+});
+
+
+test('reviews-difficult advances to the fixture due day before entering the due review',async()=>{
+ const before={profiles:[{profile:{name:'Грамматика — повторение'},grammar:{progress:[{targetId:'sein-cloze:sie_formal',attemptCount:21,state:{mastered:true,dueDay:'2026-10-16',reviewStage:1}}],sessions:[{status:'active',selection:{mode:'study'}}]}}]};
+ const events=[];const result=await runner.prepareDetailedGrammarCheck({id:'grammar-progress.reviews-difficult'},{capture:async()=>{events.push('capture');return before;},prepareDevice:async()=>events.push('device'),advanceClock:async day=>events.push('clock:'+day),flow:async(id,file,env)=>{events.push('review');assert.equal(env.PROFILE,'Грамматика — повторение');assert.equal(env.GRAMMAR_START_ID,'grammar-review-start');}});
+ assert.equal(result,before);assert.deepEqual(events,['capture','device','clock:2026-10-16','review']);
 });

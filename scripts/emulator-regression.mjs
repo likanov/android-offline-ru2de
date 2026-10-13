@@ -403,6 +403,7 @@ async function group(row,baseline) {
    const scenario=report.scenarios.find(s=>s.id===check.id);scenario.stateEvidence=join(reportDir,check.id+'-after.json');scenario.stateValidation=result;scenario.beforeEvidence=join(reportDir,check.id+'-before.json');if(check.id==='grammar-rules.legacy-backup-conversion')writeFileSync(scenario.beforeEvidence,JSON.stringify(before));if(restoreEvidence)scenario.restoreEvidence=restoreEvidence;
    if(!result.ok){scenario.status='failed';scenario.reason=result.errors.join(';');throw Error('STATE_ASSERTION_FAILED:'+check.id+':'+scenario.reason);}
   }
+  if(check.id==='grammar-progress.reviews-difficult')setClock(fixtureDay+'T12:00:00Z');
  }
  flow(row.id,row.flow,{FIXTURE_DAY:fixtureDay,GROUP_ID:row.id});
  report.scenarios.find(s=>s.id===row.id).apkSha256=report.apk.sha256;
@@ -625,7 +626,7 @@ async function runSchema8Upgrade(){
 
 // Public export navigates to Transfer, and device preparation can navigate again.
 // Restore each older check's explicit question entry only after both operations.
-export async function prepareDetailedGrammarCheck(check,{capture,prepareDevice,flow}){
+export async function prepareDetailedGrammarCheck(check,{capture,prepareDevice,flow,advanceClock=day=>setClock(day+'T12:00:00Z')}){
  const before=await capture();await prepareDevice(before);
  const questions=new Set([
   'grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-core.empty-dictionary-fallback','grammar-core.keyboard-320dp',
@@ -636,6 +637,12 @@ export async function prepareDetailedGrammarCheck(check,{capture,prepareDevice,f
  if(questions.has(check.id)){
   const error=check.id==='grammar-progress.nineteen-error'||check.id.startsWith('grammar-transfer-assistant.');
   const review=check.id==='grammar-progress.reviews-difficult';
+  if(review){
+   const profile=before?.profiles?.find(p=>p.profile.name==='Грамматика — повторение');
+   const due=profile?.grammar?.progress.find(p=>p.targetId==='sein-cloze:sie_formal'&&p.state.mastered&&p.attemptCount===21);
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(due?.state.dueDay??''))throw new Unavailable('GRAMMAR_REVIEW_FIXTURE_NOT_READY');
+   await advanceClock(due.state.dueDay);
+  }
   await flow(check.id+'-question-entry','helpers/open-grammar-training.yaml',{PROFILE:error?'Грамматика — ошибка 19':review?'Грамматика — повторение':'Грамматика — 18 целей',GRAMMAR_START_ID:review?'grammar-review-start':'training-grammar-start'});
  }
  if(check.id==='grammar-progress.combined-summary')await flow(check.id+'-progress-entry','helpers/open-navigation.yaml',{NAV_TARGET:'nav-progress'});

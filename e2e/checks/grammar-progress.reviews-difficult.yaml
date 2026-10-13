@@ -1,4 +1,45 @@
 appId: com.personal.germanvocabulary
 name: grammar-progress.reviews-difficult
 ---
-[{"assertVisible":{"id":"grammar-result"}},{"assertVisible":"Освоение сохранено"},{"takeScreenshot":"grammar-reviews-difficult"}]
+[
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-answer-input"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-answer-input"
+    }
+  },
+  {
+    "inputText": "falsch"
+  },
+  {
+    "tapOn": {
+      "id": "grammar-submit"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Ошибка. Повторите правило."
+  },
+  {
+    "assertVisible": "Освоение сохранено, следующее повторение назначено на завтра."
+  },
+  {
+    "assertVisible": "Серия: 10/10"
+  },
+  {
+    "takeScreenshot": "grammar-reviews-difficult"
+  }
+]
