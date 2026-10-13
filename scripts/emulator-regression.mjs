@@ -5,7 +5,7 @@ import { arch, totalmem } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import {grammarUiCapture} from './grammar-ui-evidence.mjs';
+import {grammarUiCapture,imeWindowIsVisible} from './grammar-ui-evidence.mjs';
 import {appendDeviceLog,generationFromHierarchy,completeRegressionReport,offlineRadioState,rootVerified,applicationAlarmEpochs,alarmMatchesLocalTime,maestroOutcome} from './regression-evidence.mjs';
 import {runRetainedUpgrade,installReplacementAndLaunch} from './regression-upgrade.mjs';
 import {verifyScenarioState,compareBackupGraphs,compareGrammarRulesUpgrade} from './regression-state.mjs';
@@ -259,7 +259,7 @@ async function captureGrammarKeyboardEvidence(check,before){
    const name=check.id+'-font'+fontScale+'-'+step;
    flow(name,check.flow,{...answers,CHECK_ID:name,UI_STAGE:step,KEYBOARD_PROFILE:profile,KEYBOARD_ANSWER:answer});
    let imeDump=shell('dumpsys','input_method').stdout;
-   if(step==='keyboard-open'){for(let n=0;n<20&&!(/mInputShown=true/.test(imeDump)||/mImeWindowVis=[1-9]/.test(imeDump));n++){await delay(250);imeDump=shell('dumpsys','input_method').stdout;}}
+   if(step==='keyboard-open'){for(let n=0;n<20&&!imeWindowIsVisible(imeDump);n++){await delay(250);imeDump=shell('dumpsys','input_method').stdout;}}
    const imeId=shell('settings','get','secure','default_input_method').stdout.trim(),windowDump=shell('dumpsys','window','windows').stdout;
    const screenshotPath=screenshot(name),hierarchyPath=hierarchy(name+'-hierarchy'),imeEvidence=join(reportDir,name+'-ime.json');writeFileSync(imeEvidence,JSON.stringify({imeId,imeDump,windowDump,width,height,density,fontScale:measuredScale},null,2));
    const capture={...grammarUiCapture(readFileSync(hierarchyPath,'utf8'),{step,width,height,density,imeId,imeDump,windowDump}),screenshot:screenshotPath,hierarchy:hierarchyPath,imeEvidence};

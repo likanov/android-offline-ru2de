@@ -7,7 +7,7 @@ export function syntheticGrammarUiEvidence(root,apkSha256){
   return {widthDp:320,fontScale,typed:['keyboard-closed','keyboard-open','after-submit'].map(capture),multi:['multi-before','multi-after'].map((step,i)=>({...capture(step),options:[{id:'grammar-multi-option-first',top:100-i*50,bottom:160-i*50},{id:'grammar-multi-option-last',top:600-i*50,bottom:660-i*50}]})),firstOptionId:'grammar-multi-option-first',lastOptionId:'grammar-multi-option-last'};
  });
  for(const c of configurations)for(const r of [...c.typed,...c.multi]){
-  r.imeEvidence=file('grammar-'+c.fontScale+'-'+r.step+'-ime.json',JSON.stringify({imeId:r.keyboard.imeId??'com.example.inputmethod/.IME',imeDump:'mInputShown='+r.keyboard.visible,fontScale:c.fontScale,width:960,height:800,density:480}));
+  r.imeEvidence=file('grammar-'+c.fontScale+'-'+r.step+'-ime.json',JSON.stringify({imeId:r.keyboard.imeId??'com.example.inputmethod/.IME',imeDump:'mInputShown='+r.keyboard.visible+'\nmImeWindowVis='+(r.keyboard.visible?3:0),fontScale:c.fontScale,width:960,height:800,density:480}));
   const node=(id,b,packageName='com.personal.germanvocabulary')=>`<node resource-id="${id}" package="${packageName}" bounds="[0,${b.top}][960,${b.bottom}]"/>`;
   const xml='<hierarchy>'+node('grammar-answer-input',r.input)+node(r.step==='after-submit'?'grammar-next':'grammar-submit',r.submit)+(r.result?node('grammar-result',r.result):'')+(r.keyboard.visible?node('ime',{top:500,bottom:800},'com.example.inputmethod'):'')+(r.options??[]).map(o=>node(o.id,o)).join('')+'</hierarchy>';writeFileSync(r.hierarchy,xml);
  }

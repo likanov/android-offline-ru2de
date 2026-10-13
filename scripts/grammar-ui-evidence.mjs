@@ -1,9 +1,15 @@
 import {existsSync,readFileSync,statSync} from 'node:fs';
 const bounds=value=>{const m=/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/.exec(value??'');return m?{left:+m[1],top:+m[2],right:+m[3],bottom:+m[4]}:null;};
+export function imeWindowIsVisible(dump){
+ // IME_ACTIVE is bit 1; an active service can still have a hidden window.
+ // Only IME_VISIBLE (bit 2) establishes the onscreen keyboard for this AVD.
+ const value=/(?:^|\s)mImeWindowVis=(0x[\da-f]+|\d+)/im.exec(dump??'')?.[1];
+ return value!==undefined&&(Number(value)&2)!==0;
+}
 export function grammarUiCapture(xml,{step,width,height,density,imeId,imeDump,windowDump=''}){
  const nodes=[...xml.matchAll(/<node\b[^>]*>/g)].map(m=>Object.fromEntries([...m[0].matchAll(/([\w-]+)="([^"]*)"/g)].map(a=>[a[1],a[2]])));
  const byId=id=>bounds(nodes.find(n=>n['resource-id']===id)?.bounds);
- const visible=/mInputShown=true/.test(imeDump)||/mImeWindowVis=[1-9]/.test(imeDump);
+ const visible=imeWindowIsVisible(imeDump);
  const imeNodes=nodes.filter(n=>/inputmethod|\.ime(?:\.|$)/i.test(n.package??'')).map(n=>bounds(n.bounds)).filter(b=>b&&b.bottom>b.top);
  const methodWindow=windowDump.split(/(?=Window #\d+ Window\{)/).find(s=>/^Window #\d+ Window\{[^\n]*InputMethod/.test(s.trim()));
  const frame=methodWindow?.match(/(?:mFrame=|frame=)(\[\d+,\d+\]\[\d+,\d+\])/);
