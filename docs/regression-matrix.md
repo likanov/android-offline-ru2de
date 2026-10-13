@@ -23,7 +23,7 @@ Every detailed ID has an executable `e2e/checks/<id>.yaml` flow. Matrix status *
 
 `persistence-before.yaml` and `upgrade-before.yaml` are setup phases; their passing output does not satisfy a required outcome ID. `config.yaml` lists only the main group flows so reboot/update phases cannot accidentally run against cleared state. Failed or unexecuted checks remain nonzero and not verified.
 
-State evidence is exported by normal BackupV1 UI operations and read only on the host. No app SQLite file or learning counter is edited. Group flows execute after their detailed checks; setup flows alone never satisfy required IDs.
+State evidence is exported by normal versioned backup UI operations and read only on the host. No app SQLite file or learning counter is edited. Group flows execute after their detailed checks; setup flows alone never satisfy required IDs.
 
 ## Release acceptance gate
 
@@ -53,4 +53,31 @@ Every new check is mandatory in the full report and bound to the final APK
 SHA-256. All are initially **implemented-unverified**. UI presence alone cannot
 satisfy learning checks: exported attempt deltas and expected outcomes are
 required. Keyboard checks assert prompt/input/submit together before capture.
-The schema5 and original Task5 checks remain mandatory alongside schema6→8.
+The schema5 and original Task5 checks remain mandatory alongside schema6→10 and schema8→10.
+
+## Grammar rules / Lektion 3 (schema10)
+
+| Block | Exact required checks | Public export evidence |
+| --- | --- | --- |
+| grammar-rules | ten-answer-mastery; nine-error-reset; schema8-ten-upgrade; legacy-backup-conversion; backup4-roundtrip; word-threshold-twenty; profiles-reviews | Ten grammar answers and one bonus; error after nine resets; boundaries 0/9/10/19/20 retain attempts/questions/rewards; migration XP is only transition bonuses; repeated launch unchanged; V4 restore and dictionary twenty-answer mastery |
+| grammar-lektion3 | three-lessons; article-choice-typing; plural-correct-error; invariant-exact-set; empty-dictionary; keyboard-small-large; reference-help-return; force-stop-reboot; profile-isolation; backup4-roundtrip | Real saved-question attempts in all three lessons; typed article/plural and error; exact invariant set accepted with subset/superset rejected; empty-word fallback; standard and 320dp/large-font keyboard captures; help/reference preserves XP; force-stop/reboot preserve pending question; profile and complete V4 graph isolation |
+
+All seven and ten checks are mandatory alongside every existing block. The
+retained IDs `grammar-progress.twenty-ui-answers` and
+`grammar-lektion2.schema6-eight-upgrade` remain stable for report consumers;
+their live grammar expectation is ten and final schema is ten. Historical V1,
+V2 and V3 inputs retain twenty-answer word/grammar history; dictionary mastery,
+daily goal 20 and lesson source item 20 remain unchanged. Current exports are
+V4 with catalog versions 1/2/3 and rulesVersion 2; historical attempts preserve
+rulesVersion 1 (or its legacy absence) and original XP.
+
+Android answers come from the immediately exported saved question: stable
+option IDs, typed tokens/phrases and exact invariant IDs. Choice positions are
+never used as an answer key. V4 restore comparisons normalize UUIDs and restored
+names while preserving target/template/noun/option IDs, expected answers and
+array order, including rule-transition `afterAttemptId` links.
+
+Task 7 provides host contracts and parser verification. Android release,
+old-APK picker-import/upgrade execution, and human keyboard review remain Task 8
+work; these rows remain **implemented-unverified** until their real evidence is
+collected. No synthetic host fixture is release/device acceptance evidence.

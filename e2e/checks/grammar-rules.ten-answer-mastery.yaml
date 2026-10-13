@@ -1,0 +1,71 @@
+appId: com.personal.germanvocabulary
+name: grammar-rules.ten-answer-mastery
+---
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Rules — nine"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-grammar-start"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-answer-input"
+    }
+  },
+  {
+    "inputText": "${ANSWER_RULES_NINE}"
+  },
+  {
+    "tapOn": {
+      "id": "grammar-submit"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+(10|60) XP"
+  },
+  {
+    "assertVisible": "Серия: 10/10"
+  },
+  {
+    "assertVisible": "Верно! \\+60 XP"
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]

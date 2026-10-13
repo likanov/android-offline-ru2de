@@ -38,6 +38,7 @@ export function alarmMatchesLocalTime(epoch,zone,time) {
 }
 
 export function maestroOutcome(status,xml) {
+ if(status===0&&/<(?:failure|error|skipped)\b/.test(xml))return {status:'failed',exitCode:1,reason:'MAESTRO_JUNIT_NOT_PASSED'};
  if(status===0)return {status:'passed',exitCode:0,reason:'MAESTRO_PASSED'};
  if(/DeviceServerDiedException|Unable to connect to device|Failed to establish connection/.test(xml))return {status:'not-verified',exitCode:2,reason:'MAESTRO_DEVICE_UNAVAILABLE'};
  return {status:'failed',exitCode:1,reason:'MAESTRO_FAILED'};

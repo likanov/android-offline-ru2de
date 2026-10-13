@@ -1,0 +1,187 @@
+appId: com.personal.germanvocabulary
+name: grammar-lektion3.profile-isolation
+---
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "L3 — isolated"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-noun-article"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-noun-article"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "L3 — article-typing"
+      }
+    }
+  },
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "L3 — isolated"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-noun-article"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-noun-article"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-option-${OPTION_L3_ISOLATED}"
+    }
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]

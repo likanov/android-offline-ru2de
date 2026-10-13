@@ -1,3 +1,4 @@
+import {syntheticSchema8Evidence} from './lektion3RegressionFixtures.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync, rmSync, readdirSync, symlinkSync } from 'node:fs';
@@ -29,7 +30,7 @@ function fixture(t) {
   put(dir,'regression/schema5-manifest.json',{apk:'previous.apk',files:{'previous.apk':{sha256:digest('synthetic previous APK')}},applicationId:'com.personal.germanvocabulary',sourceCommit:'d'.repeat(40),certificateSha256:certificate});
   put(dir,'regression/schema5-source.ts','PRAGMA user_version=5;');
   const oldProfile={profile:{id:'p',name:'Миграция UI',xp:250},attempts:Array.from({length:20},(_,i)=>({attemptId:String(i),xpDelta:i===19?60:10})),rewards:[{amount:50}]};
-  put(dir,'regression/schema5-before.json',{version:1,profiles:[oldProfile]});put(dir,'regression/schema5-after.json',{version:3,profiles:[{...oldProfile,grammar:{catalogVersions:[1,2],progress:[],sessions:[],questions:[],attempts:[],rewards:[]}}]});
+  put(dir,'regression/schema5-before.json',{version:1,profiles:[oldProfile]});put(dir,'regression/schema5-after.json',{version:4,profiles:[{...oldProfile,grammar:{catalogVersions:[1,2,3],rulesVersion:2,rulesTransitions:[],progress:[],sessions:[],questions:[],attempts:[],rewards:[]}}]});
   const report = {
     schema5Upgrade:{apk:'regression/previous.apk',apkSha256:digest('synthetic previous APK'),manifestPath:'regression/schema5-manifest.json',sourceMigrationPath:'regression/schema5-source.ts',sourceCommit:'d'.repeat(40),certificateSha256:certificate,finalCertificateSha256:certificate,beforeEvidence:'regression/schema5-before.json',afterEvidence:'regression/schema5-after.json',stateValidation:{ok:true}},
     schema6Upgrade:{apk:'regression/previous.apk',apkSha256:digest('synthetic previous APK'),package:'com.personal.germanvocabulary',certificateSha256:certificate,finalCertificateSha256:certificate,provenancePath:'regression/schema6-provenance.json',beforeEvidence:'regression/device.log',afterEvidence:'regression/device.log',stateValidation:{ok:true}},
@@ -43,6 +44,10 @@ function fixture(t) {
     upgrade: { previousCommit: '19b2e0c1cf36eda73159aff9bb2d94b757d24144', apk: 'regression/previous.apk', apkSha256: digest('synthetic previous APK'), provenancePath: 'regression/provenance.json' },
     restoration: { status: 'passed', failures: [] },
   };
+  report.schema8Upgrade=syntheticSchema8Evidence(dir,digest(apk),report.scenarios);
+  // Release manifests use portable relative paths for every artifact.
+  for(const key of ['apk','provenancePath','beforeEvidence','afterEvidence','repeatEvidence'])report.schema8Upgrade[key]=report.schema8Upgrade[key].slice(dir.length+1);
+  const schema8Scenario=report.scenarios.find(s=>s.id==='grammar-rules.schema8-ten-upgrade');schema8Scenario.beforeEvidence=report.schema8Upgrade.beforeEvidence;schema8Scenario.stateEvidence=report.schema8Upgrade.afterEvidence;
   const acceptance = { status: 'passed', blockers: [], apkSha256: digest(apk), modelSha256: modelManifest.sha256, device: { physical: true, manufacturer: 'Google', model: 'Pixel 9 Pro XL', androidVersion: '16' }, checkedAt: '2026-10-04T00:00:00Z', metrics: ['association', 'example', 'text', 'rule'].map(mode => ({ mode, firstTokenMs: 100, totalMs: 1000, tokens: 10, peakRssBytes: 1000000, evidence: 'regression/device.log' })), criteria: Array.from({ length: 14 }, (_, i) => ({ id: i + 1, status: 'passed', actual: 'Synthetic assertion.', evidence: 'regression/device.log' })) };
   const manifest = { schemaVersion: 1, sourceCommit: 'a'.repeat(40), builtFromCommit: 'a'.repeat(40), applicationId: 'com.personal.germanvocabulary', certificateSha256: certificate, apk: 'app-release.apk', modelManifest: 'model/model-manifest.json', audioManifest: 'audio/manifest.json', regressionReport: 'regression/report.json', deviceAcceptance: 'device-acceptance.json', files: {} };
   const host = { status: 'passed', commit: 'a'.repeat(40), checkedAt: '2026-10-04T00:00:00Z', commands: [

@@ -7,7 +7,7 @@ import { sha256File, validateRegressionReport } from './regression-report.mjs';
 const root = fileURLToPath(new URL('..', import.meta.url));
 export const EXPECTED_MODEL = JSON.parse(readFileSync(join(root, 'docs/model-manifest.json'), 'utf8'));
 export const EXPECTED_CERTIFICATE = 'b61708a517c2ea04e3879f6b5dddae93413ef284152bc6707a6d23fa2ff48ba3';
-export const EVIDENCE_KEYS = new Set(['path', 'junit', 'screenshot', 'hierarchy', 'logcat', 'apk', 'provenancePath', 'manifestPath', 'stateEvidence', 'restoreEvidence', 'beforeEvidence', 'afterEvidence', 'sourceMigrationPath', 'stdout', 'stderr']);
+export const EVIDENCE_KEYS = new Set(['path', 'junit', 'screenshot', 'hierarchy', 'logcat', 'apk', 'provenancePath', 'manifestPath', 'stateEvidence', 'restoreEvidence', 'beforeEvidence', 'afterEvidence', 'repeatEvidence', 'sourceMigrationPath', 'stdout', 'stderr']);
 export function isEvidencePath(key, container) {
   return EVIDENCE_KEYS.has(key) && (!['stdout', 'stderr'].includes(key) || typeof container?.command === 'string');
 }

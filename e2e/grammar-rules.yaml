@@ -1,0 +1,15 @@
+appId: com.personal.germanvocabulary
+name: grammar-rules
+---
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "nav-training"
+    }
+  }
+]

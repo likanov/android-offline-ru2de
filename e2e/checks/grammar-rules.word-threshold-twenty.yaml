@@ -1,0 +1,44 @@
+appId: com.personal.germanvocabulary
+name: grammar-rules.word-threshold-twenty
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Rules — word nineteen"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "tapOn": "Изучать слова"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/answer-correct.yaml",
+      "env": {
+        "WORD_DE": "Stuhl",
+        "WORD_RU": "стул"
+      }
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+60 XP"
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]

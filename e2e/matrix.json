@@ -542,7 +542,7 @@
     "id": "grammar-progress",
     "flow": "grammar-progress.yaml",
     "phase": "main",
-    "expectation": "Twenty real UI answers, error at nineteen, one mastery bonus, reviews and difficult recovery",
+    "expectation": "Ten live grammar answers, error at nine, one mastery bonus, reviews and difficult recovery; stable historical check IDs",
     "coverage": "implemented-unverified",
     "required": true,
     "checks": [
@@ -744,6 +744,130 @@
         "id": "grammar-lektion2.schema6-eight-upgrade",
         "status": "implemented-unverified",
         "flow": "checks/grammar-lektion2.schema6-eight-upgrade.yaml",
+        "state": true
+      }
+    ]
+  },
+  {
+    "id": "grammar-rules",
+    "flow": "grammar-rules.yaml",
+    "phase": "main",
+    "expectation": "Ten-answer grammar rules, immutable migration history and BackupV4 roundtrip",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {
+        "id": "grammar-rules.ten-answer-mastery",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-rules.ten-answer-mastery.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-rules.nine-error-reset",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-rules.nine-error-reset.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-rules.schema8-ten-upgrade",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-rules.schema8-ten-upgrade.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-rules.legacy-backup-conversion",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-rules.legacy-backup-conversion.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-rules.backup4-roundtrip",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-rules.backup4-roundtrip.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-rules.word-threshold-twenty",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-rules.word-threshold-twenty.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-rules.profiles-reviews",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-rules.profiles-reviews.yaml",
+        "state": true
+      }
+    ]
+  },
+  {
+    "id": "grammar-lektion3",
+    "flow": "grammar-lektion3.yaml",
+    "phase": "main",
+    "expectation": "Three Lektion 3 lessons, saved answers, exact invariant sets, keyboard/help/persistence/profiles and BackupV4",
+    "coverage": "implemented-unverified",
+    "required": true,
+    "checks": [
+      {
+        "id": "grammar-lektion3.three-lessons",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.three-lessons.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion3.article-choice-typing",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.article-choice-typing.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion3.plural-correct-error",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.plural-correct-error.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion3.invariant-exact-set",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.invariant-exact-set.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion3.empty-dictionary",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.empty-dictionary.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion3.keyboard-small-large",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.keyboard-small-large.yaml",
+        "state": true,
+        "device": "display"
+      },
+      {
+        "id": "grammar-lektion3.reference-help-return",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.reference-help-return.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion3.force-stop-reboot",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.force-stop-reboot.yaml",
+        "state": true,
+        "device": "force-stop-reboot"
+      },
+      {
+        "id": "grammar-lektion3.profile-isolation",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.profile-isolation.yaml",
+        "state": true
+      },
+      {
+        "id": "grammar-lektion3.backup4-roundtrip",
+        "status": "implemented-unverified",
+        "flow": "checks/grammar-lektion3.backup4-roundtrip.yaml",
         "state": true
       }
     ]

@@ -1,0 +1,37 @@
+appId: com.personal.germanvocabulary
+name: grammar-rules.schema8-ten-upgrade
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Schema8 0"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-progress"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-progress"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-progress-summary"
+    }
+  },
+  {
+    "assertVisible": "XP: 730"
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]

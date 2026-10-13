@@ -1,0 +1,314 @@
+appId: com.personal.germanvocabulary
+name: grammar-lektion3.three-lessons
+---
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "L3 — noun-article"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-noun-article"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-noun-article"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-option-${OPTION_L3_NOUN_ARTICLE}"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+(10|60) XP"
+  },
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "L3 — noun-plural"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-noun-plural"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-noun-plural"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-answer-input"
+    }
+  },
+  {
+    "inputText": "${ANSWER_L3_NOUN_PLURAL}"
+  },
+  {
+    "tapOn": {
+      "id": "grammar-submit"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+(10|60) XP"
+  },
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "L3 — plural-invariant"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-plural-invariant"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-plural-invariant"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-multi-option-${MULTI_L3_PLURAL_INVARIANT_0}"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-multi-option-${MULTI_L3_PLURAL_INVARIANT_1}"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-multi-submit"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+(10|60) XP"
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]

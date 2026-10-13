@@ -1,0 +1,52 @@
+appId: com.personal.germanvocabulary
+name: grammar-rules.profiles-reviews
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "Rules — review"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-review-start"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-option-${OPTION_RULES_REVIEW}"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Верно! \\+(10|60) XP"
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]

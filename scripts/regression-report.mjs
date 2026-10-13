@@ -1,6 +1,6 @@
 import { readFileSync, existsSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import {compareBackupGraphs} from './regression-state.mjs';
+import {compareBackupGraphs,compareGrammarRulesUpgrade} from './regression-state.mjs';
 import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { fileURLToPath } from 'node:url';
@@ -97,7 +97,7 @@ export function validateBlockRegressionReport(report, block) {
   require(report?.status==='passed','RUN_NOT_COMPLETE');
   require(report?.runMode?.type==='block'&&report.runMode.block===block,'BLOCK_RUN_MODE_MISSING');
   require(artifact(report?.apk?.path)&&/^[a-f0-9]{64}$/.test(report?.apk?.sha256??'')&&sha256File(report.apk.path)===report.apk.sha256,'APK_EVIDENCE_MISSING');
-  require(artifact(report?.model?.path)&&/^[a-f0-9]{64}$/.test(report?.model?.sha256??'')&&sha256File(report.model.path)===report.model.sha256,'MODEL_EVIDENCE_MISSING');
+  if(!['grammar-rules','grammar-lektion3'].includes(block))require(artifact(report?.model?.path)&&/^[a-f0-9]{64}$/.test(report?.model?.sha256??'')&&sha256File(report.model.path)===report.model.sha256,'MODEL_EVIDENCE_MISSING');
   const scenarios=Array.isArray(report?.scenarios)?report.scenarios:[];
   for(const check of [{id:row.id,state:false}, ...row.checks]){
     const id=check.id, matches=scenarios.filter(item=>item.id===id);
@@ -115,6 +115,7 @@ export function validateBlockRegressionReport(report, block) {
     if(check.device==='four-generations')require(Array.isArray(report?.generations)&&report.generations.some(g=>g.mode==='grammar-error'&&g.modelSha256===report?.model?.sha256&&typeof g.text==='string'&&g.text.trim()&&artifact(g.screenshot)&&artifact(g.hierarchy)),`REAL_GENERATION_MISSING:grammar-error`);
   }
   require((report?.crashCount??0)===0&&(report?.anrCount??0)===0,'CRASH_ANR_NOT_VERIFIED');
+  if (block === 'grammar-rules')errors.push(...validateSchema8ReportEvidence(report).errors);
   if (block === 'grammar-persistence')errors.push(...validateSchema5ReportEvidence(report).errors);
   if (block === 'grammar-lektion2')errors.push(...validateSchema6ReportEvidence(report).errors);
   if (block === 'dictionary') errors.push(...validateDictionaryUxEvidence(report).errors);
@@ -176,6 +177,7 @@ export function validateRegressionReport(report) {
   }
   errors.push(...validateSchema5ReportEvidence(report).errors);
   errors.push(...validateSchema6ReportEvidence(report).errors);
+  errors.push(...validateSchema8ReportEvidence(report).errors);
   if (report?.dictionaryUx) errors.push(...validateDictionaryUxEvidence(report).errors);
   if (report?.questionUi) errors.push(...validateQuestionUiEvidence(report).errors);
   return {ok:errors.length===0,errors};
@@ -220,9 +222,34 @@ function validateSchema5ReportEvidence(report) {
  check(artifact(value.sourceMigrationPath)&&readFileSync(value.sourceMigrationPath,'utf8').includes('PRAGMA user_version=5'),'SCHEMA5_SOURCE_MIGRATION_MISSING');
  for(const key of ['beforeEvidence','afterEvidence'])check(artifact(value[key]),'SCHEMA5_'+key.toUpperCase()+'_MISSING');
  let before,after;try{before=JSON.parse(readFileSync(value.beforeEvidence,'utf8'));after=JSON.parse(readFileSync(value.afterEvidence,'utf8'));}catch{}
- check(before?.version===1&&after?.version===3&&before.profiles?.some(p=>p.profile.xp>=250&&p.attempts.length>=20),'SCHEMA5_UI_HISTORY_MISSING');
+ check(before?.version===1&&after?.version===4&&before.profiles?.some(p=>p.profile.xp>=250&&p.attempts.length>=20),'SCHEMA5_UI_HISTORY_MISSING');
  check(value.stateValidation?.ok===true&&compareBackupGraphs(before,after,{upgrade:true}).ok,'SCHEMA5_GRAPH_NOT_VERIFIED');
  const scenario=report.scenarios?.find(s=>s.id==='grammar-persistence.sqlite-five-six-upgrade');
  check(scenario?.beforeEvidence===value.beforeEvidence&&scenario?.stateEvidence===value.afterEvidence,'SCHEMA5_SCENARIO_CHECKPOINT_MISMATCH');
+ return {ok:errors.length===0,errors};
+}
+
+export const SCHEMA8_BASELINE_SHA256='8792cce02680a77aa51942e058ba96638b1c5ab10e16c99d0b2b7bf97763f946';
+export const SCHEMA8_BASELINE_CERTIFICATE='b61708a517c2ea04e3879f6b5dddae93413ef284152bc6707a6d23fa2ff48ba3';
+export function validateSchema8Upgrade(value){
+ const errors=[],check=(ok,message)=>{if(!ok)errors.push(message);};const p=value?.provenance;
+ check(/^[a-f0-9]{64}$/.test(value?.apkSha256??'')&&value.apkSha256!==value.finalSha256,'SCHEMA8_APK_NOT_DISTINCT');
+ check(value?.package==='com.personal.germanvocabulary','SCHEMA8_PACKAGE_MISMATCH');
+ check(value?.certificateSha256===SCHEMA8_BASELINE_CERTIFICATE&&value.certificateSha256===value.finalCertificateSha256,'SCHEMA8_CERTIFICATE_MISMATCH');
+ check(p?.schemaVersion===8&&p.sourceMapVerified===true&&/^[a-f0-9]{40}$/.test(p.commit??'')&&p.commit.startsWith('7828274')&&p.sha256===value.apkSha256&&p.package===value.package&&p.certificateSha256===value.certificateSha256&&(value.apkSha256===SCHEMA8_BASELINE_SHA256||p.rebuiltExactCommit===true),'SCHEMA8_PROVENANCE_INVALID');
+ return {ok:errors.length===0,errors};
+}
+function validateSchema8ReportEvidence(report){
+ const v=report?.schema8Upgrade,errors=[];
+ const artifact=path=>typeof path==='string'&&existsSync(path)&&statSync(path).isFile()&&statSync(path).size>0;
+ if(!v)return {ok:false,errors:['SCHEMA8_UPGRADE_MISSING']};
+ let provenance;try{provenance=JSON.parse(readFileSync(v.provenancePath,'utf8'));}catch{}
+ errors.push(...validateSchema8Upgrade({...v,provenance,finalSha256:report?.apk?.sha256}).errors);
+ if(!artifact(v.apk)||sha256File(v.apk)!==v.apkSha256)errors.push('SCHEMA8_APK_HASH_MISMATCH');
+ let before,after,repeat;for(const key of ['beforeEvidence','afterEvidence','repeatEvidence'])if(!artifact(v[key]))errors.push('SCHEMA8_'+key.toUpperCase()+'_MISSING');
+ try{before=JSON.parse(readFileSync(v.beforeEvidence,'utf8'));after=JSON.parse(readFileSync(v.afterEvidence,'utf8'));repeat=JSON.parse(readFileSync(v.repeatEvidence,'utf8'));}catch{errors.push('SCHEMA8_CHECKPOINT_INVALID');}
+ if(v.stateValidation?.ok!==true||!compareGrammarRulesUpgrade(before,after,{day:v.day,requireBoundaries:true}).ok||!compareBackupGraphs(after,repeat).ok)errors.push('SCHEMA8_GRAPH_NOT_VERIFIED');
+ const scenario=report?.scenarios?.find(s=>s.id==='grammar-rules.schema8-ten-upgrade');
+ if(scenario?.beforeEvidence!==v.beforeEvidence||scenario?.stateEvidence!==v.afterEvidence)errors.push('SCHEMA8_SCENARIO_CHECKPOINT_MISMATCH');
  return {ok:errors.length===0,errors};
 }

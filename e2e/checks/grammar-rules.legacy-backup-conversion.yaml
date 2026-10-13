@@ -1,0 +1,17 @@
+appId: com.personal.germanvocabulary
+name: grammar-rules.legacy-backup-conversion
+---
+[
+  {
+    "runFlow": {
+      "file": "../grammar-import-fixture.yaml",
+      "env": {
+        "BACKUP_FILE": "grammar-rules-schema8-backup-v3.json",
+        "PROFILE_COUNT": "2"
+      }
+    }
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]

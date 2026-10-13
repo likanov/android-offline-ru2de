@@ -248,3 +248,73 @@ The full run still requires the existing audible-audio and generated-language
 observations; do not mark them reviewed without inspecting the retained run.
 The rule/help check asserts the production local error rule and conserved XP;
 it does not count as a real model-generation observation.
+
+## Grammar rules and Lektion 3 inputs
+
+Use task-root `outputs/lektion3-release/inputs/` for the complete input set:
+`word-backup-v1.json`, `grammar-backup-v2.json`, `lektion2-backup-v3.json`,
+`grammar-rules-backup-v4.json`, `lektion3-backup-v4.json`,
+`grammar-rules-schema8-backup-v3.json`, `dictionary-fixture.json`,
+`dictionary-large-fixture.json`, a model folder, `task5.apk`, `schema5.apk`,
+`schema6.apk`, `schema8.apk`, and their provenance/manifests. The separate
+schema8 backup contains boundary states 0/9/10/19/20 in two profiles. It is
+validated under its historical V3 contract before import.
+
+Generate historical fixtures and current fixtures through the host SQL tests:
+
+```sh
+REGRESSION_FIXTURE_DAY=2026-10-13 \
+REGRESSION_FIXTURE_OUTPUT=/absolute/task-root/outputs/lektion3-release/inputs/word-backup-v1.json \
+GRAMMAR_FIXTURE_OUTPUT=/absolute/task-root/outputs/lektion3-release/inputs/grammar-backup-v2.json \
+LEKTION2_FIXTURE_OUTPUT=/absolute/task-root/outputs/lektion3-release/inputs/lektion2-backup-v3.json \
+./scripts/toolchain.sh npm run test:sql -- --runTestsByPath test/integration/regressionFixtures.test.ts
+
+GRAMMAR_RULES_FIXTURE_OUTPUT=/absolute/task-root/outputs/lektion3-release/inputs/grammar-rules-backup-v4.json \
+LEKTION3_FIXTURE_OUTPUT=/absolute/task-root/outputs/lektion3-release/inputs/lektion3-backup-v4.json \
+SCHEMA8_FIXTURE_OUTPUT=/absolute/task-root/outputs/lektion3-release/inputs/grammar-rules-schema8-backup-v3.json \
+./scripts/toolchain.sh npm run test:sql -- --runTestsByPath test/integration/lektion3RegressionFixtures.test.ts
+```
+
+The original V2/V3 generator function names and output versions are preserved.
+They use the portable schema8 helper and a host-only frozen grammar transaction
+runtime from commit 7828274 with historical policy1. Legacy twenty-answer
+history never passes through the live ten-answer grammar service. V2 contains
+only catalog1 and noun/adjective words; V3 contains catalogs1/2. The current
+fixture generator uses real repositories, answer services and BackupService,
+and validates exports with `validateBackupV4`.
+
+Add `--schema8-apk`, `--grammar-rules-fixture` and `--lektion3-fixture` to a full
+runner invocation, retaining the previous complete fixture/baseline set. A
+standalone `--block grammar-lektion3` needs its `--lektion3-fixture`; a standalone
+`--block grammar-rules` needs `--grammar-rules-fixture`, `--schema8-apk` and the
+adjacent historical `grammar-rules-schema8-backup-v3.json`. The optional
+`--schema8-fixture` selects that file explicitly. Both blocks require the
+common final APK, dedicated AVD and toolchain inputs; they do not require an
+unrelated model or earlier fixture/APK set. Full runs still require the model,
+all old inputs and the existing observation gate.
+
+The trusted schema8 archive is
+`outputs/a1-lektion2-release/r3/release-7828274/app-release.apk`, from exact commit
+`7828274b5f971281401a87683e72fe14cb6a2b29`. Its required SHA256 is
+`8792cce02680a77aa51942e058ba96638b1c5ab10e16c99d0b2b7bf97763f946`, and its signing
+certificate SHA256 is
+`b61708a517c2ea04e3879f6b5dddae93413ef284152bc6707a6d23fa2ff48ba3`.
+Task 7 found this archive and verified its hash and `apksigner` signature before
+copying it to the canonical input directory. Provenance is adjacent at
+`schema8.apk.provenance.json` and records the source association by exact known
+archive/hash. If the archive is absent, Task 8 must build that exact commit in
+an isolated checkout and record `rebuiltExactCommit: true`, the new hash,
+package/signature and verified source association; never substitute a private
+phone backup or another APK. Preflight independently validates package,
+signature, hash and provenance before any upgrade.
+
+The retained schema5 and schema6 phases now import their historical V1/V2
+fixtures in the actual old APK through the public picker before taking their
+before exports. Schema8 imports its V3 boundary fixture into the old APK,
+exports before, installs the final APK in place, exports after, relaunches and
+exports again. The report validator rereads all three files; incomplete
+upgrade, changed attempts/questions/rewards/options, changed answer counters,
+incorrect transition bonuses, or bonuses repeated on relaunch fail. Migration
+bonuses add XP to the migration day without adding correct/error answers.
+Task 8 must execute these imports/upgrades on the dedicated emulator; Task 7
+has not built, installed or tested a release APK on Android.

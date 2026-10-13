@@ -1,3 +1,4 @@
+import {syntheticSchema8Evidence} from './lektion3RegressionFixtures.mjs';
 import { Buffer } from 'node:buffer';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -44,10 +45,10 @@ function completeReport(f) {
   writeFileSync(manifestPath,JSON.stringify({apk:'old.apk',files:{'old.apk':{sha256:sha256File(previousApk)}},applicationId:'com.personal.germanvocabulary',sourceCommit:'d'.repeat(40),certificateSha256:'c'.repeat(64)}));
   writeFileSync(sourceMigrationPath,'PRAGMA user_version=5;');
   const profile={profile:{id:'p',name:'Миграция UI',xp:250},attempts:Array.from({length:20},(_,i)=>({attemptId:String(i),xpDelta:i===19?60:10})),rewards:[{amount:50}]};
-  writeFileSync(beforeEvidence,JSON.stringify({version:1,profiles:[profile]}));writeFileSync(afterEvidence,JSON.stringify({version:3,profiles:[{...profile,grammar:{catalogVersions:[1,2],progress:[],sessions:[],questions:[],attempts:[],rewards:[]}}]}));
+  writeFileSync(beforeEvidence,JSON.stringify({version:1,profiles:[profile]}));writeFileSync(afterEvidence,JSON.stringify({version:4,profiles:[{...profile,grammar:{catalogVersions:[1,2,3],rulesVersion:2,rulesTransitions:[],progress:[],sessions:[],questions:[],attempts:[],rewards:[]}}]}));
   Object.assign(scenarios.find(s=>s.id==='grammar-persistence.sqlite-five-six-upgrade'),{beforeEvidence,stateEvidence:afterEvidence});
   const schema5Upgrade={apk:previousApk,apkSha256:sha256File(previousApk),manifestPath,sourceMigrationPath,sourceCommit:'d'.repeat(40),certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),beforeEvidence,afterEvidence,stateValidation:{ok:true}};
-  return {schema5Upgrade,schema6Upgrade:{apk:previousApk,apkSha256:sha256File(previousApk),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),provenancePath:schema6Provenance,beforeEvidence:artifact,afterEvidence:artifact,stateValidation:{ok:true}},status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
+  return {schema8Upgrade:syntheticSchema8Evidence(f.root,sha256File(f.apk),scenarios),schema5Upgrade,schema6Upgrade:{apk:previousApk,apkSha256:sha256File(previousApk),package:'com.personal.germanvocabulary',certificateSha256:'c'.repeat(64),finalCertificateSha256:'c'.repeat(64),provenancePath:schema6Provenance,beforeEvidence:artifact,afterEvidence:artifact,stateValidation:{ok:true}},status:'passed',commit:'b'.repeat(40),apk:{path:f.apk,sha256:sha256File(f.apk)},
     model:{path:join(f.modelDir,'model.gguf'),sha256:f.hash},scenarios,
     generations:['association','example','text','rule'].map(mode=>({mode,runtime:'llama.rn',modelSha256:f.hash,text:'Der Stuhl. Стул.',screenshot:artifact,hierarchy:artifact})),
     network:{wifi:false,mobile:false},crashCount:0,anrCount:0,logcat:artifact,deviceLogs:[{phase:'primary-final',path:primaryLog,crashCount:0,anrCount:0},{phase:'upgrade-final',path:upgradeLog,crashCount:0,anrCount:0}],

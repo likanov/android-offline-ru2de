@@ -1,0 +1,65 @@
+appId: com.personal.germanvocabulary
+name: grammar-lektion3.backup4-roundtrip
+---
+[
+  {
+    "runFlow": {
+      "file": "../helpers/export-state.yaml",
+      "env": {
+        "EXPORT_NAME": "${EXPORT_NAME}"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-transfer"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-transfer"
+    }
+  },
+  {
+    "tapOn": "Выбрать резервную копию"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/picker.yaml",
+      "env": {
+        "FILE": "${EXPORT_NAME}"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Профилей: [1-9][0-9]* · .*"
+      }
+    }
+  },
+  {
+    "assertVisible": "Профилей: [1-9][0-9]* · .*"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible.yaml",
+      "env": {
+        "TARGET_TEXT": "Восстановить новые профили"
+      }
+    }
+  },
+  {
+    "tapOn": "Восстановить новые профили"
+  },
+  {
+    "assertVisible": ".*Восстановлено.*"
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}"
+  }
+]
