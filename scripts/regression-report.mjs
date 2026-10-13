@@ -236,7 +236,7 @@ export function validateSchema8Upgrade(value){
  check(/^[a-f0-9]{64}$/.test(value?.apkSha256??'')&&value.apkSha256!==value.finalSha256,'SCHEMA8_APK_NOT_DISTINCT');
  check(value?.package==='com.personal.germanvocabulary','SCHEMA8_PACKAGE_MISMATCH');
  check(value?.certificateSha256===SCHEMA8_BASELINE_CERTIFICATE&&value.certificateSha256===value.finalCertificateSha256,'SCHEMA8_CERTIFICATE_MISMATCH');
- check(p?.schemaVersion===8&&p.sourceMapVerified===true&&/^[a-f0-9]{40}$/.test(p.commit??'')&&p.commit.startsWith('7828274')&&p.sha256===value.apkSha256&&p.package===value.package&&p.certificateSha256===value.certificateSha256&&(value.apkSha256===SCHEMA8_BASELINE_SHA256||p.rebuiltExactCommit===true),'SCHEMA8_PROVENANCE_INVALID');
+ check(p?.schemaVersion===8&&p.sourceMapVerified===true&&/^[a-f0-9]{40}$/.test(p.commit??'')&&p.commit==='7828274b5f971281401a87683e72fe14cb6a2b29'&&p.sha256===value.apkSha256&&p.package===value.package&&p.certificateSha256===value.certificateSha256&&(value.apkSha256===SCHEMA8_BASELINE_SHA256||p.rebuiltExactCommit===true),'SCHEMA8_PROVENANCE_INVALID');
  return {ok:errors.length===0,errors};
 }
 function validateSchema8ReportEvidence(report){

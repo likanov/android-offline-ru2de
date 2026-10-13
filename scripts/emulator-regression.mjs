@@ -368,11 +368,19 @@ async function afterCheck(check) {
 async function group(row,baseline) {
  for(const check of row.checks) {
   if(['grammar-persistence.sqlite-five-six-upgrade','grammar-lektion2.schema6-eight-upgrade','grammar-rules.schema8-ten-upgrade'].includes(check.id))continue;
-  let before=baseline??latestBackup;
-  if(check.state&&check.id!=='assistant.helper-save-edit'&&!baseline)before=captureState(check.id+'-before');
-  if(check.id==='grammar-rules.legacy-backup-conversion')before=JSON.parse(readFileSync(schema8FixturePath(),'utf8'));
-  if(check.id==='grammar-lektion3.keyboard-small-large'){flow(check.id+'-normal',check.flow,{...savedGrammarAnswers(before),CHECK_ID:check.id+'-normal'});report.grammarUi??={};report.grammarUi[check.id]={normal:{screenshot:screenshot(check.id+'-normal'),hierarchy:hierarchy(check.id+'-normal')}};}
-  await beforeCheck(check);
+  const before=await prepareDetailedGrammarCheck(check,{
+   capture:()=>{
+    let value=baseline??latestBackup;
+    if(check.state&&check.id!=='assistant.helper-save-edit'&&!baseline)value=captureState(check.id+'-before');
+    if(check.id==='grammar-rules.legacy-backup-conversion')value=JSON.parse(readFileSync(schema8FixturePath(),'utf8'));
+    return value;
+   },
+   prepareDevice:async value=>{
+    if(check.id==='grammar-lektion3.keyboard-small-large'){flow(check.id+'-normal',check.flow,{...savedGrammarAnswers(value),CHECK_ID:check.id+'-normal'});report.grammarUi??={};report.grammarUi[check.id]={normal:{screenshot:screenshot(check.id+'-normal'),hierarchy:hierarchy(check.id+'-normal')}};}
+    await beforeCheck(check);
+   },
+   flow,
+  });
   const operation=planExport(check.id+'-operation'),restored=planExport(check.id+'-restored');
   const extra={...lektion2Answers(before),...savedGrammarAnswers(before),CHECK_ID:check.id,FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model?.manifest?.fileName??'',EXPORT_NAME:operation.filename,RESTORE_CHECKPOINT_NAME:restored.filename};
   flow(check.id,check.flow,extra);
@@ -613,4 +621,23 @@ async function runSchema8Upgrade(){
  const id='grammar-rules.schema8-ten-upgrade',check=matrixRowForBlock('grammar-rules').checks.find(c=>c.id===id);flow(id,check.flow);
  const scenario=report.scenarios.find(s=>s.id===id);Object.assign(scenario,{apkSha256:report.apk.sha256,beforeEvidence:join(reportDir,'schema8-before.json'),stateEvidence:join(reportDir,'schema8-after.json'),stateValidation:validation});Object.assign(report.schema8Upgrade,{beforeEvidence:scenario.beforeEvidence,afterEvidence:scenario.stateEvidence,repeatEvidence:join(reportDir,'schema8-repeat.json'),day:fixtureDay,stateValidation:validation});
  if(!validation.ok){scenario.status='failed';throw Error('SCHEMA8_GRAPH_CHANGED:'+validation.errors.join(';'));}captureDeviceLog('upgrade-schema8-final');
+}
+
+// Public export navigates to Transfer, and device preparation can navigate again.
+// Restore each older check's explicit question entry only after both operations.
+export async function prepareDetailedGrammarCheck(check,{capture,prepareDevice,flow}){
+ const before=await capture();await prepareDevice(before);
+ const questions=new Set([
+  'grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-core.empty-dictionary-fallback','grammar-core.keyboard-320dp',
+  'grammar-progress.twenty-ui-answers','grammar-progress.nineteen-error','grammar-progress.bonus-once-double-submit','grammar-progress.reviews-difficult',
+  'grammar-persistence.profile-isolation','grammar-persistence.force-stop-reboot','grammar-persistence.word-dependency-edit',
+  'grammar-transfer-assistant.no-model-rule','grammar-transfer-assistant.real-model-cancel',
+ ]);
+ if(questions.has(check.id)){
+  const error=check.id==='grammar-progress.nineteen-error'||check.id.startsWith('grammar-transfer-assistant.');
+  const review=check.id==='grammar-progress.reviews-difficult';
+  await flow(check.id+'-question-entry','helpers/open-grammar-training.yaml',{PROFILE:error?'Грамматика — ошибка 19':review?'Грамматика — повторение':'Грамматика — 18 целей',GRAMMAR_START_ID:review?'grammar-review-start':'training-grammar-start'});
+ }
+ if(check.id==='grammar-progress.combined-summary')await flow(check.id+'-progress-entry','helpers/open-navigation.yaml',{NAV_TARGET:'nav-progress'});
+ return before;
 }

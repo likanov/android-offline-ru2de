@@ -285,7 +285,16 @@ function checkNewGrammarScenario(id,backup,before,{today,fixtureDay},check){
  if(id.endsWith('backup4-roundtrip')){
   check(before?.version===4&&backup.profiles.length===before.profiles.length*2,'BACKUP4_RESTORE_COUNT');
   const priorIds=new Set(before?.profiles?.map(p=>p.profile.id));const copies=backup.profiles.filter(p=>!priorIds.has(p.profile.id));
-  for(const p of before?.profiles??[]){check(stable(part(p.profile.name))===stable(p),'BACKUP4_ORIGINAL');const name=p.profile.name+' восстановлено 2';const q=copies.find(q=>q.profile.name===name);for(const error of restorationErrors(p,q))check(false,'BACKUP4_RESTORE:'+error);}
+  const names=new Set((before?.profiles??[]).map(p=>p.profile.name));
+  check(copies.length===before?.profiles?.length,'BACKUP4_NEW_PROFILE_COUNT');
+  for(const p of before?.profiles??[]){
+   const original=backup.profiles.find(q=>q.profile.id===p.profile.id);
+   check(stable(original)===stable(p),'BACKUP4_ORIGINAL');
+   let name=p.profile.name,n=2;while(names.has(name))name=p.profile.name+' восстановлено '+n++;
+   names.add(name);
+   const matches=copies.filter(q=>q.profile.name===name);check(matches.length===1,'BACKUP4_RESTORE_NAME:'+name);
+   for(const error of restorationErrors(p,matches[0]))check(false,'BACKUP4_RESTORE:'+error);
+  }
  }
  if(id==='grammar-rules.ten-answer-mastery'){answer('Rules — nine',true);const p=part('Rules — nine');check(p?.profile.xp===150&&p.grammar.progress[0].attemptCount===10&&p.grammar.progress[0].state.streak===10&&p.grammar.progress[0].state.mastered&&p.grammar.rewards.length===1,'TEN_MASTERY');}
  if(id==='grammar-rules.nine-error-reset'){answer('Rules — error',false);const p=part('Rules — error');check(p?.profile.xp===90&&p.grammar.progress[0].attemptCount===10&&p.grammar.progress[0].state.streak===0&&!p.grammar.progress[0].state.mastered,'NINE_RESET');}

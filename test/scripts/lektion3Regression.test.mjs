@@ -62,3 +62,31 @@ test('saved answer environment uses the exported option IDs and tokens independe
  const env=runner.savedGrammarAnswers(b);assert.equal(env.OPTION_L3_NOUN_ARTICLE,'das');assert.equal(env.ANSWER_L3_NOUN_PLURAL,'die Bücher');
  b.profiles[0].grammar.sessions[0].currentQuestion.options.reverse();assert.equal(runner.savedGrammarAnswers(b).OPTION_L3_NOUN_ARTICLE,'das');
 });
+
+test('V4 roundtrip accepts later restored suffixes and rejects a missing or duplicated new copy',()=>{
+ const make=(id,name)=>({profile:{id,name,xp:0},words:[],progress:[],attempts:[],rewards:[],dailyActivity:[],grammar:{catalogVersions:[1,2,3],rulesVersion:2,rulesTransitions:[],progress:[],sessions:[],questions:[],attempts:[],rewards:[]}});
+ for(const [suffix,names]of [[3,['Repeat восстановлено 3','Repeat восстановлено 2 восстановлено 2']],[4,['Repeat восстановлено 4','Repeat восстановлено 2 восстановлено 2','Repeat восстановлено 3 восстановлено 2']]]){
+  const profiles=[make('original','Repeat'),make('existing2','Repeat восстановлено 2'),...(suffix===4?[make('existing3','Repeat восстановлено 3')]:[])];
+  const before={version:4,profiles},after={version:4,profiles:[...structuredClone(profiles),...profiles.map((p,i)=>make('new'+i,names[i]))]};
+  for(const id of ['grammar-rules.backup4-roundtrip','grammar-lektion3.backup4-roundtrip']){
+   assert.deepEqual(verifyScenarioState(id,after,{before}),{ok:true,errors:[]});
+   const missing=structuredClone(after);missing.profiles.pop();assert.equal(verifyScenarioState(id,missing,{before}).ok,false);
+   const duplicate=structuredClone(after);duplicate.profiles.at(-1).profile.name=names[0];assert.equal(verifyScenarioState(id,duplicate,{before}).ok,false);
+  }
+ }
+});
+
+test('legacy detailed grammar checks enter their profile/question after export and device preparation',async()=>{
+ assert.equal(typeof runner.prepareDetailedGrammarCheck,'function');
+ for(const id of ['grammar-core.pronouns-sein-choice','grammar-core.typing-case-context','grammar-core.reference-no-xp','grammar-core.empty-dictionary-fallback','grammar-core.keyboard-320dp','grammar-progress.twenty-ui-answers','grammar-progress.nineteen-error','grammar-progress.bonus-once-double-submit','grammar-progress.reviews-difficult','grammar-persistence.profile-isolation','grammar-persistence.force-stop-reboot','grammar-persistence.word-dependency-edit','grammar-transfer-assistant.no-model-rule','grammar-transfer-assistant.real-model-cancel']){
+  const events=[];let screen='elsewhere';const before={profiles:[]};
+  const result=await runner.prepareDetailedGrammarCheck({id},{capture:async()=>{events.push('capture');screen='transfer';return before;},prepareDevice:async()=>{events.push('device');screen='transfer';},flow:async(name,file,env)=>{events.push('question');assert.equal(screen,'transfer');assert.equal(file,'helpers/open-grammar-training.yaml');assert.ok(env.PROFILE);screen='grammar';}});
+  assert.equal(result,before);assert.deepEqual(events,['capture','device','question']);assert.equal(screen,'grammar',id);
+ }
+});
+
+test('schema8 rejects another commit sharing the trusted seven-character prefix',()=>{
+ const value={apkSha256:reports.SCHEMA8_BASELINE_SHA256,finalSha256:'f'.repeat(64),package:'com.personal.germanvocabulary',certificateSha256:reports.SCHEMA8_BASELINE_CERTIFICATE,finalCertificateSha256:reports.SCHEMA8_BASELINE_CERTIFICATE,provenance:{schemaVersion:8,sourceMapVerified:true,commit:'7828274'+'a'.repeat(33),sha256:reports.SCHEMA8_BASELINE_SHA256,package:'com.personal.germanvocabulary',certificateSha256:reports.SCHEMA8_BASELINE_CERTIFICATE}};
+ assert.equal(reports.validateSchema8Upgrade(value).ok,false);
+ value.provenance.commit='7828274b5f971281401a87683e72fe14cb6a2b29';assert.equal(reports.validateSchema8Upgrade(value).ok,true);
+});

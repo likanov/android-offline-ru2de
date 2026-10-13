@@ -13,7 +13,7 @@ export function syntheticSchema8Evidence(root,finalSha256,scenarios){
  g.progress=g.progress.map((r,i)=>({...r,state:g.rulesTransitions[i].stateAfter}));p.profile.xp=730;p.dailyActivity.push({profileId:'p8',day:'2026-10-13',correct:0,errors:0,xp:100});
  const beforeEvidence=file('schema8-before.json',before),afterEvidence=file('schema8-after.json',after),repeatEvidence=file('schema8-repeat.json',after);
  const certificateSha256=SCHEMA8_BASELINE_CERTIFICATE,apkSha256=sha256File(apk);
- const provenancePath=file('schema8.provenance.json',{schemaVersion:8,commit:'7828274'+'a'.repeat(33),sourceMapVerified:true,rebuiltExactCommit:true,sha256:apkSha256,package:'com.personal.germanvocabulary',certificateSha256});
+ const provenancePath=file('schema8.provenance.json',{schemaVersion:8,commit:'7828274b5f971281401a87683e72fe14cb6a2b29',sourceMapVerified:true,rebuiltExactCommit:true,sha256:apkSha256,package:'com.personal.germanvocabulary',certificateSha256});
  const scenario=scenarios.find(s=>s.id==='grammar-rules.schema8-ten-upgrade');if(scenario)Object.assign(scenario,{beforeEvidence,stateEvidence:afterEvidence});
  return {apk,apkSha256,finalSha256,package:'com.personal.germanvocabulary',certificateSha256,finalCertificateSha256:certificateSha256,provenancePath,beforeEvidence,afterEvidence,repeatEvidence,day:'2026-10-13',stateValidation:{ok:true}};
 }

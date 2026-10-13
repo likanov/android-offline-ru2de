@@ -1,19 +1,50 @@
 appId: com.personal.germanvocabulary
 name: open-grammar-training
+env:
+  PROFILE: Грамматика — 18 целей
+  GRAMMAR_START_ID: training-grammar-start
 ---
-- runFlow:
-    file: select-profile.yaml
-    env:
-      PROFILE: Грамматика — 18 целей
-- runFlow:
-    file: open-navigation.yaml
-    env:
-      NAV_TARGET: nav-training
-- tapOn:
-    id: nav-training
-- extendedWaitUntil:
-    visible:
-      id: training-grammar-start
-    timeout: 5000
-- tapOn:
-    id: training-grammar-start
+[
+  {
+    "runFlow": {
+      "file": "select-profile.yaml",
+      "env": {
+        "PROFILE": "${PROFILE}"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "${GRAMMAR_START_ID}"
+      },
+      "timeout": 5000
+    }
+  },
+  {
+    "tapOn": {
+      "id": "${GRAMMAR_START_ID}"
+    }
+  },
+  {
+    "extendedWaitUntil": {
+      "visible": {
+        "id": "grammar-prompt"
+      },
+      "timeout": 5000
+    }
+  }
+]
