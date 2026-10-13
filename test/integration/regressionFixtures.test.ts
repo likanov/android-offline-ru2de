@@ -46,9 +46,9 @@ test('ui_regression_fixtures_include_audio_seed_topic_and_previously_rewarded_re
   expect(relearn.progress.find(r=>r.wordId===relearn.rewards[0].wordId)).toMatchObject({streak:19,learned:0,bonusAwarded:1});
 });
 
-test('grammar_regression_fixture_is_v2_and_has_all_targets_real_attempts_and_resume_sessions', async () => {
+test('grammar_regression_fixture_is_v4_and_has_all_targets_real_attempts_and_resume_sessions', async () => {
   const backup = await createGrammarRegressionBackup('2026-10-06');
-  expect(backup.version).toBe(2);
+  expect(backup.version).toBe(4);
   expect(() => validateBackup(backup)).not.toThrow();
   const targetIds = new Set(backup.profiles.flatMap(profile => profile.grammar.progress.map(row => row.targetId)));
   expect(targetIds.size).toBe(18);
@@ -73,7 +73,7 @@ test('write_requested_grammar_fixture', async () => {
 
 test('catalog2_fixture_uses_production_v3_export_and_retains_mixed_history',async()=>{
  const backup=await createLektion2RegressionBackup(process.env.REGRESSION_FIXTURE_DAY ?? '2026-10-08');
- expect(backup.version).toBe(3);expect(()=>validateBackup(backup)).not.toThrow();
+ expect(backup.version).toBe(4);expect(()=>validateBackup(backup)).not.toThrow();
  const all=backup.profiles.flatMap(p=>p.grammar.attempts);
  expect(all.some(a=>a.targetId==='sein-cloze:ich'&&a.result.state.mastered)).toBe(true);
  expect(all.some(a=>a.targetId==='yesno-transform:pronoun'&&a.result.state.streak===9)).toBe(true);

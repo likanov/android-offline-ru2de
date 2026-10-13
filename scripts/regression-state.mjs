@@ -105,7 +105,7 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
   if(id.endsWith('search-sie-numbers'))check(conserved(p,b),'SEARCH_CHANGED_PROGRESS');
   if(id.endsWith('typed-number')){const added=p?.attempts.filter(a=>!b?.attempts.some(x=>x.attemptId===a.attemptId))??[];check(added.length===1&&added[0].right===1&&added[0].xpDelta===10,'NUMBER_TYPED_ATTEMPT');check(p?.questions.some(q=>q.attemptId===added[0]?.attemptId&&q.payload.kind==='typing'),'NUMBER_TYPED_QUESTION');}
   if(id.endsWith('backup3-roundtrip')){
-   check(backup.version===3&&before?.version===3,'V3_EXPORT_REQUIRED');check(backup.profiles.length===before?.profiles.length*2,'V3_RESTORE_COUNT');
+   check([3,4].includes(backup.version)&&backup.version===before?.version,'VERSIONED_EXPORT_REQUIRED');check(backup.profiles.length===before?.profiles.length*2,'V3_RESTORE_COUNT');
    const beforeIds=new Set((before?.profiles??[]).map(p=>p.profile.id));
    const names=new Set((before?.profiles??[]).map(p=>p.profile.name));
    const additions=backup.profiles.filter(p=>!beforeIds.has(p.profile.id));
@@ -120,7 +120,7 @@ export function verifyScenarioState(id,backup,{before,today,fixtureDay,restoreCh
   }
  }
  if(id.startsWith('grammar-lektion2.')){
-  check(backup.version===3,'LEKTION2_V3_REQUIRED');
+  check([3,4].includes(backup.version),'LEKTION2_VERSIONED_EXPORT_REQUIRED');
   check((backup.profiles??[]).every(p=>same(p.grammar?.catalogVersions,[1,2])),'LEKTION2_BOTH_CATALOGS_REQUIRED');
   if(['force-stop','reboot'].some(suffix=>id.endsWith(suffix)))check(part('A1 — пустой')?.grammar.sessions.some(s=>s.status==='active'&&!s.result&&s.currentQuestion?.presentation==='sentence'),'PENDING_SENTENCE_REQUIRED');
   const additions=name=>{const p=part(name),b=old(name);return p?.grammar.attempts.filter(a=>!b?.grammar.attempts.some(x=>x.result.attemptId===a.result.attemptId))??[];};

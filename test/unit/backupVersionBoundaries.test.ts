@@ -1,3 +1,4 @@
+import { prepareBackupRestore } from '../../src/features/transfer/backupRestorePreparation';
 import { BackupService } from '../../src/features/transfer/backupService';
 import { remapBackup } from '../../src/features/transfer/backupRemap';
 const id = '00000000-0000-4000-8000-000000000001';
@@ -28,8 +29,8 @@ test.each([1, 2, 3])('valid_version_%s_migrates_and_remaps_roundtrip', version =
   const data = file(version); if (version === 1) delete data.profiles[0].grammar;
   const valid = preview(data).backup;
   expect(valid.version).toBe(3);
-  const profiles = remapBackup(valid, []);
-  const roundtrip = preview({ ...valid, profiles }).backup;
+  const profiles = remapBackup(prepareBackupRestore(valid, '2026-10-13'), []);
+  const roundtrip = preview({ ...valid, version: 4, profiles }).backup;
   expect(roundtrip.profiles[0].profile.id).not.toBe(id);
   expect(roundtrip.profiles[0].settings.profileId).toBe(roundtrip.profiles[0].profile.id);
   expect(roundtrip.profiles[0].grammar.catalogVersions).toEqual([1, 2]);

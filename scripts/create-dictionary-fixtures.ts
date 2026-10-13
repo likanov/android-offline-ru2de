@@ -6,12 +6,12 @@ import { migrate } from '../src/core/migrations';
 import { createProfile } from '../src/features/profiles/profileRepository';
 import { wordKey } from '../src/features/dictionary/wordValidation';
 import { BackupService } from '../src/features/transfer/backupService';
-import { validateBackup } from '../src/features/transfer/backupValidation';
-import type { BackupV3 } from '../src/features/transfer/backupTypes';
+import { validateBackupV4 } from '../src/features/transfer/backupValidation';
+import type { BackupV4 } from '../src/features/transfer/backupTypes';
 import type { DayKey } from '../src/features/learning/learningTypes';
 
 /** Host-only fixtures for the dictionary UX acceptance flows. */
-export async function createDictionaryUxBackup(_day: DayKey = '2026-10-06'): Promise<BackupV3> {
+export async function createDictionaryUxBackup(_day: DayKey = '2026-10-06'): Promise<BackupV4> {
   const source = openTestDb();
   try {
     await migrate(source.db);
@@ -23,14 +23,14 @@ export async function createDictionaryUxBackup(_day: DayKey = '2026-10-06'): Pro
       await tx.run('DELETE FROM words WHERE profileId=?', [empty.id]);
       await tx.run('DELETE FROM topics WHERE profileId=?', [empty.id]);
     });
-    return validateBackup(await new BackupService(source.db).exportAll());
+    return validateBackupV4(await new BackupService(source.db).exportAll());
   } finally {
     source.close();
   }
 }
 
 /** A deterministic ten-thousand-word profile used for search timing checks. */
-export async function createDictionaryLargeBackup(_day: DayKey = '2026-10-06'): Promise<BackupV3> {
+export async function createDictionaryLargeBackup(_day: DayKey = '2026-10-06'): Promise<BackupV4> {
   const source = openTestDb();
   try {
     await migrate(source.db);
@@ -47,14 +47,14 @@ export async function createDictionaryLargeBackup(_day: DayKey = '2026-10-06'): 
         await tx.run('INSERT INTO word_progress(profileId,wordId) VALUES (?,?)', [profile.id, id]);
       }
     });
-    return validateBackup(await new BackupService(source.db).exportAll());
+    return validateBackupV4(await new BackupService(source.db).exportAll());
   } finally {
     source.close();
   }
 }
 
 async function writeRequestedFixtures() {
-  const outputs: [string | undefined, () => Promise<BackupV3>][] = [
+  const outputs: [string | undefined, () => Promise<BackupV4>][] = [
     [process.env.DICTIONARY_FIXTURE_OUTPUT, createDictionaryUxBackup],
     [process.env.DICTIONARY_LARGE_FIXTURE_OUTPUT, createDictionaryLargeBackup],
   ];

@@ -1,12 +1,12 @@
-import { archiveLegacyAdjectivePlural } from '../../core/legacyAdjectivePlural';
 import { getGrammarCatalogVersions } from '../grammar/grammarCatalog';
+import { archiveLegacyAdjectivePlural } from '../../core/legacyAdjectivePlural';
 import { AppError } from '../../core/errors';
 import { addDays } from '../../core/calendar';
 import { applyAnswer } from '../learning/learningRules';
 import { buildQuestion, germanLabel } from '../learning/questionFactory';
 import { wordParts } from '../dictionary/wordParts';
 import { wordKey } from '../dictionary/wordValidation';
-import type { BackupV1, BackupV2, BackupV3, ProfileBackup, ProfileBackupV3, ProfileBackupV2 } from './backupTypes';
+import type { BackupV1, BackupV2, BackupV3, BackupV4, ProfileBackup, ProfileBackupV3, ProfileBackupV4, ProfileBackupV2 } from './backupTypes';
 import { validateCombinedLedger, validateGrammarProfile } from './grammarBackupValidation';
 import type { LearningState } from '../learning/learningTypes';
 type Parser = (value: unknown) => unknown;
@@ -187,6 +187,8 @@ function checkProfile(p: ProfileBackup) {
     }
 }
 export function validateBackupV1(value: unknown): BackupV1 {
+    const profiles = (value as { profiles?: unknown[] } | null)?.profiles;
+    if (Array.isArray(profiles) && profiles.some(part => part && typeof part === 'object' && 'grammar' in part)) invalid();
     const backup = object({ format: oneOf('german-vocabulary-backup'), version: oneOf(1), createdAt: iso, profiles: array(part) })(value) as BackupV1;
     unique(backup.profiles.flatMap(p => [p.profile.id, ...p.words.map(w => w.id), ...p.topics.map(t => t.id), ...p.aids.map(a => a.id), ...p.sessions.map(s => s.id), ...p.questions.map(q => q.attemptId)]));
     for (const p of backup.profiles)
@@ -195,10 +197,10 @@ export function validateBackupV1(value: unknown): BackupV1 {
 }
 
 function emptyGrammar(): ProfileBackupV3['grammar'] {
-    return { catalogVersions: getGrammarCatalogVersions(), progress: [], sessions: [], questions: [], attempts: [], rewards: [] };
+    return { catalogVersions: [1, 2], progress: [], sessions: [], questions: [], attempts: [], rewards: [] };
 }
 
-function wordOnlyPart(part: ProfileBackupV3): ProfileBackup {
+function wordOnlyPart(part: ProfileBackupV3 | ProfileBackupV4): ProfileBackup {
     const wordXp = part.attempts.reduce((sum, attempt) => sum + attempt.xpDelta, 0);
     const wordDays = new Set(part.attempts.map(attempt => attempt.day));
     return {
@@ -213,7 +215,7 @@ function wordOnlyPart(part: ProfileBackupV3): ProfileBackup {
     } as ProfileBackup;
 }
 
-export function validateBackup(value: unknown): BackupV3 {
+export function validateBackup(value: unknown): BackupV3 | BackupV4 {
     if (!value || typeof value !== 'object' || Array.isArray(value)) invalid();
     const source = value as Record<string, unknown>;
     if (source.format !== 'german-vocabulary-backup' || typeof source.createdAt !== 'string') invalid();
@@ -226,11 +228,12 @@ export function validateBackup(value: unknown): BackupV3 {
             profiles: v1.profiles.map(profile => ({ ...profile, words:profile.words.map(archiveLegacyAdjectivePlural), grammar: emptyGrammar() })),
         };
     }
-    if (![2, 3].includes(source.version as number) || !Array.isArray(source.profiles)) invalid();
+    if (![2, 3, 4].includes(source.version as number) || !Array.isArray(source.profiles)) invalid();
     const legacy = source.version === 2;
+    const modern = source.version === 4;
     const backup = {
         format: source.format,
-        version: 3 as const,
+        version: modern ? 4 as const : 3 as const,
         createdAt: source.createdAt,
         profiles: source.profiles.map(value => {
             if (!value || typeof value !== 'object' || !value.grammar) invalid();
@@ -240,9 +243,9 @@ export function validateBackup(value: unknown): BackupV3 {
                 validateGrammarProfile(value as ProfileBackupV2);
             } else if ('catalogVersion' in value.grammar) invalid();
             const { catalogVersion: _legacyVersion, ...grammar } = value.grammar;
-            return { ...value, grammar: legacy ? { ...grammar, catalogVersions: getGrammarCatalogVersions() } : value.grammar };
+            return { ...value, grammar: legacy ? { ...grammar, catalogVersions: [1, 2] } : value.grammar };
         }),
-    } as BackupV3;
+    } as BackupV3 | BackupV4;
     // Keep the old strict validator for all vocabulary tables, but validate XP and
     // daily totals against the word ledger only here; grammar is checked below.
     for (const profile of backup.profiles) {
@@ -252,9 +255,9 @@ export function validateBackup(value: unknown): BackupV3 {
         checkProfile(parsed);
         if (!legacy && parsed.words.some(word => word.pos !== 'noun' && word.plural !== null)) invalid();
         Object.assign(profile, parsed, { profile: (partShape.profile(profile.profile)), dailyActivity: partShape.dailyActivity(profile.dailyActivity) });
-        validateGrammarProfile(profile);
+        validateGrammarProfile(profile, { catalogVersions: modern ? getGrammarCatalogVersions() : [1, 2], ...(modern ? { rulesVersion: 2 as const } : {}) });
         const { catalogVersions, progress, sessions, questions, attempts, rewards } = profile.grammar;
-        profile.grammar = { catalogVersions, progress, sessions, questions, attempts, rewards };
+        profile.grammar = (modern ? { catalogVersions, progress, sessions, questions, attempts, rewards, rulesVersion: 2, rulesTransitions: (profile as ProfileBackupV4).grammar.rulesTransitions } : { catalogVersions, progress, sessions, questions, attempts, rewards }) as ProfileBackupV3['grammar'] | ProfileBackupV4['grammar'];
         validateCombinedLedger(profile);
     }
     const ids = new Set<string>();
@@ -272,7 +275,7 @@ export function validateBackup(value: unknown): BackupV3 {
     }
     for (const id of attemptIds) if (ids.has(id)) invalid();
     if (legacy) for (const profile of backup.profiles) profile.words = profile.words.map(archiveLegacyAdjectivePlural);
-    return JSON.parse(JSON.stringify({ ...backup, profiles: backup.profiles.map(profile => ({ ...Object.fromEntries(Object.keys(partShape).map(key => [key, profile[key as keyof ProfileBackup]])), grammar: profile.grammar })) })) as BackupV3;
+    return JSON.parse(JSON.stringify({ ...backup, profiles: backup.profiles.map(profile => ({ ...Object.fromEntries(Object.keys(partShape).map(key => [key, profile[key as keyof ProfileBackup]])), grammar: profile.grammar })) })) as BackupV3 | BackupV4;
 }
 
 /** Validate an explicitly legacy fixture without widening its public schema. */
@@ -283,4 +286,10 @@ export function validateBackupV2(value: unknown): BackupV2 {
         const { catalogVersions: _versions, ...rows } = grammar;
         return { ...profile, grammar: { ...rows, catalogVersion: 1 } };
     }) } as BackupV2;
+}
+
+/** New exports must include the complete versioned grammar ledger. */
+export function validateBackupV4(value: unknown): BackupV4 {
+    if (!value || typeof value !== 'object' || (value as Record<string, unknown>).version !== 4) invalid();
+    return validateBackup(value) as BackupV4;
 }

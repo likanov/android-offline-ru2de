@@ -7,16 +7,16 @@ import { TopicRepository } from '../src/features/topics/topicRepository';
 import { SessionRepository } from '../src/features/learning/sessionRepository';
 import { AnswerService } from '../src/features/learning/answerService';
 import { BackupService } from '../src/features/transfer/backupService';
-import { validateBackup, validateBackupV1, validateBackupV2 } from '../src/features/transfer/backupValidation';
+import { validateBackupV4, validateBackupV1 } from '../src/features/transfer/backupValidation';
 import { GrammarSessionRepository } from '../src/features/grammar/grammarSessionRepository';
 import { GrammarAnswerService } from '../src/features/grammar/grammarAnswerService';
 import { grammarTargets } from '../src/features/grammar/grammarCatalog';
 import type { GrammarQuestion, GrammarSubmission } from '../src/features/grammar/grammarTypes';
 import type { DayKey } from '../src/features/learning/learningTypes';
-import type { BackupV1, BackupV2, BackupV3 } from '../src/features/transfer/backupTypes';
+import type { BackupV1, BackupV4 } from '../src/features/transfer/backupTypes';
 // Host-only generator. It is never imported by the Android application.
 // Every learning state comes from persisted real questions and AnswerService.
-async function createRegressionBackupV2(today: DayKey): Promise<BackupV3> {
+async function createRegressionWordBackup(today: DayKey): Promise<BackupV4> {
   addDays(today, 0);
   const { db, close } = openTestDb();
   try {
@@ -71,15 +71,15 @@ async function createRegressionBackupV2(today: DayKey): Promise<BackupV3> {
     await respond(active.p.id,active.word.id,1,today);
     const s = (await sessions.resume(active.p.id))!;
     await sessions.next(active.p.id,s.id,today);
-    return validateBackup(await new BackupService(db).exportAll());
+    return validateBackupV4(await new BackupService(db).exportAll());
   } finally { close(); }
 }
 
 /** The legacy runner deliberately receives a v1 file. Keep grammar out of it
  * so the old APK can prove that its import path remains readable. */
 export async function createRegressionBackup(today: DayKey): Promise<BackupV1> {
-  const v2 = await createRegressionBackupV2(today);
-  const v1 = { ...v2, version: 1 as const, profiles: v2.profiles.map(({ grammar: _grammar, ...profile }) => profile) };
+  const current = await createRegressionWordBackup(today);
+  const v1 = { ...current, version: 1 as const, profiles: current.profiles.map(({ grammar: _grammar, ...profile }) => profile) };
   return validateBackupV1(v1);
 }
 
@@ -89,9 +89,9 @@ function grammarAnswer(question: GrammarQuestion, right: boolean): GrammarSubmis
   return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: question.expected.token };
 }
 
-/** Host-only v2 fixture. Every grammar row is created by the repositories and
+/** Host-only current-rules fixture. Every grammar row is created by the repositories and
  * answer service; no progress, attempt, XP or backup row is hand-written. */
-export async function createGrammarRegressionBackup(today: DayKey): Promise<BackupV2> {
+export async function createGrammarRegressionBackup(today: DayKey): Promise<BackupV4> {
   addDays(today, 0);
   const source = openTestDb();
   try {
@@ -123,18 +123,15 @@ export async function createGrammarRegressionBackup(today: DayKey): Promise<Back
       await migrate(target.db);
       const service = new BackupService(target.db);
       await service.restore(service.preview(JSON.stringify(exported)));
-      const v3 = await service.exportAll();
-      return validateBackupV2({ ...v3, version: 2, profiles: v3.profiles.map(({ grammar, ...part }) => {
-        const { catalogVersions: _versions, ...rows } = grammar;
-        return { ...part, grammar: { ...rows, catalogVersion: 1 } };
-      }) });
+      const backup = await service.exportAll();
+      return validateBackupV4(backup);
     } finally { target.close(); }
   } finally { source.close(); }
 }
 
 /** Catalog 2 regression data is always generated with production repositories,
- * real submit transactions and BackupService's V3 serializer. */
-export async function createLektion2RegressionBackup(today: DayKey): Promise<BackupV3> {
+ * real submit transactions and BackupService's V4 serializer. */
+export async function createLektion2RegressionBackup(today: DayKey): Promise<BackupV4> {
  const source=openTestDb();
  try {
   await migrate(source.db);
@@ -178,6 +175,6 @@ export async function createLektion2RegressionBackup(today: DayKey): Promise<Bac
   const restored=await service.restore(service.preview(JSON.stringify({...snapshot,profiles:[{...emptyPart,profile:{...emptyPart.profile,name:'A1 — пустой'},words:[],progress:[],wordTopics:[]}]})));
   const emptyId=restored.profileIds[0];
   const s=(await gs.start(emptyId,{mode:'study',lesson:'yesno-translation'},today))!;await gs.next(emptyId,s.id,today);
-  return validateBackup(await new BackupService(source.db).exportAll());
+  return validateBackupV4(await new BackupService(source.db).exportAll());
  }finally{source.close();}
 }

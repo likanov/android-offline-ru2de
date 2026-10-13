@@ -1,7 +1,8 @@
+import type { GrammarRulesTransition } from '../grammar/grammarRuleTypes';
 import type { Profile } from '../../core/types';
 import type { Word, Skill } from '../learning/learningTypes';
 import type { Session, Question, AttemptResult } from '../learning/questionTypes';
-import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession, GrammarTargetId, LegacyGrammarQuestion, LegacyGrammarTargetId } from '../grammar/grammarTypes';
+import type { GrammarAttemptResult, GrammarProgress, GrammarQuestion, GrammarSession, GrammarTargetId, LegacyGrammarQuestion, LegacyGrammarTargetId, GrammarCatalogVersion, PreLektion3Question } from '../grammar/grammarTypes';
 export type BackupWord = Word & {
     seedKey: string | null;
     seedDe: string | null;
@@ -119,7 +120,8 @@ export type BackupV1 = {
     profiles: LegacyProfileBackup[];
 };
 type LegacyGrammarProgress = Omit<GrammarProgress, 'targetId'> & { targetId: LegacyGrammarTargetId };
-type LegacyGrammarAttempt = Omit<GrammarAttemptResult, 'targetId'> & { targetId: LegacyGrammarTargetId };
+type HistoricalGrammarAttempt = Omit<GrammarAttemptResult, 'rulesVersion'> & { rulesVersion?: 1 };
+type LegacyGrammarAttempt = Omit<HistoricalGrammarAttempt, 'targetId'> & { targetId: LegacyGrammarTargetId };
 type LegacyBackupQuestion = Omit<LegacyGrammarQuestion, 'targetId'> & { targetId: LegacyGrammarTargetId };
 type LegacyBackupSession = Omit<GrammarSession, 'selection' | 'targetIds' | 'currentQuestion' | 'result'> & { selection: { mode: 'study' | 'review'; lesson: 'mixed' | 'pronouns' | 'sein'; targetIds?: LegacyGrammarTargetId[] }; targetIds: LegacyGrammarTargetId[]; currentQuestion: LegacyBackupQuestion | null; result: LegacyGrammarAttempt | null };
 export type GrammarProfileBackup = {
@@ -153,15 +155,25 @@ export type BackupV2 = Omit<BackupV1, 'version' | 'profiles'> & {
 export type GrammarProfileBackupV3 = {
     catalogVersions: (1 | 2)[];
     progress: (GrammarProgress & { profileId: string })[];
-    sessions: GrammarSession[];
-    questions: { question: GrammarQuestion; status: 'active' | 'answered' | 'cancelled' }[];
-    attempts: { profileId: string; sessionId: string; targetId: GrammarTargetId; day: string; result: GrammarAttemptResult }[];
+    sessions: (Omit<GrammarSession, 'currentQuestion' | 'result'> & { currentQuestion: PreLektion3Question | null; result: HistoricalGrammarAttempt | null })[];
+    questions: { question: PreLektion3Question; status: 'active' | 'answered' | 'cancelled' }[];
+    attempts: { profileId: string; sessionId: string; targetId: GrammarTargetId; day: string; result: HistoricalGrammarAttempt }[];
     rewards: { profileId: string; targetId: GrammarTargetId; attemptId: string; amount: 50; day: string }[];
 };
 export type ProfileBackupV3 = ProfileBackup & { grammar: GrammarProfileBackupV3 };
 export type BackupV3 = Omit<BackupV1, 'version' | 'profiles'> & { version: 3; profiles: ProfileBackupV3[] };
+export type GrammarProfileBackupV4 = Omit<GrammarProfileBackupV3, 'catalogVersions' | 'sessions' | 'questions' | 'attempts'> & {
+    catalogVersions: GrammarCatalogVersion[];
+    rulesVersion: 2;
+    rulesTransitions: GrammarRulesTransition[];
+    sessions: GrammarSession[];
+    questions: { question: GrammarQuestion; status: 'active' | 'answered' | 'cancelled' }[];
+    attempts: { profileId: string; sessionId: string; targetId: GrammarTargetId; day: string; result: GrammarAttemptResult }[];
+};
+export type ProfileBackupV4 = ProfileBackup & { grammar: GrammarProfileBackupV4 };
+export type BackupV4 = Omit<BackupV3, 'version' | 'profiles'> & { version: 4; profiles: ProfileBackupV4[] };
 export type RestorePreview = {
-    backup: BackupV3;
+    backup: BackupV3 | BackupV4;
     profileCount: number;
     wordCount: number;
     grammarTargetCount: number;

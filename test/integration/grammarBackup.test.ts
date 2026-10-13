@@ -11,7 +11,7 @@ function answer(question: GrammarQuestion): GrammarSubmission {
   return question.responseMode === 'choice' ? { kind: 'choice', optionId: question.expected.optionId } : { kind: 'typed', text: ('token' in question.expected ? question.expected.token : question.expected.sentences[0]) };
 }
 
-test('restore_remaps_all_profile_links_v3_roundtrip_preserves_grammar_session_question_and_attempt', async () => {
+test('restore_remaps_all_profile_links_v4_roundtrip_preserves_grammar_session_question_and_attempt', async () => {
   const h = await createGrammarHarness();
   try {
     const profile = await createProfile(h.db, 'Грамматика');
@@ -21,11 +21,10 @@ test('restore_remaps_all_profile_links_v3_roundtrip_preserves_grammar_session_qu
     const question = (await h.grammarSessions.next(profile.id, session.id, day))!;
     const result = await h.grammarAnswers.submit(profile.id, session.id, question.attemptId, answer(question), day);
     const backup = await h.backup.exportAll();
-    expect(backup.version).toBe(3);
+    expect(backup.version).toBe(4);
     expect(backup.profiles[0].grammar.attempts[0].result).toEqual(result);
     expect(backup.profiles[0].grammar.questions[0].status).toBe('answered');
-    const legacy = { ...backup, version: 2, profiles: backup.profiles.map(({ grammar: {catalogVersions: _versions, ...grammar}, ...part }) => ({ ...part, grammar: { ...grammar, catalogVersion: 1 } })) };
-    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(legacy)));
+    const restored = await h.backup.restore(h.backup.preview(JSON.stringify(backup)));
     const restoredId = restored.profileIds[0];
     const restoredBackup = await h.backup.exportAll();
     const restoredPart = restoredBackup.profiles.find(part => part.profile.id === restoredId)!;
@@ -128,7 +127,7 @@ async function mixedCatalogFixture() {
   }
   await h.grammarSessions.next(profile.id, old.id, day);
   const state = await h.grammar.getState(profile.id, 'yesno-transform:pronoun');
-  await h.grammar.write(profile.id, { ...state, attemptCount: 19 });
+  await h.grammar.write(profile.id, { ...state, variantIndex: 1 });
   const session = (await h.grammarSessions.start(profile.id, { mode: 'study', lesson: 'yesno-transform', targetIds: ['yesno-transform:pronoun'] }, day))!;
   const active = (await h.grammarSessions.next(profile.id, session.id, day))!;
   expect(active).toMatchObject({ catalogVersion: 2, presentation: 'sentence' });

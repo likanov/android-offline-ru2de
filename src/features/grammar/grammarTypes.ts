@@ -29,5 +29,6 @@ export type GrammarTarget = LegacyGrammarTarget | Lektion2Target;
 type Lektion2QuestionCommon = Omit<LegacyGrammarQuestion, 'catalogVersion'|'targetId'|'kind'|'expected'|'feedback'|'position'|'beforeDe'|'afterDe'|'options'|'responseMode'> & {catalogVersion:2;targetId:Lektion2TargetId;kind:Lektion2Kind;feedback:{sentenceDe:string;translationRu:string;ruleId:GrammarRuleId;explanationRu:string}};
 export type Lektion2ClozeQuestion = Lektion2QuestionCommon & {presentation:'cloze';responseMode:'choice'|'typed';position:'initial'|'internal';beforeDe:string;afterDe:string;options:GrammarOption[];expected:{optionId:GrammarOptionId;token:string}};
 export type GrammarSentenceQuestion = Lektion2QuestionCommon & {presentation:'sentence';responseMode:'typed';promptRu:string;sourceSentenceDe:string|null;expected:{sentences:string[]}};
-export type GrammarQuestion = LegacyGrammarQuestion | Lektion2ClozeQuestion | GrammarSentenceQuestion;
+export type PreLektion3Question = LegacyGrammarQuestion | Lektion2ClozeQuestion | GrammarSentenceQuestion;
+export type GrammarQuestion = PreLektion3Question;
 export type Lektion2Template = {id:string;sourceExercise:string;sourceItem:number|null;targetId:Lektion2TargetId;promptRu:string;contextRu:string;beforeDe:string;afterDe:string;sentenceDe:string;translationRu:string;ruleId:GrammarRuleId;explanationRu:string;answers:readonly string[]};

@@ -91,5 +91,7 @@ export async function exportSchema8GrammarFixture(db: SqlStore): Promise<BackupV
         }
         return { format: 'german-vocabulary-backup' as const, version: 3 as const, createdAt: '2026-10-13T12:00:00.000Z', profiles };
     });
-    return validateBackup(snapshot);
+    const valid = validateBackup(snapshot);
+    if (valid.version !== 3) throw new Error('Schema8 must export backup3');
+    return valid;
 }

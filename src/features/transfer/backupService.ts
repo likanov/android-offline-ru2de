@@ -2,9 +2,12 @@ import type { SqlStore, SqlExecutor, SqlValue } from '../../core/sql';
 import type { Profile } from '../../core/types';
 import { AppError } from '../../core/errors';
 import { notifyProfileChanged } from '../../app/refreshBus';
-import { BACKUP_MAX_BYTES, type BackupV3, type GrammarProfileBackupV3, type ProfileBackup, type ProfileBackupV3, type RestorePreview } from './backupTypes';
+import { BACKUP_MAX_BYTES, type BackupV4, type GrammarProfileBackupV4, type ProfileBackup, type ProfileBackupV4, type RestorePreview } from './backupTypes';
 import { getGrammarCatalogVersions, getGrammarTarget } from '../grammar/grammarCatalog';
-import { validateBackup } from './backupValidation';
+import { validateBackup, validateBackupV4 } from './backupValidation';
+import { prepareBackupRestore } from './backupRestorePreparation';
+import { localDay } from '../../core/calendar';
+import type { DayKey } from '../learning/learningTypes';
 import { remapBackup } from './backupRemap';
 // Table names and columns are application constants. File values are always bound parameters.
 const tables = { words: 'words', progress: 'word_progress', skillStats: 'skill_stats', topics: 'topics', wordTopics: 'word_topics', dailyActivity: 'daily_activity', aids: 'aids', aidWords: 'aid_words', sessions: 'sessions', questions: 'questions', attempts: 'attempts', skillHistory: 'skill_history', rewards: 'rewards' } as const;
@@ -14,8 +17,8 @@ type Row = Record<string, unknown>;
 function decode(row: Row): Row { return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, jsonColumns.has(key) && typeof value === 'string' ? JSON.parse(value) : value])); }
 async function insert(tx: SqlExecutor, table: keyof typeof columns, row: object) { const keys = columns[table].split(','), values = row as Row; await tx.run(`INSERT INTO ${table}(${columns[table]}) VALUES (${keys.map(() => '?').join(',')})`, keys.map(key => jsonColumns.has(key) && values[key] !== null ? JSON.stringify(values[key]) : values[key]) as SqlValue[]); }
 export class BackupService {
-    constructor(private db: SqlStore) { }
-    async exportAll(): Promise<BackupV3> {
+    constructor(private db: SqlStore, private today: () => DayKey = () => localDay(new Date())) { }
+    async exportAll(): Promise<BackupV4> {
         const snapshot = await this.db.transaction(async (tx) => {
             const profiles: ProfileBackup[] = [];
             for (const profile of await tx.all<Profile>('SELECT * FROM profiles ORDER BY rowid')) {
@@ -25,20 +28,22 @@ export class BackupService {
                 const attempts = part.attempts as ProfileBackup['attempts'];
                 part.rewards = (part.rewards as Omit<ProfileBackup['rewards'][number], 'day'>[]).map(r => ({ ...r, day: attempts.find(a => a.attemptId === r.attemptId)!.day }));
                 const progressRows = await tx.all<Row>('SELECT * FROM grammar_progress WHERE profileId=? ORDER BY rowid', [profile.id]);
-                const grammar: GrammarProfileBackupV3 = {
+                const grammar: GrammarProfileBackupV4 = {
                     catalogVersions: getGrammarCatalogVersions(),
-                    progress: progressRows.map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV3['grammar']['progress'][number]['targetId'], state: { streak: Number(row.streak), mastered: !!row.mastered, masteryBonusGranted: !!row.masteryBonusGranted, reviewStage: Number(row.reviewStage), dueDay: row.dueDay as string | null, difficult: !!row.difficult, totalErrors: Number(row.totalErrors), recoveryErrors: Number(row.recoveryErrors), recoveryCorrect: Number(row.recoveryCorrect) }, attemptCount: Number(row.attemptCount), variantIndex: Number(row.variantIndex) })),
-                    sessions: (await tx.all<Row>('SELECT * FROM grammar_sessions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ ...row, selection: JSON.parse(String(row.selection)), targetIds: JSON.parse(String(row.targetIds)), currentQuestion: row.currentQuestion ? JSON.parse(String(row.currentQuestion)) : null, result: row.result ? JSON.parse(String(row.result)) : null })) as ProfileBackupV3['grammar']['sessions'],
+                    rulesVersion: 2,
+                    rulesTransitions: (await tx.all<Row>('SELECT * FROM grammar_rule_transitions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, targetId: row.targetId, fromRulesVersion: row.fromRulesVersion, toRulesVersion: row.toRulesVersion, afterAttemptId: row.afterAttemptId, day: row.day, stateBefore: JSON.parse(String(row.stateBefore)), stateAfter: JSON.parse(String(row.stateAfter)), xpDelta: row.xpDelta })) as GrammarProfileBackupV4['rulesTransitions'],
+                    progress: progressRows.map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV4['grammar']['progress'][number]['targetId'], state: { streak: Number(row.streak), mastered: !!row.mastered, masteryBonusGranted: !!row.masteryBonusGranted, reviewStage: Number(row.reviewStage), dueDay: row.dueDay as string | null, difficult: !!row.difficult, totalErrors: Number(row.totalErrors), recoveryErrors: Number(row.recoveryErrors), recoveryCorrect: Number(row.recoveryCorrect) }, attemptCount: Number(row.attemptCount), variantIndex: Number(row.variantIndex) })),
+                    sessions: (await tx.all<Row>('SELECT * FROM grammar_sessions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ ...row, selection: JSON.parse(String(row.selection)), targetIds: JSON.parse(String(row.targetIds)), currentQuestion: row.currentQuestion ? JSON.parse(String(row.currentQuestion)) : null, result: row.result ? JSON.parse(String(row.result)) : null })) as ProfileBackupV4['grammar']['sessions'],
                     questions: (await tx.all<Row>('SELECT * FROM grammar_questions WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ question: JSON.parse(String(row.payload)), status: row.status as 'active' | 'answered' | 'cancelled' })),
-                    attempts: (await tx.all<Row>('SELECT * FROM grammar_attempts WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, sessionId: String(row.sessionId), targetId: row.targetId as ProfileBackupV3['grammar']['attempts'][number]['targetId'], day: String(row.day), result: JSON.parse(String(row.result)) })),
-                    rewards: (await tx.all<Row>('SELECT * FROM grammar_rewards WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV3['grammar']['rewards'][number]['targetId'], attemptId: String(row.attemptId), amount: 50 as const, day: String(row.day) })),
+                    attempts: (await tx.all<Row>('SELECT * FROM grammar_attempts WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, sessionId: String(row.sessionId), targetId: row.targetId as ProfileBackupV4['grammar']['attempts'][number]['targetId'], day: String(row.day), result: JSON.parse(String(row.result)) })),
+                    rewards: (await tx.all<Row>('SELECT * FROM grammar_rewards WHERE profileId=? ORDER BY rowid', [profile.id])).map(row => ({ profileId: profile.id, targetId: row.targetId as ProfileBackupV4['grammar']['rewards'][number]['targetId'], attemptId: String(row.attemptId), amount: 50 as const, day: String(row.day) })),
                 };
                 part.grammar = grammar;
                 profiles.push(part as ProfileBackup);
             }
-            return { format: 'german-vocabulary-backup' as const, version: 3 as const, createdAt: new Date().toISOString(), profiles: profiles as ProfileBackupV3[] };
+            return { format: 'german-vocabulary-backup' as const, version: 4 as const, createdAt: new Date().toISOString(), profiles: profiles as ProfileBackupV4[] };
         });
-        return validateBackup(snapshot);
+        return validateBackupV4(snapshot);
     }
     preview(text: string): RestorePreview {
         if (typeof text !== 'string')
@@ -66,9 +71,10 @@ export class BackupService {
         // Revalidate a detached value before opening the transaction, even if caller mutated a preview.
         const backup = validateBackup(preview.backup);
         const profileIds = await this.db.transaction(async (tx) => {
+            const prepared = prepareBackupRestore(backup, this.today());
             const names = (await tx.all<{
                 name: string;
-            }>('SELECT name FROM profiles')).map(p => p.name), profiles = remapBackup(backup, names);
+            }>('SELECT name FROM profiles')).map(p => p.name), profiles = remapBackup(prepared, names);
             for (const p of profiles) {
                 await insert(tx, 'profiles', p.profile);
                 await insert(tx, 'settings', p.settings);
@@ -77,11 +83,12 @@ export class BackupService {
                         await insert(tx, table, row);
                 for (const progress of p.grammar.progress) {
                     const s = progress.state;
-                    await tx.run('INSERT INTO grammar_progress(profileId,targetId,catalogVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [p.profile.id, progress.targetId, getGrammarTarget(progress.targetId).catalogVersion, s.streak, +s.mastered, +s.masteryBonusGranted, s.reviewStage, s.dueDay, +s.difficult, s.totalErrors, s.recoveryErrors, s.recoveryCorrect, progress.attemptCount, progress.variantIndex]);
+                    await tx.run('INSERT INTO grammar_progress(profileId,targetId,catalogVersion,rulesVersion,streak,mastered,masteryBonusGranted,reviewStage,dueDay,difficult,totalErrors,recoveryErrors,recoveryCorrect,attemptCount,variantIndex) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [p.profile.id, progress.targetId, getGrammarTarget(progress.targetId).catalogVersion, 2, s.streak, +s.mastered, +s.masteryBonusGranted, s.reviewStage, s.dueDay, +s.difficult, s.totalErrors, s.recoveryErrors, s.recoveryCorrect, progress.attemptCount, progress.variantIndex]);
                 }
                 for (const session of p.grammar.sessions) await tx.run('INSERT INTO grammar_sessions(id,profileId,selection,targetIds,cursor,currentQuestion,result,status) VALUES (?,?,?,?,?,?,?,?)', [session.id, p.profile.id, JSON.stringify(session.selection), JSON.stringify(session.targetIds), session.cursor, session.currentQuestion ? JSON.stringify(session.currentQuestion) : null, session.result ? JSON.stringify(session.result) : null, session.status]);
                 for (const row of p.grammar.questions) await tx.run('INSERT INTO grammar_questions(attemptId,profileId,sessionId,targetId,catalogVersion,kind,responseMode,payload,status) VALUES (?,?,?,?,?,?,?,?,?)', [row.question.attemptId, p.profile.id, row.question.sessionId, row.question.targetId, row.question.catalogVersion, row.question.kind, row.question.responseMode, JSON.stringify(row.question), row.status]);
                 for (const row of p.grammar.attempts) await tx.run('INSERT INTO grammar_attempts(attemptId,profileId,sessionId,targetId,right,xpDelta,result,day) VALUES (?,?,?,?,?,?,?,?)', [row.result.attemptId, p.profile.id, row.sessionId, row.targetId, +row.result.right, row.result.xpDelta, JSON.stringify(row.result), row.day]);
+                for (const row of p.grammar.rulesTransitions) await tx.run('INSERT INTO grammar_rule_transitions(profileId,targetId,fromRulesVersion,toRulesVersion,afterAttemptId,day,stateBefore,stateAfter,xpDelta) VALUES (?,?,?,?,?,?,?,?,?)', [p.profile.id, row.targetId, row.fromRulesVersion, row.toRulesVersion, row.afterAttemptId, row.day, JSON.stringify(row.stateBefore), JSON.stringify(row.stateAfter), row.xpDelta]);
                 for (const row of p.grammar.rewards) await tx.run('INSERT INTO grammar_rewards(profileId,targetId,attemptId,amount,day) VALUES (?,?,?,?,?)', [p.profile.id, row.targetId, row.attemptId, row.amount, row.day]);
             }
             return profiles.map(p => p.profile.id);
