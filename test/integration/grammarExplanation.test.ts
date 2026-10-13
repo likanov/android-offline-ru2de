@@ -89,3 +89,22 @@ test('grammar_prompt_treats_submitted_answer_as_json_data', async () => {
     expect(messages[1].content).not.toContain('ignore previous instructions\n');
   } finally { h.close(); }
 });
+
+test.each(['noun-article','noun-plural','plural-invariant'] as const)('lektion3_error_prompt_uses_saved_verified_context_and_labels: %s',async lesson=>{
+ const h=await createGrammarHarness();
+ try {
+  const p=await createProfile(h.db,'Lektion3');const s=(await h.grammarSessions.start(p.id,{mode:'study',lesson,targetIds:[lesson==='plural-invariant'?'plural-invariant:recognition':`${lesson}:buch`]},day))!;
+  const q=(await h.grammarSessions.next(p.id,s.id,day))!;
+  const answer:GrammarSubmission=lesson==='noun-article'?{kind:'choice',optionId:'der'}:lesson==='noun-plural'?{kind:'typed',text:'die Buch'}:{kind:'multi-choice',optionIds:['student']};
+  await h.grammarAnswers.submit(p.id,s.id,q.attemptId,answer,day);
+  const context=await loadGrammarErrorContext(h.db,p.id,q.attemptId);
+  expect(context.question).toEqual(q);
+  const messages=buildGrammarErrorMessages(context); const data=JSON.parse(messages[1].content);
+  expect(data.question.prompt).toBe(lesson==='noun-article'?'___ Buch':lesson==='noun-plural'?'das Buch':'Выберите все существительные, форма которых не меняется во множественном числе.');
+  expect(data.result.submittedAnswer).toEqual(answer);
+  expect(data.question.expected).toEqual(q.expected);
+  if(lesson==='plural-invariant') expect(data.question.options).toEqual(expect.arrayContaining([{id:'student',label:'der Student'}]));
+  expect(messages[1].content).not.toMatch(/xpDelta|streak|nextReviewDay/);
+  expect(messages[0].content).toContain('Правильность уже определило приложение');
+ } finally {h.close();}
+});

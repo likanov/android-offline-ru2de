@@ -4,7 +4,7 @@ import type { SqlStore } from '../../core/sql';
 import type { TrainingSelection } from './questionTypes';
 import type { GrammarProgressSummary } from '../grammar/grammarProgressRepository';
 import type { GrammarSelection } from '../grammar/grammarTypes';
-import { lektion2Lessons } from '../grammar/grammarPresentation';
+import { lektion2Lessons, lektion3Lessons } from '../grammar/grammarPresentation';
 import { Screen } from '../../ui/Screen';
 import { Button } from '../../ui/Button';
 import { getGrammarServices, getProgressRepository } from '../../app/AppServices';
@@ -18,6 +18,7 @@ export function TrainingHomeScreen({ db, profileId, onVocabulary, onGrammar }: {
   onGrammar: (selection: GrammarSelection) => void;
 }) {
   const today = useCurrentDay();
+  const [lektion3Open, setLektion3Open] = useState(false);
   const [lektion2Open, setLektion2Open] = useState(false);
   const [words, setWords] = useState<{ mastered: number; totalWords: number; dueCount: number } | null>(null);
   const [grammar, setGrammar] = useState<{ mastered: number; totalTargets: number; dueCount: number } | null>(null);
@@ -28,7 +29,7 @@ export function TrainingHomeScreen({ db, profileId, onVocabulary, onGrammar }: {
     const load = () => void Promise.all([
       getProgressRepository({ db }).summary(profileId, today),
       getGrammarServices({ db }).progress.summary(profileId, today, 'mixed'),
-      Promise.all(lektion2Lessons.map(async ({lesson}) => [lesson, await getGrammarServices({db}).progress.summary(profileId,today,lesson)] as const)),
+      Promise.all([...lektion2Lessons, ...lektion3Lessons].map(async ({lesson}) => [lesson, await getGrammarServices({db}).progress.summary(profileId,today,lesson)] as const)),
     ]).then(([wordSummary, grammarSummary, lessons]) => {
       if (!alive) return;
       setWords({ mastered: wordSummary.mastered, totalWords: wordSummary.totalWords, dueCount: wordSummary.dueCount });
@@ -58,6 +59,14 @@ export function TrainingHomeScreen({ db, profileId, onVocabulary, onGrammar }: {
         <Text>{title} · К повторению: {lessonSummaries[lesson]?.dueCount ?? 0}</Text>
         <Button title={title} variant="ghost" testID={`training-lektion2-${lesson}`} onPress={() => onGrammar({ mode: 'study', lesson })} />
         <Button title={`Повторить: ${title}`} variant="secondary" testID={`training-lektion2-review-${lesson}`} disabled={!lessonSummaries[lesson]?.dueCount} onPress={() => onGrammar({ mode: 'review', lesson })} />
+      </View>
+    )}</View> : null}
+    <Button title="Lektion 3 · Множественное число" variant="secondary" testID="training-lektion3-toggle" onPress={() => setLektion3Open(open => !open)} />
+    {lektion3Open ? <View>{lektion3Lessons.map(({ lesson, title }) =>
+      <View key={lesson}>
+        <Text testID={`training-lektion3-summary-${lesson}`}>{title} · {lessonSummaries[lesson] ? `Освоено: ${lessonSummaries[lesson].mastered} / ${lessonSummaries[lesson].totalTargets}` : 'Загрузка…'} · К повторению: {lessonSummaries[lesson]?.dueCount ?? 0}</Text>
+        <Button title={title} variant="ghost" testID={`training-lektion3-${lesson}`} disabled={!lessonSummaries[lesson] || lessonSummaries[lesson].mastered >= lessonSummaries[lesson].totalTargets} onPress={() => onGrammar({ mode: 'study', lesson })} />
+        <Button title={`Повторить: ${title}`} variant="secondary" testID={`training-lektion3-review-${lesson}`} disabled={!lessonSummaries[lesson]?.dueCount} onPress={() => onGrammar({ mode: 'review', lesson })} />
       </View>
     )}</View> : null}
   </Screen>;

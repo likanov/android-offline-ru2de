@@ -1,3 +1,4 @@
+import { grammarExpectedAnswer } from '../grammar/grammarPresentation';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Text } from 'react-native';
 import type { SqlStore } from '../../core/sql';
@@ -92,9 +93,14 @@ export function GrammarExplanationScreen({ db, profileId, attemptId, assistant, 
   }
 
   const result = context?.result;
-  const submitted = result?.submittedAnswer.kind === 'typed'
-    ? result.submittedAnswer.text
-    : result?.submittedAnswer.kind === 'choice' ? result.submittedAnswer.optionId : 'Ответ не сохранён';
+  const answer = result?.submittedAnswer;
+  let submitted = 'Ответ не сохранён';
+  if (answer?.kind === 'typed') submitted = answer.text;
+  else if (answer?.kind === 'choice') submitted = answer.optionId;
+  else if (answer?.kind === 'multi-choice' && context?.question.catalogVersion === 3 && context.question.kind === 'plural-invariant') {
+    const labels = new Map(context.question.options.map(option => [option.id, option.label]));
+    submitted = answer.optionIds.map(id => labels.get(id) ?? id).join(', ');
+  }
   return <Screen>
     <Text accessibilityRole="header" style={{ fontSize: 28 }}>Разбор грамматической ошибки</Text>
     {busy ? <ActivityIndicator accessibilityLabel="Помощник работает" /> : null}
@@ -102,7 +108,7 @@ export function GrammarExplanationScreen({ db, profileId, attemptId, assistant, 
     {context ? <>
       <Text testID="grammar-error-context">{context.question.contextRu}</Text>
       <Text>Ваш ответ: {submitted}</Text>
-      <Text>Правильный ответ: {context.question.catalogVersion===2 && context.question.presentation==='sentence' ? context.question.expected.sentences.join(' / ') : context.question.expected.token}</Text>
+      <Text>Правильный ответ: {grammarExpectedAnswer(context.question)}</Text>
       <Text>{context.question.feedback.sentenceDe}</Text>
       <Text>{context.question.feedback.translationRu}</Text>
       <Text testID="grammar-error-reference-title">{context.reference.title}</Text>

@@ -1,10 +1,10 @@
 import { AppError } from '../../core/errors';
 import type { SqlStore } from '../../core/sql';
 import { grammarReference } from '../grammar/grammarQuestionFactory';
-import type { GrammarAttemptResult, GrammarQuestion, PreLektion3Question } from '../grammar/grammarTypes';
+import type { GrammarAttemptResult, GrammarQuestion } from '../grammar/grammarTypes';
 
 export type GrammarErrorContext = {
-  question: PreLektion3Question;
+  question: GrammarQuestion;
   result: GrammarAttemptResult;
   reference: { title: string; text: string };
 };
@@ -54,7 +54,6 @@ export async function loadGrammarErrorContext(
   const result = parseJson<GrammarAttemptResult>(row.result, 'Результат повреждён');
   if (question.attemptId !== attemptId || result.attemptId !== attemptId || result.right)
     throw new AppError('VALIDATION', 'Результат задания недействителен');
-  if (question.catalogVersion===3) throw new AppError('VALIDATION', 'Для этого правила нет справки');
   const reference = grammarReference[question.feedback.ruleId];
   if (!reference)
     throw new AppError('VALIDATION', 'Для этого правила нет справки');
