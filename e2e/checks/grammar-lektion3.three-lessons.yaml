@@ -296,6 +296,12 @@ name: grammar-lektion3.three-lessons
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible-below.yaml",
+      "env": { "TARGET_TEXT": "Проверить" }
+    }
+  },
+  {
     "tapOn": {
       "id": "grammar-multi-submit"
     }

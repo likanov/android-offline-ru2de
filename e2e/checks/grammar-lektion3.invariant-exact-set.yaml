@@ -91,6 +91,12 @@ name: grammar-lektion3.invariant-exact-set
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible-below.yaml",
+      "env": { "TARGET_TEXT": "Проверить" }
+    }
+  },
+  {
     "tapOn": {
       "id": "grammar-multi-submit"
     }
@@ -199,6 +205,12 @@ name: grammar-lektion3.invariant-exact-set
   {
     "tapOn": {
       "id": "grammar-multi-option-${MULTI_L3_INVARIANT_SUPERSET_2}"
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible-below.yaml",
+      "env": { "TARGET_TEXT": "Проверить" }
     }
   },
   {

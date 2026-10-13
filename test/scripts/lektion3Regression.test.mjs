@@ -11,6 +11,14 @@ import {verifyScenarioState} from '../../scripts/regression-state.mjs';
 const required={
  'grammar-rules':['ten-answer-mastery','nine-error-reset','schema8-ten-upgrade','legacy-backup-conversion','backup4-roundtrip','word-threshold-twenty','profiles-reviews'],
  'grammar-lektion3':['three-lessons','article-choice-typing','plural-correct-error','invariant-exact-set','empty-dictionary','keyboard-small-large','reference-help-return','force-stop-reboot','profile-isolation','backup4-roundtrip']};
+test('Lektion3 multi-choice submissions reveal the button below long option lists before tapping',()=>{
+ for(const name of ['three-lessons','invariant-exact-set']){
+  const commands=JSON.parse(readFileSync('e2e/checks/grammar-lektion3.'+name+'.yaml','utf8').split('---\n')[1]);
+  const submissions=commands.map((c,i)=>c.tapOn?.id==='grammar-multi-submit'?i:-1).filter(i=>i>=0);
+  assert.ok(submissions.length>0,name);
+  for(const i of submissions)assert.deepEqual(commands[i-1],{runFlow:{file:'../helpers/ensure-visible-below.yaml',env:{TARGET_TEXT:'Проверить'}}},name+': submit may be below the viewport after selecting options');
+ }
+});
 test('new blocks require every named check and state artifact, APK hash and non-skipped JUnit',()=>{
  const dir=mkdtempSync(tmpdir()+'/l3-contract-');
  try{const file=(name,text)=>{const path=dir+'/'+name;writeFileSync(path,text);return path;};const apk=file('apk','apk'),model=file('model','model'),state=file('state','{}');

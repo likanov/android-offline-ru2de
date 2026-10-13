@@ -23,9 +23,9 @@ All artifact paths in this document beginning `outputs/` are relative to `/Users
 | Command | Actual result | Retained log |
 | --- | --- | --- |
 | `./scripts/toolchain.sh npm test -- --runInBand` | exit 0; 97 suites / 635 tests | `outputs/lektion3-release/host/jest-review.log` |
-| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 281 tests; no failures/skips | `outputs/lektion3-release/host/scripts-ime-fix.log` |
-| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-review.log` |
-| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-ime-fix.log` |
+| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 282 tests; no failures/skips | `outputs/lektion3-release/host/scripts-l3-submit.log` |
+| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-l3-submit.log` |
+| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-l3-submit.log` |
 
 The 13 existing warnings are require-import warnings in `test/integration/regressionFixtures.test.ts`. A temporary import-order warning introduced during review fixes was corrected and the final lint result above verified.
 
@@ -43,7 +43,9 @@ Schema8 is the trusted APK from commit `7828274b5f971281401a87683e72fe14cb6a2b29
 | --- | --- | --- |
 | `grammar-rules` | failed, exit 1 | Setup import expected 10 profiles despite actual 5; required checks did not run. Fixed hard-coded YAML override. |
 | `grammar-rules-r2` | failed, exit 1 | Six main checks and aggregate passed with JUnit/screenshots/public exports; schema8 upgrade did not start because AVD preparation chose x86_64 under Rosetta. |
-| `grammar-rules-r3` | in progress | Fresh rerun on the same APK after configured-ABI fix; results pending. |
+| `grammar-rules-r3` | passed, exit 0 | All seven checks and aggregate passed; schema8 before/after/repeat exports and upgrade included. Fresh independent validator returned `ok: true`, no errors; crash/ANR=0. |
+| `grammar-lektion3` | failed, exit 1 | First check could not tap multi-choice submit below the viewport. Failure screenshot confirmed missing E2E scroll handling; later checks, including keyboard evidence, did not run. |
+| `grammar-lektion3-r2` | in progress | Fresh rerun after adding downward-scroll guards before the three multi-choice submissions. Same APK and 14-profile fixture; results pending. |
 
 The six actual passed main checks in r2 are ten-answer-mastery, nine-error-reset, legacy-backup-conversion, backup4-roundtrip, word-threshold-twenty, and profiles-reviews. Their state evidence does not certify the missing schema8 upgrade or a full block pass. The r2 primary logs recorded crash/ANR=0 and settings restoration passed; upgrade logcat was unavailable because the upgrade emulator did not start. Existing validator reread r2 and rejected it (10 errors), preserving the failed result.
 
@@ -69,6 +71,6 @@ LEKTION3_APK="$LEKTION3_TASK_ROOT/outputs/lektion3-release/candidate/app-release
 
 ## Remaining evidence and limits
 
-Required schema8 upgrade, Lektion3's ten checks and mandatory 320dp/fontScale 1 and 1.5 real-IME captures, older blocks, full 130-scenario regression, and actual observations remain pending. Preflight and host checks cannot replace these results. GrammarUi validation now requires visible Android IME mask 2, source hierarchies/dumps, input/submit geometry, post-submit feedback, and actual multi-choice option movement. Synthetic host fixtures are never used as Android acceptance evidence.
+Lektion3's ten checks and mandatory 320dp/fontScale 1 and 1.5 real-IME captures, older blocks, full 130-scenario regression, and actual observations remain pending. Preflight and host checks cannot replace these results. GrammarUi validation now requires visible Android IME mask 2, source hierarchies/dumps, input/submit geometry, post-submit feedback, and actual multi-choice option movement. Synthetic host fixtures are never used as Android acceptance evidence.
 
 The full report must pass its validator with every required scenario, no failures/skips, one APK hash, and crash/ANR=0. No merge, push, deployment or physical-phone operation has occurred.
