@@ -279,7 +279,14 @@ export function compareGrammarRulesUpgrade(before,after,{day,requireBoundaries=f
    check(next?.attemptCount===row.attemptCount&&next?.variantIndex===row.variantIndex&&stable(next?.state)===stable(state),'RULES_UPGRADE_COUNTER:'+row.targetId);bonus+=delta;
   }
   check(stable(g?.attempts)===stable(h?.attempts)&&stable(g?.rewards)===stable(h?.rewards),'RULES_UPGRADE_HISTORY');
-  check(stable(g?.questions)===stable(h?.questions)&&stable(g?.sessions)===stable(h?.sessions),'RULES_UPGRADE_SAVED_QUESTIONS');
+  const questions=structuredClone(g?.questions??[]),sessions=structuredClone(g?.sessions??[]);
+  const autoMastered=new Set((g?.progress??[]).filter(r=>!r.state.mastered&&r.state.streak>=10).map(r=>r.targetId));
+  for(const row of questions){const session=sessions.find(s=>s.id===row.question.sessionId);
+   if(autoMastered.has(row.question.targetId)&&row.status==='active'&&session?.status==='active'&&session.result===null&&session.selection.mode==='study'){
+    row.status='cancelled';session.currentQuestion=null;session.result=null;
+   }
+  }
+  check(stable(questions)===stable(h?.questions)&&stable(sessions)===stable(h?.sessions),'RULES_UPGRADE_SAVED_QUESTIONS');
   check(q.profile.xp===p.profile.xp+bonus,'RULES_UPGRADE_XP');
   for(const key of ['words','progress','skillStats','skillHistory','topics','wordTopics','settings','aids','aidWords','sessions','questions','attempts','rewards'])check(stable(p[key])===stable(q[key]),'RULES_UPGRADE_WORD_GRAPH:'+key);
   const expected=structuredClone(p.dailyActivity??[]);
@@ -315,11 +322,19 @@ function checkNewGrammarScenario(id,backup,before,{today,fixtureDay},check){
  if(id==='grammar-rules.word-threshold-twenty'){const p=part('Rules — word nineteen'),b=old('Rules — word nineteen');check(p?.attempts.length===20&&p?.profile.xp===250&&b?.attempts.length===19&&p.progress.some(r=>r.streak===20&&r.learned===1),'WORD_TWENTY');}
  if(id==='grammar-rules.profiles-reviews'){answer('Rules — review',true);check(stable(part('Rules — isolated'))===stable(old('Rules — isolated')),'REVIEW_PROFILE_ISOLATION');check(part('Rules — review')?.grammar.progress[0].state.reviewStage===1,'REVIEW_STAGE');}
  if(id==='grammar-lektion3.three-lessons')for(const lesson of ['noun-article','noun-plural','plural-invariant'])answer('L3 — '+lesson,true);
- if(id==='grammar-lektion3.article-choice-typing'){answer('L3 — article-typing',true);check(added('L3 — article-typing')[0]?.result.submittedAnswer.kind==='typed','ARTICLE_TYPED');check(part('L3 — noun-article')?.grammar.attempts.some(a=>a.result.submittedAnswer.kind==='choice'&&a.result.right),'ARTICLE_CHOICE');}
+ if(id==='grammar-lektion3.article-choice-typing'){answer('L3 — article-typing',true);check(added('L3 — article-typing')[0]?.result.submittedAnswer.kind==='typed','ARTICLE_TYPED');check(part('L3 — noun-article')?.grammar.attempts.some(a=>a.result.submittedAnswer.kind==='choice'&&a.result.right),'ARTICLE_CHOICE');
+  const rows=answer('L3 — article-error',false),p=part('L3 — article-error'),b=old('L3 — article-error'),prior=b?.grammar.progress[0],next=p?.grammar.progress[0];
+  check(rows[0]?.result.xpDelta===0&&p?.profile.xp===b?.profile.xp&&stable(p?.grammar.rewards)===stable(b?.grammar.rewards),'ARTICLE_ERROR_ZERO_XP');
+  check(next?.state.streak===0&&next.state.totalErrors===prior?.state.totalErrors+1&&next.attemptCount===prior?.attemptCount+1,'ARTICLE_ERROR_RESET');
+ }
  if(id==='grammar-lektion3.plural-correct-error'){answer('L3 — plural-error',false);check(part('L3 — noun-plural')?.grammar.attempts.some(a=>a.result.right),'PLURAL_CORRECT');}
  if(id==='grammar-lektion3.invariant-exact-set'){for(const name of ['invariant-subset','invariant-superset'])answer('L3 — '+name,false);check(part('L3 — plural-invariant')?.grammar.attempts.some(a=>a.result.right),'INVARIANT_EXACT');}
  if(id==='grammar-lektion3.empty-dictionary'){check(part('L3 — empty')?.words.length===0,'EMPTY_DICTIONARY');answer('L3 — empty',true);}
- if(['grammar-lektion3.keyboard-small-large','grammar-lektion3.reference-help-return','grammar-lektion3.force-stop-reboot','grammar-lektion3.profile-isolation'].includes(id))for(const e of compareBackupGraphs(before,backup).errors)check(false,e);
+ if(id==='grammar-lektion3.keyboard-small-large'){
+  for(const name of ['L3 — keyboard','L3 — keyboard-large']){const rows=answer(name,true),p=part(name),b=old(name);check(rows[0]?.result.xpDelta===10&&p?.profile.xp===b?.profile.xp+10,'KEYBOARD_SUBMIT_XP:'+name);}
+  for(const p of before?.profiles??[])if(!['L3 — keyboard','L3 — keyboard-large'].includes(p.profile.name))check(stable(part(p.profile.name))===stable(p),'KEYBOARD_UNRELATED_CHANGED:'+p.profile.name);
+ }
+ if(['grammar-lektion3.reference-help-return','grammar-lektion3.force-stop-reboot','grammar-lektion3.profile-isolation'].includes(id))for(const e of compareBackupGraphs(before,backup).errors)check(false,e);
 }
 
 export function compareLegacyGrammarConversion(before,after,{day}={}){

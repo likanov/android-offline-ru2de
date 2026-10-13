@@ -7,7 +7,7 @@ INTERNET permission. GGUF and its manifest are supplied through local files.
 
 ## Current status
 
-The suite contains executable flows for all 54 detailed checks. Each check has
+The suite contains executable flows for all 108 detailed checks in 22 blocks. Each check has
 its own JUnit ID; learning, review, transfer, persistence and migration assertions
 also inspect a BackupV1 exported through the normal system file picker. The
 runner captures real assistant text from the UI hierarchy, evaluates retained
@@ -28,8 +28,10 @@ not certify an Android run. See [question-screen-ux-verification.md](question-sc
 
 ## Toolchain and isolated AVD
 
-Use the installed SDK through `./scripts/toolchain.sh`. `prepare-avd.sh` detects
-the host ABI, uses the existing API36 Google APIs image, and creates only
+Use the installed SDK through `./scripts/toolchain.sh`. `prepare-avd.sh` reuses
+the ABI of an existing dedicated AVD, including when Node runs under Rosetta;
+otherwise it detects the host ABI. `VOCABULARY_ABI` explicitly overrides that
+choice. It uses the existing API36 Google APIs image and creates only
 `GermanVocabulary_API36` under `../../work/android-regression/avd/`. On this
 macOS arm64 host the image is `system-images;android-36;google_apis;arm64-v8a`.
 It never changes user AVDs or `GermanVocabulary_Task1_API36`.
@@ -41,7 +43,7 @@ It never changes user AVDs or `GermanVocabulary_Task1_API36`.
 ```
 
 Configuration: 8192 MiB RAM, 12 GiB data, 1080×1920, 480 dpi, enabled sound.
-Runner launches visibly with `-no-snapshot`, no `-no-window` or `-no-audio`,
+Runner launches headlessly with `-no-snapshot` and `-no-window`, without `-no-audio`,
 and uses port5580. It wipes only a clean phase's dedicated AVD. Cold launch,
 force-stop, reboot and reinstall phases preserve the checked database.
 Preflight checks host RAM, free storage including two GGUF copies, tool
@@ -56,6 +58,22 @@ Maestro must be prepared separately from its official distribution; installed
 app scenarios then run with Wi-Fi/mobile data disabled and adb reverse removed.
 
 ## Release and input files
+
+Standalone blocks declare their own fixture dependencies through
+`requiredRegressionInputs`; startup day selection uses the same block's fixture.
+The `upgrade` block includes `--fixture` for its startup day, and
+`extended-vocabulary` uses `--lektion2-fixture`. Full runs require all old and new
+fixtures and APK baselines.
+
+The Lektion 3 keyboard check requires `grammarUi` evidence bound to the candidate
+APK hash. Both 320 dp configurations (fontScale 1 and 1.5) retain separate
+closed/open/after-submit screenshots, UI hierarchies, and IME/display dumps.
+Two independent saved plural questions are answered through the UI; the after
+exports must contain exactly those attempts and XP. Each configuration also
+captures multi-choice options before and after scrolling. Block and full report
+validation reread the evidence and reject missing captures, wrong display
+settings, keyboard overlap, absent feedback/actions, and unchanged option
+positions. Host synthetic evidence never establishes a device pass.
 
 ```sh
 ./scripts/toolchain.sh npm run build:android

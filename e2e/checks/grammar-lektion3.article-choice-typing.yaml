@@ -108,5 +108,41 @@ name: grammar-lektion3.article-choice-typing
   },
   {
     "takeScreenshot": "${CHECK_ID}"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-lektion3-lesson.yaml",
+      "env": {
+        "PROFILE": "L3 — article-error",
+        "LEKTION3_KIND": "noun-article"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "grammar-answer-input"
+    }
+  },
+  {
+    "inputText": "${WRONG_L3_ARTICLE_ERROR}"
+  },
+  {
+    "tapOn": {
+      "id": "grammar-submit"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-result"
+    }
+  },
+  {
+    "assertVisible": "Ошибка. Повторите правило."
+  },
+  {
+    "assertVisible": "Серия: 0/10"
+  },
+  {
+    "takeScreenshot": "${CHECK_ID}-article-error"
   }
 ]

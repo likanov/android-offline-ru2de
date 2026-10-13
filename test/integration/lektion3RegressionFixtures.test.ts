@@ -24,6 +24,9 @@ test('new V4 fixtures contain real ten-rule history and saved catalog3 questions
  if(process.env.SCHEMA8_FIXTURE_OUTPUT){await mkdir(dirname(process.env.SCHEMA8_FIXTURE_OUTPUT),{recursive:true});await writeFile(process.env.SCHEMA8_FIXTURE_OUTPUT,JSON.stringify(schema8,null,2)+'\n');}
  const backup=await fixtures.createLektion3RegressionBackup('2026-10-13');expect(()=>validateBackupV4(backup)).not.toThrow();
  expect(backup.profiles.find(p=>p.profile.name==='L3 — article-typing')?.grammar.sessions.find(s=>s.status==='active')?.currentQuestion?.responseMode).toBe('typed');
+ expect(backup.profiles.find(p=>p.profile.name==='L3 — article-error')?.grammar.progress[0]).toMatchObject({attemptCount:3,state:{streak:3,mastered:false}});
+ expect(backup.profiles.find(p=>p.profile.name==='L3 — keyboard-large')?.grammar.sessions.find(s=>s.status==='active')?.currentQuestion?.responseMode).toBe('typed');
+ expect(backup.profiles.find(p=>p.profile.name==='L3 — keyboard-multi')?.grammar.sessions.find(s=>s.status==='active')?.currentQuestion?.responseMode).toBe('multi-choice');
  for(const lesson of ['noun-article','noun-plural','plural-invariant'])expect(backup.profiles.find(p=>p.profile.name==='L3 — '+lesson)?.grammar.sessions.some(s=>s.currentQuestion?.catalogVersion===3&&!s.result)).toBe(true);
  expect(backup.profiles.find(p=>p.profile.name==='L3 — empty')?.words).toHaveLength(0);
  for(const [path,value]of [[process.env.GRAMMAR_RULES_FIXTURE_OUTPUT,rules],[process.env.LEKTION3_FIXTURE_OUTPUT,backup]] as const){if(path){await mkdir(dirname(path),{recursive:true});await writeFile(path,JSON.stringify(value,null,2)+'\n');}}
@@ -33,6 +36,31 @@ test('historical V2/V3 preserve twenty-rule history and legacy catalogs',async()
  const v3=await createLektion2RegressionBackup('2026-10-13');expect(v3.version).toBe(3);expect(()=>validateBackup(v3)).not.toThrow();
  const mastered=v3.profiles.find(p=>p.profile.name==='A1 — история')!;expect(mastered.grammar.attempts.filter(a=>a.targetId==='sein-cloze:ich')).toHaveLength(22);expect(mastered.grammar.attempts[19].result.state.streak).toBe(20);
  expect(v3.profiles.every(p=>p.grammar.attempts.every(a=>a.result.rulesVersion===undefined||a.result.rulesVersion===1))).toBe(true);
+});
+
+test('checked-in article flow submits a wrong article and state evidence rejects XP or streak corruption',async()=>{
+ const h=openTestDb(),dir=await mkdtemp(tmpdir()+'/article-error-flow-');try{
+  await migrate(h.db);const backup=new BackupService(h.db,()=> '2026-10-13');await backup.restore(backup.preview(JSON.stringify(await fixtures.createLektion3RegressionBackup('2026-10-13'))));
+  const before=await backup.exportAll(),p=before.profiles.find(p=>p.profile.name==='L3 — article-error')!;
+  await setActiveProfile(h.db,p.profile.id);const sessions=new GrammarSessionRepository(h.db),answers=new GrammarAnswerService(h.db);
+  const s=(await sessions.resume(p.profile.id))!,q=(await sessions.next(p.profile.id,s.id,'2026-10-13'))!;
+  const commands=JSON.parse((await readFile('e2e/checks/grammar-lektion3.article-choice-typing.yaml','utf8')).split('---\n')[1]);
+  let errorPhase=false,text='',result:Awaited<ReturnType<GrammarAnswerService['submit']>>|undefined;
+  for(const c of commands){if(c.runFlow?.env?.PROFILE==='L3 — article-error')errorPhase=true;if(!errorPhase)continue;
+   if(c.inputText)text=c.inputText==='${WRONG_L3_ARTICLE_ERROR}'?(q.catalogVersion===3&&q.kind==='noun-article'&&q.expected.token==='der'?'das':'der'):c.inputText;
+   if(c.tapOn?.id==='grammar-submit'){expect(q.responseMode).toBe('typed');expect(['der','die','das']).toContain(text);result=await answers.submit(p.profile.id,s.id,q.attemptId,{kind:'typed',text},'2026-10-13');}
+   if(c.assertVisible?.id==='grammar-result')expect(result).toBeDefined();
+  }
+  expect(result).toMatchObject({right:false,xpDelta:0,state:{streak:0,totalErrors:1}});
+  const after=await backup.exportAll();expect(after.profiles.find(part=>part.profile.id===p.profile.id)?.profile.xp).toBe(p.profile.xp);
+  await writeFile(dir+'/evidence.json',JSON.stringify({before,after}));
+  // This check additionally expects the correct typing/choice exercised earlier;
+  // execute those two saved questions through the real answer service as well.
+  for(const name of ['L3 — article-typing','L3 — noun-article']){const part=before.profiles.find(p=>p.profile.name===name)!;await setActiveProfile(h.db,part.profile.id);const session=part.grammar.sessions.find(s=>s.status==='active')!,question=session.currentQuestion!;if(question.catalogVersion!==3||question.kind!=='noun-article')throw Error('ARTICLE_FIXTURE_REQUIRED');await answers.submit(part.profile.id,session.id,question.attemptId,question.responseMode==='choice'?{kind:'choice',optionId:question.expected.optionId}:{kind:'typed',text:question.expected.token},'2026-10-13');}
+  const final=await backup.exportAll();await writeFile(dir+'/evidence.json',JSON.stringify({before,after:final}));
+  const code=`import{readFileSync}from'node:fs';import{verifyScenarioState}from'./scripts/regression-state.mjs';const{before,after}=JSON.parse(readFileSync(process.argv[1]));const check=b=>verifyScenarioState('grammar-lektion3.article-choice-typing',b,{before,today:'2026-10-13'});if(!check(after).ok)throw Error(JSON.stringify(check(after)));for(const mutate of [p=>p.profile.xp+=10,p=>p.grammar.progress[0].state.streak=3,p=>p.grammar.attempts.at(-1).result.xpDelta=10]){const bad=structuredClone(after);mutate(bad.profiles.find(p=>p.profile.name==='L3 — article-error'));if(check(bad).ok)throw Error('accepted article error corruption');}`;
+  const r=spawnSync(process.execPath,['--input-type=module','-e',code,dir+'/evidence.json'],{encoding:'utf8'});expect({status:r.status,stderr:r.stderr}).toEqual({status:0,stderr:''});
+ }finally{h.close();await rm(dir,{recursive:true,force:true});}
 });
 
 

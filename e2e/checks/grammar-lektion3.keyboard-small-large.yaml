@@ -3,116 +3,186 @@ name: grammar-lektion3.keyboard-small-large
 ---
 [
   {
-    "launchApp": {
-      "stopApp": false
-    }
-  },
-  {
     "runFlow": {
-      "file": "../helpers/select-profile.yaml",
-      "env": {
-        "PROFILE": "L3 — keyboard"
-      }
-    }
-  },
-  {
-    "runFlow": {
-      "file": "../helpers/open-navigation.yaml",
-      "env": {
-        "NAV_TARGET": "nav-training"
-      }
-    }
-  },
-  {
-    "tapOn": {
-      "id": "nav-training"
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "id": "training-lektion3-toggle"
-        }
+      "when": {
+        "true": "${UI_STAGE === 'keyboard-closed'}"
       },
-      "times": 12,
       "commands": [
         {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 300
+          "runFlow": {
+            "file": "../helpers/open-lektion3-lesson.yaml",
+            "env": {
+              "PROFILE": "${KEYBOARD_PROFILE}",
+              "LEKTION3_KIND": "noun-plural"
+            }
           }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-answer-input"
+          }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-submit"
+          }
+        },
+        {
+          "takeScreenshot": "${CHECK_ID}-keyboard-closed"
         }
       ]
     }
   },
   {
-    "tapOn": {
-      "id": "training-lektion3-toggle"
-    }
-  },
-  {
-    "repeat": {
-      "while": {
-        "notVisible": {
-          "id": "training-lektion3-noun-plural"
-        }
+    "runFlow": {
+      "when": {
+        "true": "${UI_STAGE === 'keyboard-open'}"
       },
-      "times": 12,
       "commands": [
         {
-          "swipe": {
-            "from": {
-              "id": "screen-scroll"
-            },
-            "direction": "UP",
-            "duration": 300
+          "tapOn": {
+            "id": "grammar-answer-input"
           }
+        },
+        {
+          "inputText": "${KEYBOARD_ANSWER}"
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-answer-input"
+          }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-submit"
+          }
+        },
+        {
+          "takeScreenshot": "${CHECK_ID}-keyboard-open"
         }
       ]
     }
   },
   {
-    "tapOn": {
-      "id": "training-lektion3-noun-plural"
+    "runFlow": {
+      "when": {
+        "true": "${UI_STAGE === 'after-submit'}"
+      },
+      "commands": [
+        {
+          "tapOn": {
+            "id": "grammar-submit"
+          }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-result"
+          }
+        },
+        {
+          "assertVisible": "Верно! \\+10 XP"
+        },
+        {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Продолжить"
+            }
+          }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-next"
+          }
+        },
+        {
+          "takeScreenshot": "${CHECK_ID}-after-submit"
+        }
+      ]
     }
   },
   {
-    "assertVisible": {
-      "id": "grammar-prompt"
+    "runFlow": {
+      "when": {
+        "true": "${UI_STAGE === 'multi-before'}"
+      },
+      "commands": [
+        {
+          "runFlow": {
+            "file": "../helpers/open-lektion3-lesson.yaml",
+            "env": {
+              "PROFILE": "L3 — keyboard-multi",
+              "LEKTION3_KIND": "plural-invariant"
+            }
+          }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-multi-option-${MULTI_FIRST_L3_KEYBOARD_MULTI}"
+          }
+        },
+        {
+          "takeScreenshot": "${CHECK_ID}-multi-before"
+        }
+      ]
     }
   },
   {
-    "tapOn": {
-      "id": "grammar-answer-input"
+    "runFlow": {
+      "when": {
+        "true": "${UI_STAGE === 'multi-after'}"
+      },
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "grammar-multi-option-${MULTI_FIRST_L3_KEYBOARD_MULTI}"
+            },
+            "direction": "UP",
+            "duration": 400
+          }
+        },
+        {
+          "runFlow": {
+            "file": "../helpers/ensure-visible.yaml",
+            "env": {
+              "TARGET_TEXT": "Проверить"
+            }
+          }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-multi-option-${MULTI_LAST_L3_KEYBOARD_MULTI}"
+          }
+        },
+        {
+          "tapOn": {
+            "id": "grammar-multi-option-${MULTI_LAST_L3_KEYBOARD_MULTI}"
+          }
+        },
+        {
+          "assertVisible": {
+            "id": "grammar-multi-submit"
+          }
+        },
+        {
+          "takeScreenshot": "${CHECK_ID}-multi-after"
+        }
+      ]
     }
   },
   {
-    "inputText": "falsch"
-  },
-  {
-    "assertVisible": {
-      "id": "grammar-submit"
+    "runFlow": {
+      "when": {
+        "true": "${UI_STAGE === 'complete'}"
+      },
+      "commands": [
+        {
+          "assertVisible": {
+            "id": "grammar-multi-submit"
+          }
+        }
+      ]
     }
-  },
-  {
-    "takeScreenshot": "${CHECK_ID}-keyboard-open"
-  },
-  {
-    "hideKeyboard": {}
-  },
-  {
-    "tapOn": {
-      "id": "grammar-answer-input"
-    }
-  },
-  {
-    "eraseText": 100
-  },
-  {
-    "takeScreenshot": "${CHECK_ID}"
   }
 ]

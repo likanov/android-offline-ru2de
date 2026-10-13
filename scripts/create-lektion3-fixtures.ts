@@ -39,7 +39,10 @@ async function createCurrentFixture(day:DayKey,lektion3:boolean):Promise<BackupV
   if(lektion3){
    for(const [lesson,target]of [['noun-article','noun-article:tisch'],['noun-plural','noun-plural:buch'],['plural-invariant','plural-invariant:recognition']] as const)await seed('L3 — '+lesson,target,0,lesson);
    await seed('L3 — article-typing','noun-article:tisch',3,'noun-article');
+   await seed('L3 — article-error','noun-article:tisch',3,'noun-article');
    await seed('L3 — keyboard','noun-plural:buch',0,'noun-plural');
+   await seed('L3 — keyboard-large','noun-plural:buch',0,'noun-plural');
+   await seed('L3 — keyboard-multi','plural-invariant:recognition',0,'plural-invariant');
    await seed('L3 — plural-error','noun-plural:hand',0,'noun-plural');
    await seed('L3 — invariant-subset','plural-invariant:recognition',0,'plural-invariant');
    await seed('L3 — invariant-superset','plural-invariant:recognition',0,'plural-invariant');

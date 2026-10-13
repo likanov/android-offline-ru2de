@@ -1,9 +1,11 @@
 import { readFileSync, existsSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import {compareBackupGraphs,compareGrammarRulesUpgrade} from './regression-state.mjs';
+import {validateGrammarUiEvidence} from './grammar-ui-evidence.mjs';
 import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { fileURLToPath } from 'node:url';
+export {validateGrammarUiEvidence};
 export const MATRIX = JSON.parse(readFileSync(new URL('../e2e/matrix.json',import.meta.url),'utf8'));
 export const BLOCK_IDS = MATRIX.map(row=>row.id);
 export const REQUIRED_SCENARIOS = MATRIX.flatMap(row=>[row.id,...row.checks.map(check=>check.id)]);
@@ -116,6 +118,7 @@ export function validateBlockRegressionReport(report, block) {
   }
   require((report?.crashCount??0)===0&&(report?.anrCount??0)===0,'CRASH_ANR_NOT_VERIFIED');
   if (block === 'grammar-rules')errors.push(...validateSchema8ReportEvidence(report).errors);
+  if (block === 'grammar-lektion3')errors.push(...validateGrammarUiEvidence(report).errors);
   if (block === 'grammar-persistence')errors.push(...validateSchema5ReportEvidence(report).errors);
   if (block === 'grammar-lektion2')errors.push(...validateSchema6ReportEvidence(report).errors);
   if (block === 'dictionary') errors.push(...validateDictionaryUxEvidence(report).errors);
@@ -150,6 +153,7 @@ export function validateRegressionReport(report) {
     }
   }
   for(const block of MATRIX)for(const check of [{id:block.id},...block.checks]){const row=scenarios.find(s=>s.id===check.id);require(row?.apkSha256===report?.apk?.sha256,`SCENARIO_APK_MISMATCH:${check.id}`);if(check.state)require(artifact(row?.stateEvidence)&&row?.stateValidation?.ok===true,`STATE_EVIDENCE_MISSING:${check.id}`);}
+  errors.push(...validateGrammarUiEvidence(report).errors);
   for (const mode of ['association','example','text','rule']) {
     const g=report?.generations?.find(row=>row.mode===mode);
     require(g?.runtime==='llama.rn' && g.modelSha256===report?.model?.sha256 && typeof g.text==='string' && g.text.trim().length>0 && artifact(g.screenshot) && artifact(g.hierarchy),`REAL_GENERATION_MISSING:${mode}`);

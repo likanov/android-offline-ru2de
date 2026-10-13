@@ -1,3 +1,4 @@
+import {syntheticGrammarUiEvidence} from './grammarUiEvidenceFixtures.mjs';
 import {syntheticSchema8Evidence} from './lektion3RegressionFixtures.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -44,6 +45,8 @@ function fixture(t) {
     upgrade: { previousCommit: '19b2e0c1cf36eda73159aff9bb2d94b757d24144', apk: 'regression/previous.apk', apkSha256: digest('synthetic previous APK'), provenancePath: 'regression/provenance.json' },
     restoration: { status: 'passed', failures: [] },
   };
+  report.grammarUi=syntheticGrammarUiEvidence(dir,digest(apk));
+  for(const c of report.grammarUi['grammar-lektion3.keyboard-small-large'].configurations)for(const capture of [...c.typed,...c.multi])for(const key of ['screenshot','hierarchy','imeEvidence'])capture[key]=capture[key].slice(dir.length+1);
   report.schema8Upgrade=syntheticSchema8Evidence(dir,digest(apk),report.scenarios);
   // Release manifests use portable relative paths for every artifact.
   for(const key of ['apk','provenancePath','beforeEvidence','afterEvidence','repeatEvidence'])report.schema8Upgrade[key]=report.schema8Upgrade[key].slice(dir.length+1);

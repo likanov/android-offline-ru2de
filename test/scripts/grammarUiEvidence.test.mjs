@@ -1,0 +1,8 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {mkdtempSync,rmSync} from 'node:fs';import {tmpdir} from 'node:os';import * as reports from '../../scripts/regression-report.mjs';import {syntheticGrammarUiEvidence} from './grammarUiEvidenceFixtures.mjs';
+test('grammar keyboard report requires both 320dp font configurations, real IME, submission and actual multi-option movement',()=>{
+ const root=mkdtempSync(tmpdir()+'/grammar-ui-');try{
+  assert.equal(typeof reports.validateGrammarUiEvidence,'function');
+  const report={apk:{sha256:'a'.repeat(64)},grammarUi:syntheticGrammarUiEvidence(root,'a'.repeat(64))};assert.deepEqual(reports.validateGrammarUiEvidence(report),{ok:true,errors:[]});
+  for(const mutate of [r=>delete r.grammarUi,r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].apkSha256='b'.repeat(64),r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations.pop(),r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[0].widthDp=360,r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[0].typed.pop(),r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[0].typed[1].input.bottom=501,r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[0].typed[1].keyboard.imeId='',r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[0].multi[1].options=structuredClone(r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[0].multi[0].options),r=>r.grammarUi['grammar-lektion3.keyboard-small-large'].configurations[1].typed[2].result=null]){const bad=structuredClone(report);mutate(bad);assert.equal(reports.validateGrammarUiEvidence(bad).ok,false);}
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

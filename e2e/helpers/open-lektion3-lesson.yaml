@@ -1,0 +1,88 @@
+appId: com.personal.germanvocabulary
+name: open-lektion3-lesson
+---
+[
+  {
+    "launchApp": {
+      "stopApp": false
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/select-profile.yaml",
+      "env": {
+        "PROFILE": "${PROFILE}"
+      }
+    }
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/open-navigation.yaml",
+      "env": {
+        "NAV_TARGET": "nav-training"
+      }
+    }
+  },
+  {
+    "tapOn": {
+      "id": "nav-training"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-toggle"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-toggle"
+    }
+  },
+  {
+    "repeat": {
+      "while": {
+        "notVisible": {
+          "id": "training-lektion3-${LEKTION3_KIND}"
+        }
+      },
+      "times": 12,
+      "commands": [
+        {
+          "swipe": {
+            "from": {
+              "id": "screen-scroll"
+            },
+            "direction": "UP",
+            "duration": 300
+          }
+        }
+      ]
+    }
+  },
+  {
+    "tapOn": {
+      "id": "training-lektion3-${LEKTION3_KIND}"
+    }
+  },
+  {
+    "assertVisible": {
+      "id": "grammar-prompt"
+    }
+  }
+]

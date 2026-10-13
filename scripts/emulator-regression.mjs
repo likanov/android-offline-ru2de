@@ -5,6 +5,7 @@ import { arch, totalmem } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
+import {grammarUiCapture} from './grammar-ui-evidence.mjs';
 import {appendDeviceLog,generationFromHierarchy,completeRegressionReport,offlineRadioState,rootVerified,applicationAlarmEpochs,alarmMatchesLocalTime,maestroOutcome} from './regression-evidence.mjs';
 import {runRetainedUpgrade,installReplacementAndLaunch} from './regression-upgrade.mjs';
 import {verifyScenarioState,compareBackupGraphs,compareGrammarRulesUpgrade} from './regression-state.mjs';
@@ -245,6 +246,27 @@ function hierarchy(name) {
  shell('uiautomator','dump','/sdcard/regression-hierarchy.xml');
  const path=join(reportDir,name+'.xml');execute(adb,['-s',serial,'pull','/sdcard/regression-hierarchy.xml',path]);return path;
 }
+async function captureGrammarKeyboardEvidence(check,before){
+ report.grammarUi??={};const item={apkSha256:report.apk.sha256,configurations:[]};report.grammarUi[check.id]=item;
+ const answers=savedGrammarAnswers(before);
+ for(const fontScale of [1,1.5]){
+  shell('wm','size','960x1920');shell('wm','density','480');shell('settings','put','system','font_scale',String(fontScale));
+  const size=[...shell('wm','size').stdout.matchAll(/(\d+)x(\d+)/g)].at(-1),density=Number([...shell('wm','density').stdout.matchAll(/density: (\d+)/g)].at(-1)?.[1]);
+  const width=Number(size?.[1]),height=Number(size?.[2]);const measuredScale=Number(shell('settings','get','system','font_scale').stdout.trim());
+  const config={widthDp:width/(density/160),fontScale:measuredScale,typed:[],multi:[],firstOptionId:'grammar-multi-option-'+answers.MULTI_FIRST_L3_KEYBOARD_MULTI,lastOptionId:'grammar-multi-option-'+answers.MULTI_LAST_L3_KEYBOARD_MULTI};item.configurations.push(config);
+  const profile=fontScale===1?'L3 — keyboard':'L3 — keyboard-large',answer=fontScale===1?answers.ANSWER_L3_KEYBOARD:answers.ANSWER_L3_KEYBOARD_LARGE;
+  for(const step of ['keyboard-closed','keyboard-open','after-submit','multi-before','multi-after']){
+   const name=check.id+'-font'+fontScale+'-'+step;
+   flow(name,check.flow,{...answers,CHECK_ID:name,UI_STAGE:step,KEYBOARD_PROFILE:profile,KEYBOARD_ANSWER:answer});
+   let imeDump=shell('dumpsys','input_method').stdout;
+   if(step==='keyboard-open'){for(let n=0;n<20&&!(/mInputShown=true/.test(imeDump)||/mImeWindowVis=[1-9]/.test(imeDump));n++){await delay(250);imeDump=shell('dumpsys','input_method').stdout;}}
+   const imeId=shell('settings','get','secure','default_input_method').stdout.trim(),windowDump=shell('dumpsys','window','windows').stdout;
+   const screenshotPath=screenshot(name),hierarchyPath=hierarchy(name+'-hierarchy'),imeEvidence=join(reportDir,name+'-ime.json');writeFileSync(imeEvidence,JSON.stringify({imeId,imeDump,windowDump,width,height,density,fontScale:measuredScale},null,2));
+   const capture={...grammarUiCapture(readFileSync(hierarchyPath,'utf8'),{step,width,height,density,imeId,imeDump,windowDump}),screenshot:screenshotPath,hierarchy:hierarchyPath,imeEvidence};
+   (step.startsWith('multi')?config.multi:config.typed).push(capture);
+  }
+ }
+}
 function recordDictionaryUxEvidence(check) {
  if(!check.id.startsWith('dictionary.'))return;
  const scenario=report.scenarios.find(row=>row.id===check.id);
@@ -376,17 +398,16 @@ async function group(row,baseline) {
     return value;
    },
    prepareDevice:async value=>{
-    if(check.id==='grammar-lektion3.keyboard-small-large'){flow(check.id+'-normal',check.flow,{...savedGrammarAnswers(value),CHECK_ID:check.id+'-normal'});report.grammarUi??={};report.grammarUi[check.id]={normal:{screenshot:screenshot(check.id+'-normal'),hierarchy:hierarchy(check.id+'-normal')}};}
     await beforeCheck(check);
+    if(check.id==='grammar-lektion3.keyboard-small-large')await captureGrammarKeyboardEvidence(check,value);
    },
    flow,
   });
   const operation=planExport(check.id+'-operation'),restored=planExport(check.id+'-restored');
   const extra={...lektion2Answers(before),...savedGrammarAnswers(before),CHECK_ID:check.id,FIXTURE_DAY:fixtureDay,MODEL_FILENAME:report.model?.manifest?.fileName??'',EXPORT_NAME:operation.filename,RESTORE_CHECKPOINT_NAME:restored.filename};
-  flow(check.id,check.flow,extra);
+  flow(check.id,check.flow,{...extra,...(check.id==='grammar-lektion3.keyboard-small-large'?{UI_STAGE:'complete'}:{})});
   report.scenarios.find(s=>s.id===check.id).apkSha256=report.apk.sha256;
   recordDictionaryUxEvidence(check);
-  if(check.id==='grammar-lektion3.keyboard-small-large')report.grammarUi[check.id].smallLarge={screenshot:screenshot(check.id+'-small-large'),hierarchy:hierarchy(check.id+'-small-large')};
   await afterCheck(check);
   if(check.state) {
    const after=captureState(check.id+'-after'),today=shell('date','+%Y-%m-%d').stdout.trim();
@@ -563,7 +584,7 @@ async function main() {
    await preflight();
    if(options.preflight)throw new Unavailable('PREFLIGHT_ONLY:full regression not run');
    if(artifact(options.observations))report.observations=JSON.parse(readFileSync(options.observations,'utf8'));
-   try{const fixturePath=options.block==='grammar-rules'?options['grammar-rules-fixture']:options.block==='grammar-lektion3'?options['lektion3-fixture']:options.block?.startsWith('grammar-')?options['grammar-fixture']:options.fixture;const parsed=JSON.parse(readFileSync(fixturePath,'utf8'));fixtureDay=parsed.profiles.find(p=>p.profile.name==='Регрессия — изучено')?.attempts?.[0]?.day??parsed.profiles.flatMap(p=>[...(p.attempts??[]),...(p.grammar?.attempts??[])]).map(a=>a.day).find(Boolean)??'2026-10-06';}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
+   fixtureDay=regressionFixtureDay(options);
    if(options.block)await runBlock(options.block);
    else await run();
    const completion=options.block?completeBlockRegressionReport(options.block):completeRegressionReport(report);exitCode=completion.exitCode;report.status=completion.status;report.blockers.push(...completion.errors);
@@ -592,10 +613,18 @@ export function requiredRegressionInputs(block){
  if(block==='grammar-lektion3')return ['lektion3-fixture'];
  if(block==='grammar-rules')return ['grammar-rules-fixture','schema8-apk'];
  if(!block)return ['fixture','grammar-fixture','lektion2-fixture','grammar-rules-fixture','lektion3-fixture','dictionary-fixture','dictionary-large-fixture','previous-apk','grammar-previous-apk','schema6-apk','schema8-apk'];
- if(block==='upgrade')return ['previous-apk'];
+ if(block==='upgrade')return ['previous-apk','fixture'];
  if(['grammar-lektion2','extended-vocabulary'].includes(block))return ['lektion2-fixture','schema6-apk',...(block==='grammar-lektion2'?['grammar-fixture']:[])];
  if(block.startsWith('grammar-'))return ['grammar-fixture',...(block==='grammar-persistence'?['grammar-previous-apk','fixture']:[])];
  return ['fixture',...(block==='dictionary'?['dictionary-fixture','dictionary-large-fixture']:[])];
+}
+export function regressionFixturePath(value){
+ const block=value.block;
+ const key=block==='grammar-rules'?'grammar-rules-fixture':block==='grammar-lektion3'?'lektion3-fixture':['extended-vocabulary','grammar-lektion2'].includes(block)?'lektion2-fixture':block?.startsWith('grammar-')?'grammar-fixture':'fixture';
+ return value[key];
+}
+export function regressionFixtureDay(value){
+ try{const parsed=JSON.parse(readFileSync(regressionFixturePath(value),'utf8'));return parsed.profiles.find(p=>p.profile.name==='Регрессия — изучено')?.attempts?.[0]?.day??parsed.profiles.flatMap(p=>[...(p.attempts??[]),...(p.grammar?.attempts??[])]).map(a=>a.day).find(Boolean)??'2026-10-06';}catch{throw new Unavailable('REGRESSION_FIXTURE_INCOMPLETE');}
 }
 function schema8FixturePath(){return options['schema8-fixture']??join(dirname(options['grammar-rules-fixture']??'.'),'grammar-rules-schema8-backup-v3.json');}
 export function savedGrammarAnswers(backup){
@@ -603,8 +632,8 @@ export function savedGrammarAnswers(backup){
   const q=p.grammar?.sessions.find(s=>s.status==='active')?.currentQuestion;if(!q)continue;
   const key=p.profile.name.replace(' — ','_').replaceAll('-','_').toUpperCase();
   if(q.responseMode==='choice'){env['OPTION_'+key]=q.expected.optionId;env['WRONG_'+key]=q.options.find(o=>o.id!==q.expected.optionId)?.id;}
-  else if(q.responseMode==='typed')env['ANSWER_'+key]=q.expected.token??q.expected.sentences?.[0]??q.expected.phrases?.[0];
-  else {const expected=q.expected.optionIds;const ids=[...expected,q.options.find(o=>!expected.includes(o.id))?.id];for(const [n,id]of ids.entries())env['MULTI_'+key+'_'+n]=id;}
+  else if(q.responseMode==='typed'){env['ANSWER_'+key]=q.expected.token??q.expected.sentences?.[0]??q.expected.phrases?.[0];if(q.kind==='noun-article')env['WRONG_'+key]=q.expected.token==='der'?'das':'der';}
+  else {const expected=q.expected.optionIds;const ids=[...expected,q.options.find(o=>!expected.includes(o.id))?.id];for(const [n,id]of ids.entries())env['MULTI_'+key+'_'+n]=id;env['MULTI_FIRST_'+key]=q.options[0].id;env['MULTI_LAST_'+key]=q.options.at(-1).id;}
  }return env;
 }
 async function importNewGrammarFixture(block){

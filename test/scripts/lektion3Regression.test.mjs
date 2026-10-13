@@ -1,3 +1,4 @@
+import {syntheticGrammarUiEvidence} from './grammarUiEvidenceFixtures.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,writeFileSync,rmSync,readFileSync} from 'node:fs';
@@ -16,7 +17,7 @@ test('new blocks require every named check and state artifact, APK hash and non-
  for(const [block,checks]of Object.entries(required)){
   assert.deepEqual(reports.matrixRowForBlock(block).checks.map(c=>c.id),checks.map(c=>block+'.'+c));
   const scenarios=[block,...checks.map(c=>block+'.'+c)].map(id=>({id,status:'passed',apkSha256:reports.sha256File(apk),junit:file(id+'.xml',`<testsuite><testcase name="${id}"/></testsuite>`),stateEvidence:state,stateValidation:{ok:true}}));
-  const report={status:'passed',runMode:{type:'block',block},apk:{path:apk,sha256:reports.sha256File(apk)},model:{path:model,sha256:reports.sha256File(model)},scenarios};
+  const report={grammarUi:syntheticGrammarUiEvidence(dir,reports.sha256File(apk)),status:'passed',runMode:{type:'block',block},apk:{path:apk,sha256:reports.sha256File(apk)},model:{path:model,sha256:reports.sha256File(model)},scenarios};
   // grammar-rules additionally requires complete schema8 retained-upgrade evidence.
   if(block==='grammar-lektion3')assert.equal(reports.validateBlockRegressionReport(report,block).ok,true);
   for(const mutate of [r=>r.scenarios.shift(),r=>r.scenarios.pop(),r=>r.scenarios[1].apkSha256='f'.repeat(64),r=>delete r.scenarios[1].stateEvidence]){const bad=structuredClone(report);mutate(bad);assert.equal(reports.validateBlockRegressionReport(bad,block).ok,false);}
@@ -49,6 +50,30 @@ test('effective Maestro grammar entry preserves an alternate error profile and d
  }
  assert.equal(runner.regressionFlowEnvironment().PROFILE,'Грамматика — 18 целей');
  assert.equal(runner.regressionFlowEnvironment().GRAMMAR_START_ID,'training-grammar-start');
+});
+test('every standalone block derives its startup day from its minimal advertised fixture inputs',()=>{
+ const dir=mkdtempSync(tmpdir()+'/block-startup-');
+ try{
+  assert.equal(typeof runner.regressionFixtureDay,'function');
+  for(const block of reports.BLOCK_IDS){
+   const options={block};for(const key of runner.requiredRegressionInputs(block)){const path=dir+'/'+block+'-'+key;writeFileSync(path,JSON.stringify({profiles:[{profile:{name:'Fixture'},attempts:[{day:'2026-10-13'}]}]}));options[key]=path;}
+   assert.equal(runner.regressionFixtureDay(options),'2026-10-13',block);
+  }
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+test('rules upgrade permits only the required auto-mastery pending study cancellation',async()=>{
+ const {syntheticSchema8Evidence}=await import('./lektion3RegressionFixtures.mjs');const {compareGrammarRulesUpgrade}=await import('../../scripts/regression-state.mjs');
+ const dir=mkdtempSync(tmpdir()+'/cancel-comparator-');try{
+  const e=syntheticSchema8Evidence(dir,'f'.repeat(64),[]);const before=JSON.parse(readFileSync(e.beforeEvidence)),after=JSON.parse(readFileSync(e.afterEvidence));
+  const g=before.profiles[0].grammar,h=after.profiles[0].grammar;
+  for(const [id,index,mode]of [['auto',2,'study'],['nine',1,'study'],['review',4,'review']]){
+   const q={attemptId:id,sessionId:id,targetId:g.progress[index].targetId,expected:{token:'ich'}};
+   g.questions.push({status:'active',question:q});g.sessions.push({id,status:'active',selection:{mode},currentQuestion:q,result:null});
+  }
+  h.questions=structuredClone(g.questions);h.sessions=structuredClone(g.sessions);h.questions[0].status='cancelled';h.sessions[0].currentQuestion=null;
+  const check=b=>compareGrammarRulesUpgrade(before,b,{day:'2026-10-13',requireBoundaries:true});assert.deepEqual(check(after),{ok:true,errors:[]});
+  for(const mutate of [b=>b.profiles[0].grammar.questions[0].question.expected.token='changed',b=>b.profiles[0].grammar.sessions[1].currentQuestion=null,b=>b.profiles[0].grammar.questions[2].status='cancelled',b=>b.profiles[0].grammar.questions[0].status='active']){const bad=structuredClone(after);mutate(bad);assert.equal(check(bad).ok,false);}
+ }finally{rmSync(dir,{recursive:true,force:true});}
 });
 test('schema8 replacement exports before/after/relaunch and imports the historical fixture before upgrade',async()=>{
  const events=[];const result=await runRetainedUpgrade({schema:8,previousApk:'schema8',finalApk:'latest10',install:async(p,r)=>events.push(['install',p,r]),launch:async()=>events.push(['launch']),flow:async id=>events.push(['flow',id]),capture:async id=>{events.push(['capture',id]);return id;}});
