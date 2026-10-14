@@ -1,7 +1,7 @@
 # Lektion 3 release verification — incomplete
 
 Task started 2026-10-13; verification continued after local midnight on 2026-10-14.
-The original candidate is superseded by a confirmed database lifecycle fix. A new candidate build and fresh Android block/full acceptance are pending. This document does not certify release readiness or authorize physical-phone installation.
+The original candidate is superseded by a confirmed database lifecycle fix. The second candidate was superseded by explicit database lifecycle cleanup. A third candidate and fresh Android block/full acceptance are pending. This document does not certify release readiness or authorize physical-phone installation.
 
 ## Original immutable candidate (superseded)
 
@@ -22,10 +22,10 @@ All artifact paths in this document beginning `outputs/` are relative to `/Users
 
 | Command | Actual result | Retained log |
 | --- | --- | --- |
-| `./scripts/toolchain.sh npm test -- --runInBand` | exit 0; 97 suites / 635 tests | `outputs/lektion3-release/host/jest-sql-lifecycle.log` |
-| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 286 tests; no failures/skips | `outputs/lektion3-release/host/scripts-sql-lifecycle.log` |
-| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-sql-lifecycle.log` |
-| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-sql-lifecycle.log` |
+| `./scripts/toolchain.sh npm test -- --runInBand` | exit 0; 97 suites / 635 tests | `outputs/lektion3-release/host/jest-sql-disposal.log` |
+| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 291 tests; no failures/skips | `outputs/lektion3-release/host/scripts-sql-disposal.log` |
+| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-sql-disposal.log` |
+| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-sql-disposal.log` |
 
 The 13 existing warnings are require-import warnings in `test/integration/regressionFixtures.test.ts`. A temporary import-order warning introduced during review fixes was corrected and the final lint result above verified.
 
@@ -109,3 +109,20 @@ After the observed React surface remounts, a non-product probe invoked Android's
 The installed expo-sqlite 56.0.6 reuses a native binding by default; an old JavaScript wrapper's Android release hook closes that shared binding after an AppRoot remount. `openAppDb` now requests `useNewConnection: true`, so each mounted store owns a native handle to the same persisted database file. This is a real product fix, with no diagnostic logging changes.
 
 The regression test calls the actual `openAppDb` with a native lifecycle boundary matching the installed SDK and real SQLite storage. It first failed when collection of the old wrapper invalidated the current store (`host/sql-lifecycle-script-red-r2.log`), then passed persisted reads and writes after the ownership fix (`host/sql-lifecycle-script-green.log`). Fresh full host results are recorded above. A new APK and all required Android evidence must be obtained before acceptance; the original rules pass cannot be reused.
+
+## Second immutable candidate (superseded; acceptance aborted)
+
+- Source commit: `529308854427d86cf51c1ca51f1e9da8a7a776f9`.
+- APK: `/Users/anton/Documents/Codex/2026-10-03/j/outputs/lektion3-release/candidate-v2/app-release.apk` (0444).
+- SHA256: `774da3bdf1cc1c06dcb24fd550e25eec1abff6c7ed1540418dc23bd1ac33bfca`.
+- Build: exact arm64 command above, exit 0; `outputs/lektion3-release/build-5293088.log`.
+- Existing inspector: errors=[], V2 signature, same expected certificate, correct package, embedded JS, 40 exact WAV hashes, arm64 model libraries, no INTERNET permission. `candidate-v2/inspection.json`, `candidate-manifest.json`, `SHA256SUMS` retained under the output root.
+- Canonical input inventory: all 18 files freshly size/hash verified, errors=[]; `input-inventory-validation-v2.json`.
+
+The grammar-rules-v2 run was interrupted with exit 130 immediately after review identified missing owned-connection cleanup. ADB inventory confirmed no emulator remained. This candidate has no accepted Android evidence; its artifacts are preserved. Fresh evidence for the next candidate, older blocks and full regression remain pending. The old rules pass and diagnostic keyboard captures cannot certify this new hash.
+
+## Explicit owned-connection disposal
+
+Scoped review accepted the remount cause and ownership fix but identified missing explicit native close. `openAppDb` now closes on setup failure and returns an owned store with idempotent disposal. Disposal immediately rejects new calls and cancels queued operations; the active operation may finish before native close. The AppRoot startup lifecycle disposes on unmount, migration failure, and initialization completing after unmount. Mounted error handling remains unchanged.
+
+TDD retained `host/sql-disposal-red.log` (six failing contracts before implementation) and `host/sql-disposal-green.log` (six passing contracts). Tests cover persisted-data ownership, setup failure close, active/queued/late work, exactly-once close, ready/opening/migrating/failed startup phases. Fresh full host checks: 97 suites/635 Jest tests, 291 script tests with no failures/skips, typecheck exit 0, lint exit 0 with only the original 13 warnings, diff check exit 0. New candidate build and scoped review remain pending.

@@ -13,6 +13,9 @@ export interface SqlStore extends SqlExecutor {
   schemaTransaction<T>(work: (tx: SqlExecutor) => Promise<T>): Promise<T>;
   transaction<T>(work: (tx: SqlExecutor) => Promise<T>): Promise<T>;
 }
+export interface OwnedSqlStore extends SqlStore {
+  dispose(): Promise<void>;
+}
 export interface NativeExecutor {
   execAsync(sql: string): Promise<void>;
   runAsync(
@@ -27,23 +30,38 @@ export interface NativeDatabase extends NativeExecutor {
     work: (tx: NativeExecutor) => Promise<void>,
   ): Promise<void>;
 }
-export function createSqlStore(native: NativeDatabase): SqlStore {
+export function createSqlStore(native: NativeDatabase, close: () => Promise<void> = async () => {}): OwnedSqlStore {
+  let disposed = false;
+  let closed = false;
+  let disposal: Promise<void> | undefined;
   const executor = (connection: NativeExecutor): SqlExecutor => ({
-    exec: (sql) => connection.execAsync(sql),
-    run: (sql, params = []) => connection.runAsync(sql, params),
-    all: (sql, params = []) => connection.getAllAsync(sql, params),
-    first: (sql, params = []) => connection.getFirstAsync(sql, params),
+    exec: (sql) => closed ? Promise.reject(new Error("SQLite store disposed")) : connection.execAsync(sql),
+    run: (sql, params = []) => closed ? Promise.reject(new Error("SQLite store disposed")) : connection.runAsync(sql, params),
+    all: (sql, params = []) => closed ? Promise.reject(new Error("SQLite store disposed")) : connection.getAllAsync(sql, params),
+    first: (sql, params = []) => closed ? Promise.reject(new Error("SQLite store disposed")) : connection.getFirstAsync(sql, params),
   });
   const direct = executor(native);
   // Queue reads as well as writes: nothing on the shared connection can accidentally
   // join another caller's transaction. Transaction callbacks use their own tx.
   let pending: Promise<unknown> = Promise.resolve();
   const enqueue = <T>(work: () => Promise<T>): Promise<T> => {
-    const result = pending.then(work);
+    if (disposed) return Promise.reject(new Error("SQLite store disposed"));
+    const result = pending.then(() => {
+      if (disposed) throw new Error("SQLite store disposed");
+      return work();
+    });
     pending = result.catch(() => {});
     return result;
   };
   return {
+    dispose: () => {
+      if (!disposal) {
+        disposed = true;
+        // Cancel queued work, let the active operation finish, then close once.
+        disposal = pending.then(async () => { closed = true; await close(); });
+      }
+      return disposal;
+    },
     exec: (sql) => enqueue(() => direct.exec(sql)),
     run: (sql, params) => enqueue(() => direct.run(sql, params)),
     all: <T>(sql: string, params?: SqlValue[]) =>
@@ -98,11 +116,16 @@ export function createSqlStore(native: NativeDatabase): SqlStore {
       }),
   };
 }
-export async function openAppDb(): Promise<SqlStore> {
+export async function openAppDb(): Promise<OwnedSqlStore> {
   const { openDatabaseAsync } = await import("expo-sqlite");
   // A remounted Android surface must not share a native binding with an old
   // wrapper: expo-sqlite's GC hook can invalidate that pooled binding.
   const native = await openDatabaseAsync("german-vocabulary.db", { useNewConnection: true });
-  await native.execAsync("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;");
-  return createSqlStore(native);
+  try {
+    await native.execAsync("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;");
+    return createSqlStore(native, () => native.closeAsync());
+  } catch (error) {
+    await native.closeAsync().catch(() => {});
+    throw error;
+  }
 }
