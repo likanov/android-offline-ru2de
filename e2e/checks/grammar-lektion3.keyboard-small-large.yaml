@@ -18,6 +18,12 @@ name: grammar-lektion3.keyboard-small-large
           }
         },
         {
+          "runFlow": {
+            "file": "../helpers/ensure-visible-below.yaml",
+            "env": { "TARGET_TEXT": "Проверить" }
+          }
+        },
+        {
           "assertVisible": {
             "id": "grammar-answer-input"
           }

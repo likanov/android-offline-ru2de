@@ -23,9 +23,9 @@ All artifact paths in this document beginning `outputs/` are relative to `/Users
 | Command | Actual result | Retained log |
 | --- | --- | --- |
 | `./scripts/toolchain.sh npm test -- --runInBand` | exit 0; 97 suites / 635 tests | `outputs/lektion3-release/host/jest-review.log` |
-| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 284 tests; no failures/skips | `outputs/lektion3-release/host/scripts-keyboard-insets.log` |
-| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-keyboard-insets.log` |
-| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-keyboard-insets.log` |
+| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 285 tests; no failures/skips | `outputs/lektion3-release/host/scripts-keyboard-closed.log` |
+| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-keyboard-closed.log` |
+| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-keyboard-closed.log` |
 
 The 13 existing warnings are require-import warnings in `test/integration/regressionFixtures.test.ts`. A temporary import-order warning introduced during review fixes was corrected and the final lint result above verified.
 
@@ -47,7 +47,7 @@ Schema8 is the trusted APK from commit `7828274b5f971281401a87683e72fe14cb6a2b29
 | `grammar-lektion3` | failed, exit 1 | First check could not tap multi-choice submit below the viewport. Failure screenshot confirmed missing E2E scroll handling; later checks, including keyboard evidence, did not run. |
 | `grammar-lektion3-r2` | failed, exit 1 | First five checks completed. Real font1 IME was visible (mask 3), but submit was partly covered and its tap did not submit. Independent validator rejected the incomplete run (32 errors); crash/ANR=0. |
 | `grammar-lektion3-r3` | failed, exit 1 | Five preceding checks completed. Font1 real-IME closed/open/after-submit captures and correct submission succeeded. Next multi-before stage failed because Profiles displayed a load error and no profile buttons. Independent validator rejected 29 errors; crash/ANR=0. Font1.5 and multi evidence remain missing. |
-| `grammar-lektion3-r4` | in progress | Fresh same-APK run with a failure-only Maestro wrapper. If profile loading fails, the existing create-profile form is probed to expose the swallowed cause before teardown; the original failure remains failure. |
+| `grammar-lektion3-r4` | failed, exit 1 | Five preceding checks and all font1 capture stages completed. Font1.5 failed at active-profile header visibility after selection; screenshot shows loaded profile cards at a lower scroll position. Independent validator rejected 30 errors; crash/ANR=0. |
 
 The six actual passed main checks in r2 are ten-answer-mastery, nine-error-reset, legacy-backup-conversion, backup4-roundtrip, word-threshold-twenty, and profiles-reviews. Their state evidence does not certify the missing schema8 upgrade or a full block pass. The r2 primary logs recorded crash/ANR=0 and settings restoration passed; upgrade logcat was unavailable because the upgrade emulator did not start. Existing validator reread r2 and rejected it (10 errors), preserving the failed result.
 
@@ -71,6 +71,19 @@ LEKTION3_APK="$LEKTION3_TASK_ROOT/outputs/lektion3-release/candidate/app-release
   --report-dir "$LEKTION3_TASK_ROOT/outputs/lektion3-release/grammar-rules-r2"
 ```
 
+Actual Lektion3 R4 command (earlier attempts used the installed Maestro binary and their own report directories):
+
+```sh
+./scripts/toolchain.sh npm run test:android:regression -- \
+  --block grammar-lektion3 \
+  --sdk-root "$LEKTION3_TASK_ROOT/work/toolchains/android-sdk" \
+  --maestro "$LEKTION3_TASK_ROOT/outputs/lektion3-release/profile-load-diagnostic/maestro-wrapper.mjs" \
+  --apk "$LEKTION3_APK" --avd GermanVocabulary_API36 \
+  --model-dir "$LEKTION3_INPUTS/model" \
+  --lektion3-fixture "$LEKTION3_INPUTS/lektion3-backup-v4.json" \
+  --report-dir "$LEKTION3_TASK_ROOT/outputs/lektion3-release/grammar-lektion3-r4"
+```
+
 ## Remaining evidence and limits
 
 Lektion3's ten checks and mandatory 320dp/fontScale 1 and 1.5 real-IME captures, older blocks, full 130-scenario regression, and actual observations remain pending. Preflight and host checks cannot replace these results. GrammarUi validation now requires visible Android IME mask 2, source hierarchies/dumps, input/submit geometry, post-submit feedback, and actual multi-choice option movement. Synthetic host fixtures are never used as Android acceptance evidence.
@@ -82,3 +95,7 @@ Requirement ruling for Task8: a user-like manual scroll while retaining the real
 R3 font1 open capture proves input y=303..471 and submit y=699..843 above real keyboard y=1071, with IME_VISIBLE mask 3. The actual submit produced correct-answer feedback and an after-submit capture. This partial success does not satisfy the mandatory two configurations and multi-scroll checks. Retained failed screenshot then shows `Не удалось загрузить профили` and reminder-update error. A non-product diagnostic copied the preserved synthetic DB/WAL/SHM: integrity_check=ok, foreign_key_check=[], schema10, all15 profiles (14 fixture plus first-launch), and keyboard XP10/attempt1 committed. Cold process restart reads profiles normally; resizing alone still reads them. A short same-APK reproduction passed closed/open/after-submit/multi-before, under `outputs/lektion3-release/profile-load-diagnostic/`. This diagnostic is not a full block pass. The underlying rejected listProfiles query cause is not logged by the product; no diagnostic product change has been made.
 
 The full report must pass its validator with every required scenario, no failures/skips, one APK hash, and crash/ANR=0. No merge, push, deployment or physical-phone operation has occurred.
+
+R4 failure resources: 11GiB free in the 12GiB data partition; app memory dump retained. Live app log confirms multiple React surface restarts in the same process during display/font changes. The source opens the database per AppRoot mount, and the installed expo-sqlite 56.0.6 cached-handle release matches a [reported library issue](https://github.com/expo/expo/issues/48999). This is a hypothesis until the actual rejected query exception is captured; no product workaround has been applied.
+
+A targeted same-APK font1.5 probe selected the profile correctly, then exposed another E2E omission: before scrolling, input bounds were clipped to y=1463..1593 and submit had invalid clipped y=1886..1593 below the viewport. The closed stage now uses the existing downward-scroll helper before checking/capturing the controls. RED/GREEN contracts and the full script suite passed; the complete focused font1.5 keyboard sequence is being verified under `outputs/lektion3-release/profile-load-diagnostic/font15-r2/`. Diagnostic results do not replace a full block pass.

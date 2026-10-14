@@ -26,6 +26,12 @@ test('keyboard-open flow scrolls the controls above the IME after typing without
  assert.ok(input>=0&&scroll>input&&capture>scroll,'typing can leave submit partly covered; scroll before open capture');
  assert.equal(commands.some(c=>c.hideKeyboard||c.back),false,'the required capture keeps the real IME visible');
 });
+test('keyboard-closed flow reveals submit below a large-font prompt before checking both controls',()=>{
+ const steps=JSON.parse(readFileSync('e2e/checks/grammar-lektion3.keyboard-small-large.yaml','utf8').split('---\n')[1]);
+ const commands=steps.find(c=>c.runFlow?.when?.true==="${UI_STAGE === 'keyboard-closed'}").runFlow.commands;
+ const open=commands.findIndex(c=>c.runFlow?.file==='../helpers/open-lektion3-lesson.yaml'),reveal=commands.findIndex(c=>c.runFlow?.file==='../helpers/ensure-visible-below.yaml'&&c.runFlow.env?.TARGET_TEXT==='Проверить'),input=commands.findIndex(c=>c.assertVisible?.id==='grammar-answer-input'),submit=commands.findIndex(c=>c.assertVisible?.id==='grammar-submit');
+ assert.ok(open>=0&&reveal>open&&input>reveal&&submit>input,'fontScale1.5 puts submit below the closed-keyboard viewport');
+});
 test('new blocks require every named check and state artifact, APK hash and non-skipped JUnit',()=>{
  const dir=mkdtempSync(tmpdir()+'/l3-contract-');
  try{const file=(name,text)=>{const path=dir+'/'+name;writeFileSync(path,text);return path;};const apk=file('apk','apk'),model=file('model','model'),state=file('state','{}');
