@@ -19,12 +19,13 @@ function deferred<T>(){
 function resultDevice(){
  const spoken:string[]=[];let stops=0,stopFailure=false;
  const completions:Promise<void>[]=[];
+ const stopCompletions:Promise<void>[]=[];
  const service=new AudioService([],{
   listVoices:async()=>[{id:'de',language:'de-DE',installed:true,requiresNetwork:false}],
   speakOffline:async text=>{spoken.push(text);await completions.shift();},
-  stopSpeech:async()=>{stops++;if(stopFailure)throw new Error('device stop failure');},
+  stopSpeech:async()=>{stops++;await stopCompletions.shift();if(stopFailure)throw new Error('device stop failure');},
  },{play:async()=>{},stop:async()=>{}});
- return {service,spoken,completions,stops:()=>stops,failStop:()=>{stopFailure=true;}};
+ return {service,spoken,completions,stopCompletions,stops:()=>stops,failStop:()=>{stopFailure=true;}};
 }
 async function resultFixture(kindIndex=0){
  const h=await createWordHarness();const p=await createProfile(h.db,'A');
@@ -162,6 +163,52 @@ test.each(['Продолжить','Открыть карточку','Помощ�
   else await waitFor(()=>expect(control==='Открыть карточку'?onReveal:control==='Помощник'?onHelper:onExplainError).toHaveBeenCalled());
   expect(device.stops()).toBeGreaterThan(stops);
  }finally{view.unmount();f.h.close();}
+});
+
+test.each(['unmount','profile'] as const)('deferred explanation stop after %s never opens the departed attempt',async(change)=>{
+ const f=await resultFixture();const other=await createProfile(f.h.db,'B');const device=resultDevice(),stopped=deferred<void>();
+ const explained:string[]=[];
+ await f.h.answers.submit(f.p.id,f.session.id,f.question.attemptId,'wrong','2026-10-03');
+ const props={db:f.h.db,profileId:f.p.id,audio:device.service,today:'2026-10-03',onExplainError:(id:string)=>{explained.push(id);}};
+ const view=render(<TrainingScreen {...props}/>);
+ try{
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl']));
+  device.stopCompletions.push(stopped.promise);
+  fireEvent.press(screen.getByRole('button',{name:'Объяснить ошибку'}));
+  expect(screen.getByRole('button',{name:'Объяснить ошибку'})).toBeDisabled();
+  if(change==='unmount')view.unmount();else{
+   view.rerender(<TrainingScreen {...props} profileId={other.id}/>);
+  }
+  await act(async()=>{stopped.resolve();});
+  expect(explained).toEqual([]);
+ }finally{stopped.resolve();view.unmount();f.h.close();}
+});
+
+test('deferred explanation stop cannot unlock a new profile explanation action',async()=>{
+ const f=await resultFixture();const other=await createProfile(f.h.db,'B');const device=resultDevice();
+ const oldStop=deferred<void>(),currentStop=deferred<void>();const explained:string[]=[];
+ await f.h.answers.submit(f.p.id,f.session.id,f.question.attemptId,'wrong','2026-10-03');
+ const otherWord=(await f.h.words.list(other.id)).find(x=>x.de==='Stuhl')!;
+ const otherSession=await f.h.sessions.start(other.id,{mode:'study',wordIds:[otherWord.id]},'2026-10-03');
+ const otherQuestion=(await f.h.sessions.next(other.id,otherSession.id,'2026-10-03'))!;
+ await f.h.answers.submit(other.id,otherSession.id,otherQuestion.attemptId,'wrong','2026-10-03');
+ const props={db:f.h.db,profileId:f.p.id,audio:device.service,today:'2026-10-03',onExplainError:(id:string)=>{explained.push(id);}};
+ const view=render(<TrainingScreen {...props}/>);
+ try{
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl']));
+  device.stopCompletions.push(oldStop.promise);
+  fireEvent.press(screen.getByRole('button',{name:'Объяснить ошибку'}));
+  view.rerender(<TrainingScreen {...props} profileId={other.id}/>);
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl','der Stuhl']));
+  expect(screen.getByRole('button',{name:'Объяснить ошибку'})).toBeEnabled();
+  device.stopCompletions.push(currentStop.promise);
+  fireEvent.press(screen.getByRole('button',{name:'Объяснить ошибку'}));
+  await act(async()=>{oldStop.resolve();});
+  expect(screen.getByRole('button',{name:'Объяснить ошибку'})).toBeDisabled();
+  await act(async()=>{currentStop.resolve();});
+  expect(explained).toEqual([otherQuestion.attemptId]);
+  expect(screen.getByRole('button',{name:'Объяснить ошибку'})).toBeEnabled();
+ }finally{oldStop.resolve();currentStop.resolve();view.unmount();f.h.close();}
 });
 
 test.each(['exit','profile'] as const)('delayed saved submission after %s never speaks a departed result',async(change)=>{

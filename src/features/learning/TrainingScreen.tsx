@@ -117,9 +117,10 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
     } }
     async function explainError() {
         if (lock.current || !question || !onExplainError) return;
+        const epoch = ++actionEpoch.current; const current = () => epoch === actionEpoch.current;
         lock.current = true; setBusy(true);
-        try { await resultAudio.stop(); onExplainError(question.attemptId); }
-        finally { lock.current = false; setBusy(false); }
+        try { await resultAudio.stop(); if (current()) onExplainError(question.attemptId); }
+        finally { if (current()) { lock.current = false; setBusy(false); } }
     }
     useEffect(()=>{const playback=playbackEpoch.current;return()=>{++playback.generation;void audio.stop().catch(() => {});};},[audio,question?.attemptId]);
     async function play(){
