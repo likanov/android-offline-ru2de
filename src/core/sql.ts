@@ -100,7 +100,9 @@ export function createSqlStore(native: NativeDatabase): SqlStore {
 }
 export async function openAppDb(): Promise<SqlStore> {
   const { openDatabaseAsync } = await import("expo-sqlite");
-  const native = await openDatabaseAsync("german-vocabulary.db");
+  // A remounted Android surface must not share a native binding with an old
+  // wrapper: expo-sqlite's GC hook can invalidate that pooled binding.
+  const native = await openDatabaseAsync("german-vocabulary.db", { useNewConnection: true });
   await native.execAsync("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;");
   return createSqlStore(native);
 }
