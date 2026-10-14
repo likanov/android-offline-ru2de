@@ -163,3 +163,11 @@ test('reviews-difficult advances to the fixture due day before entering the due 
  const events=[];const result=await runner.prepareDetailedGrammarCheck({id:'grammar-progress.reviews-difficult'},{capture:async()=>{events.push('capture');return before;},prepareDevice:async()=>events.push('device'),advanceClock:async day=>events.push('clock:'+day),flow:async(id,file,env)=>{events.push('review');assert.equal(env.PROFILE,'Грамматика — повторение');assert.equal(env.GRAMMAR_START_ID,'grammar-review-start');}});
  assert.equal(result,before);assert.deepEqual(events,['capture','device','clock:2026-10-16','review']);
 });
+
+test('Lektion3 reference/help navigation reveals controls below long feedback before tapping',()=>{
+ const commands=JSON.parse(readFileSync('e2e/checks/grammar-lektion3.reference-help-return.yaml','utf8').split('---\n')[1]);
+ for(const [id,title]of [['grammar-error-open','Объяснить ошибку'],['К тренировке','К тренировке'],['grammar-reference-open','Справочник']]){
+  const index=commands.findIndex(c=>c.tapOn?.id===id||c.tapOn===id);assert.ok(index>0,id);
+  assert.deepEqual(commands[index-1],{runFlow:{file:'../helpers/ensure-visible-below.yaml',env:{TARGET_TEXT:title}}},id+' can be below the viewport after restored long feedback');
+ }
+});

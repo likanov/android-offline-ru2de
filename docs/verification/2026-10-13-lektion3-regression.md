@@ -1,7 +1,9 @@
 # Lektion 3 release verification — incomplete
 
 Task started 2026-10-13; verification continued after local midnight on 2026-10-14.
-The original candidate is superseded by a confirmed database lifecycle fix. The second candidate was superseded by explicit database lifecycle cleanup. The third candidate was superseded before Android acceptance by immediate queued-caller cancellation. A fourth candidate and fresh Android block/full acceptance are pending. This document does not certify release readiness or authorize physical-phone installation.
+
+Current acceptance candidate: **candidate-v4**, hash `bc2f07f4bfc671a9454f448d1a86d52637672002a8180f5d0ee37cc379bd1831`. Its grammar-rules block passed all seven checks and aggregate with fresh independent validation. Its first Lektion3 attempt failed at a reference/help E2E scroll omission after six checks and all ten native keyboard captures passed. A fresh full-block retry, older blocks/full regression and actual observations remain pending. All earlier candidate results below are superseded and cannot certify candidate-v4.
+The original candidate is superseded by a confirmed database lifecycle fix. The second candidate was superseded by explicit database lifecycle cleanup. The third candidate was superseded before Android acceptance by immediate queued-caller cancellation. The fourth candidate is built, inspected and scoped-review approved; fresh Android block/full acceptance is running. This document does not certify release readiness or authorize physical-phone installation.
 
 ## Original immutable candidate (superseded)
 
@@ -23,9 +25,9 @@ All artifact paths in this document beginning `outputs/` are relative to `/Users
 | Command | Actual result | Retained log |
 | --- | --- | --- |
 | `./scripts/toolchain.sh npm test -- --runInBand` | exit 0; 97 suites / 635 tests | `outputs/lektion3-release/host/jest-sql-immediate-disposal.log` |
-| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 291 tests; no failures/skips | `outputs/lektion3-release/host/scripts-sql-immediate-disposal.log` |
-| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-sql-immediate-disposal.log` |
-| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-sql-immediate-disposal.log` |
+| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 292 tests; no failures/skips | `outputs/lektion3-release/host/scripts-reference-scroll-final.log` |
+| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-reference-scroll-final.log` |
+| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-reference-scroll-final.log` |
 
 The 13 existing warnings are require-import warnings in `test/integration/regressionFixtures.test.ts`. A temporary import-order warning introduced during review fixes was corrected and the final lint result above verified.
 
@@ -141,3 +143,33 @@ Scoped lifecycle review found that queued rejection waited for active work. This
 ## Immediate queued-caller cancellation
 
 The stronger lifecycle contract failed before implementation: a queued caller did not reject while active work remained blocked (`host/sql-immediate-disposal-red.log`, 5 pass / 1 fail). The store now separates caller cancellation from the native drain barrier: disposal rejects queued promises immediately, while active work independently drains before native close. The test observes and awaits queued rejection before releasing the active gate, also proving native close has not occurred. Focused tests passed 6/6 (`host/sql-immediate-disposal-green.log`); fresh full host checks above passed. Candidate four and another scoped review are pending.
+
+## Fourth immutable candidate (sole acceptance candidate)
+
+- Source commit: `3f25068733fe3a34a0db99a0ab274242e729b10c`.
+- APK: `/Users/anton/Documents/Codex/2026-10-03/j/outputs/lektion3-release/candidate-v4/app-release.apk` (0444).
+- SHA256: `bc2f07f4bfc671a9454f448d1a86d52637672002a8180f5d0ee37cc379bd1831`.
+- Exact arm64 build exited 0; `outputs/lektion3-release/build-3f25068.log`.
+- Existing release inspection passed: same expected certificate, V2 signature, correct package, embedded JS, 40 exact WAV hashes, arm64 model libraries, no INTERNET. Inspection and manifests retained in `candidate-v4/`.
+- All 18 canonical input entries freshly size/hash checked, errors=[]: `input-inventory-validation-v4.json`.
+- Parent-facilitated scoped re-review approved explicit native disposal and immediate queued-caller cancellation, with no remaining Important finding.
+
+Fresh grammar-rules started using the recorded command, with APK `candidate-v4/app-release.apk` and report directory `grammar-rules-v4`. This is the only candidate eligible for acceptance going forward. Earlier APKs and reports remain superseded/incomplete and are not mixed with this evidence.
+
+## Candidate-v4 grammar-rules result
+
+The fresh command used the recorded grammar-rules invocation with `--apk .../candidate-v4/app-release.apk` and `--report-dir .../grammar-rules-v4`. Runner exited 0/report passed. All seven detailed scenarios and aggregate passed; all required state validations were true. Schema8 retained before/after/repeat exports are included. Crash count=0, ANR count=0, blockers=[]. A fresh independent `validateBlockRegressionReport(report, "grammar-rules")` returned `ok: true`, errors=[].
+
+Artifacts: `outputs/lektion3-release/grammar-rules-v4/report.json`, `validator.json`, JUnit/screenshots/exports/device logs; command log `grammar-rules-v4-run.log`. The report records source commit `3f25068733fe3a34a0db99a0ab274242e729b10c` and the sole candidate-v4 hash.
+
+Fresh Lektion3 started using the recorded standalone command with installed Maestro (not the diagnostic wrapper), APK `candidate-v4/app-release.apk` and report directory `grammar-lektion3-v4`. Mandatory two-font real-IME captures and all ten checks remain pending.
+
+## Candidate-v4 first Lektion3 attempt: failed after keyboard success
+
+`grammar-lektion3-v4` exited 1/report failed at `reference-help-return`: it tried to tap `grammar-error-open` below the viewport after a long restored wrong-answer explanation. The retained screenshot shows the lengthy feedback; the visible hierarchy contains the result but omits the offscreen buttons, which product source renders after the text. This is an E2E scroll omission; no product change or new APK is required.
+
+The first six checks passed with stateValidation.ok=true. All ten mandatory native keyboard captures exist at 320dp/font scales 1 and 1.5. Fresh standalone `validateGrammarUiEvidence(report)` returned `ok: true`, errors=[] (`grammar-lektion3-v4/grammar-ui-validator.json`). Inspected open screenshots show real Gboard top y=1071; font1 input y=303..471/submit y=699..843, font1.5 input y=236..411/submit y=659..823. Both correct submissions succeeded, post-submit feedback was captured, and multi-choice movement was captured for both configurations. Profiles loaded through the prior remount failure boundaries.
+
+The full block validator rejected 20 incomplete/failing evidence errors (`grammar-lektion3-v4/validator.json`); crash=0/ANR=0. Reference/help, force-stop/reboot, profile isolation, backup roundtrip and aggregate are not accepted. The failed report is retained unchanged. A TDD harness fix adds explicit reveal before error/help controls and return-to-training; focused 22 tests and full 292 script tests passed, typecheck/lint passed with the original 13 warnings. A narrow preserved-data native probe and fresh full block rerun are pending on the same immutable candidate-v4 hash.
+
+The narrow reference-scroll diagnostic passed with installed APK hash verified as candidate-v4. After multiple display/font remounts and `RUNNING_CRITICAL` memory pressure, the corrected flow opened error help, returned, opened the reference and returned to the same result. App PID remained 3232 before/after, so this success did not depend on a process restart. JUnit/probe status and live app log are in `outputs/lektion3-release/reference-scroll-diagnostic/`. This confirms the narrow navigation path and original profile-query symptom probe only; it does not replace full Lektion3 validation. Display/network settings were restored and the diagnostic emulator stopped.

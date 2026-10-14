@@ -91,6 +91,14 @@ name: grammar-lektion3.reference-help-return
     }
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible-below.yaml",
+      "env": {
+        "TARGET_TEXT": "Объяснить ошибку"
+      }
+    }
+  },
+  {
     "tapOn": {
       "id": "grammar-error-open"
     }
@@ -99,7 +107,23 @@ name: grammar-lektion3.reference-help-return
     "assertVisible": "Разбор грамматической ошибки"
   },
   {
+    "runFlow": {
+      "file": "../helpers/ensure-visible-below.yaml",
+      "env": {
+        "TARGET_TEXT": "К тренировке"
+      }
+    }
+  },
+  {
     "tapOn": "К тренировке"
+  },
+  {
+    "runFlow": {
+      "file": "../helpers/ensure-visible-below.yaml",
+      "env": {
+        "TARGET_TEXT": "Справочник"
+      }
+    }
   },
   {
     "tapOn": {
