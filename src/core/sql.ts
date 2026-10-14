@@ -44,19 +44,29 @@ export function createSqlStore(native: NativeDatabase, close: () => Promise<void
   // Queue reads as well as writes: nothing on the shared connection can accidentally
   // join another caller's transaction. Transaction callbacks use their own tx.
   let pending: Promise<unknown> = Promise.resolve();
+  const queued = new Set<() => void>();
   const enqueue = <T>(work: () => Promise<T>): Promise<T> => {
     if (disposed) return Promise.reject(new Error("SQLite store disposed"));
-    const result = pending.then(() => {
-      if (disposed) throw new Error("SQLite store disposed");
-      return work();
+    // Caller cancellation is independent of the connection's drain barrier.
+    // A stalled active query must not keep canceled queued callers pending.
+    return new Promise<T>((resolve, reject) => {
+      const cancel = () => reject(new Error("SQLite store disposed"));
+      queued.add(cancel);
+      const execution = pending.then(() => {
+        queued.delete(cancel);
+        if (disposed) throw new Error("SQLite store disposed");
+        return work();
+      });
+      pending = execution.catch(() => {});
+      void execution.then(resolve, reject);
     });
-    pending = result.catch(() => {});
-    return result;
   };
   return {
     dispose: () => {
       if (!disposal) {
         disposed = true;
+        for (const cancel of queued) cancel();
+        queued.clear();
         // Cancel queued work, let the active operation finish, then close once.
         disposal = pending.then(async () => { closed = true; await close(); });
       }

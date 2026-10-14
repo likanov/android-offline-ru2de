@@ -1,7 +1,7 @@
 # Lektion 3 release verification — incomplete
 
 Task started 2026-10-13; verification continued after local midnight on 2026-10-14.
-The original candidate is superseded by a confirmed database lifecycle fix. The second candidate was superseded by explicit database lifecycle cleanup. A third candidate and fresh Android block/full acceptance are pending. This document does not certify release readiness or authorize physical-phone installation.
+The original candidate is superseded by a confirmed database lifecycle fix. The second candidate was superseded by explicit database lifecycle cleanup. The third candidate was superseded before Android acceptance by immediate queued-caller cancellation. A fourth candidate and fresh Android block/full acceptance are pending. This document does not certify release readiness or authorize physical-phone installation.
 
 ## Original immutable candidate (superseded)
 
@@ -22,10 +22,10 @@ All artifact paths in this document beginning `outputs/` are relative to `/Users
 
 | Command | Actual result | Retained log |
 | --- | --- | --- |
-| `./scripts/toolchain.sh npm test -- --runInBand` | exit 0; 97 suites / 635 tests | `outputs/lektion3-release/host/jest-sql-disposal.log` |
-| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 291 tests; no failures/skips | `outputs/lektion3-release/host/scripts-sql-disposal.log` |
-| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-sql-disposal.log` |
-| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-sql-disposal.log` |
+| `./scripts/toolchain.sh npm test -- --runInBand` | exit 0; 97 suites / 635 tests | `outputs/lektion3-release/host/jest-sql-immediate-disposal.log` |
+| `./scripts/toolchain.sh npm run test:scripts` | exit 0; 291 tests; no failures/skips | `outputs/lektion3-release/host/scripts-sql-immediate-disposal.log` |
+| `./scripts/toolchain.sh npm run typecheck` | exit 0 | `outputs/lektion3-release/host/typecheck-sql-immediate-disposal.log` |
+| `./scripts/toolchain.sh npm run lint` | exit 0; original 13 warnings; no new warnings | `outputs/lektion3-release/host/lint-sql-immediate-disposal.log` |
 
 The 13 existing warnings are require-import warnings in `test/integration/regressionFixtures.test.ts`. A temporary import-order warning introduced during review fixes was corrected and the final lint result above verified.
 
@@ -126,3 +126,18 @@ The grammar-rules-v2 run was interrupted with exit 130 immediately after review 
 Scoped review accepted the remount cause and ownership fix but identified missing explicit native close. `openAppDb` now closes on setup failure and returns an owned store with idempotent disposal. Disposal immediately rejects new calls and cancels queued operations; the active operation may finish before native close. The AppRoot startup lifecycle disposes on unmount, migration failure, and initialization completing after unmount. Mounted error handling remains unchanged.
 
 TDD retained `host/sql-disposal-red.log` (six failing contracts before implementation) and `host/sql-disposal-green.log` (six passing contracts). Tests cover persisted-data ownership, setup failure close, active/queued/late work, exactly-once close, ready/opening/migrating/failed startup phases. Fresh full host checks: 97 suites/635 Jest tests, 291 script tests with no failures/skips, typecheck exit 0, lint exit 0 with only the original 13 warnings, diff check exit 0. New candidate build and scoped review remain pending.
+
+## Third immutable candidate (superseded; never entered acceptance)
+
+- Source commit: `f9c01c6607095f5c263e2b3a73cdad1027df8368`.
+- APK: `/Users/anton/Documents/Codex/2026-10-03/j/outputs/lektion3-release/candidate-v3/app-release.apk` (0444).
+- SHA256: `467851d5873e78c8ae732a99aac5581e609ab15ebbf2ea6775d612f11eee2664`.
+- Exact arm64 build exited 0; `outputs/lektion3-release/build-f9c01c6.log`.
+- Existing release inspection passed all candidate checks: same expected certificate, V2 signature, package, embedded JS, 40 exact WAV hashes, native model libraries, no INTERNET. Candidate manifests and inspection retained in `candidate-v3/`.
+- All 18 canonical input inventory entries freshly size/hash checked with no errors: `input-inventory-validation-v3.json`.
+
+Scoped lifecycle review found that queued rejection waited for active work. This candidate never entered Android acceptance and cannot certify the next candidate.
+
+## Immediate queued-caller cancellation
+
+The stronger lifecycle contract failed before implementation: a queued caller did not reject while active work remained blocked (`host/sql-immediate-disposal-red.log`, 5 pass / 1 fail). The store now separates caller cancellation from the native drain barrier: disposal rejects queued promises immediately, while active work independently drains before native close. The test observes and awaits queued rejection before releasing the active gate, also proving native close has not occurred. Focused tests passed 6/6 (`host/sql-immediate-disposal-green.log`); fresh full host checks above passed. Candidate four and another scoped review are pending.

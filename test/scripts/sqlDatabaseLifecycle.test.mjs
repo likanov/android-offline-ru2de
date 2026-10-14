@@ -57,11 +57,16 @@ test('disposal cancels queued reads, waits for active work, closes once, and rej
  const native={execAsync:async()=>{events.push('active');await active.promise;events.push('finished');},getAllAsync:async()=>{events.push('read');return [];}};
  const db=createSqlStore(native,async()=>{events.push('close');});
  const started=db.exec('active');await Promise.resolve();
- const queued=db.all('queued');const cancelled=assert.rejects(queued,/disposed/i);
+ const queued=db.all('queued');let observedCancellation=false;const cancelled=assert.rejects(queued,/disposed/i).then(()=>{observedCancellation=true;});
  const closing=db.dispose();
  await assert.rejects(db.first('late'),/disposed/i);
  assert.deepEqual(events,['active']);
- active.resolve();await started;await cancelled;await closing;await db.dispose();
+ await new Promise(resolve=>setImmediate(resolve));
+ try{
+  assert.equal(observedCancellation,true,'queued caller rejects while active work remains blocked');
+  await cancelled;assert.deepEqual(events,['active']);
+ }finally{active.resolve();await started;await closing;}
+ await db.dispose();
  assert.deepEqual(events,['active','finished','close']);
  await assert.rejects(db.transaction(async()=>{}),/disposed/i);
  await assert.rejects(db.schemaTransaction(async()=>{}),/disposed/i);
