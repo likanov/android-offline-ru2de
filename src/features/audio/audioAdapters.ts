@@ -1,10 +1,10 @@
-import { AudioService } from './audioService';
+import { AudioCancelledError, AudioService } from './audioService';
 import { audioManifest, audioSources } from './audioManifest';
 import { offlineSpeech } from '../../../modules/german-offline';
 // No runtime import or network operation until a user requests playback.
 export function createAudioService(): AudioService {
  let playbackGeneration=0;
- let player: import('expo-audio').AudioPlayer | undefined;
+ let cancelPlayback: (()=>void) | undefined;
  const speech = {
   listVoices: async () => {try{return await offlineSpeech().listVoices();}catch{return [];}},
   speakOffline: async (text:string,voiceId:string,requestId:string) => offlineSpeech().speakOffline(text,voiceId,requestId),
@@ -18,7 +18,31 @@ export function createAudioService(): AudioService {
  }})),speech,{
   play:async(uri)=>{const generation=++playbackGeneration;
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {createAudioPlayer,setAudioModeAsync}=require('expo-audio') as typeof import('expo-audio');await setAudioModeAsync({playsInSilentMode:true,shouldPlayInBackground:false});if(generation!==playbackGeneration)return;player=createAudioPlayer({uri});player.play();},
-  stop:async()=>{++playbackGeneration;player?.pause();player?.remove();player=undefined;},
+  const {createAudioPlayer,setAudioModeAsync}=require('expo-audio') as typeof import('expo-audio');
+  await setAudioModeAsync({playsInSilentMode:true,shouldPlayInBackground:false});
+  if(generation!==playbackGeneration)return;
+  await new Promise<void>((resolve,reject)=>{
+   const player=createAudioPlayer({uri});
+   let subscription:{remove():void}|undefined;
+   let settled=false;
+   const finish=(error?:unknown)=>{
+    if(settled)return;
+    settled=true;
+    if(cancelPlayback===cancel)cancelPlayback=undefined;
+    try{subscription?.remove();player.pause();player.remove();}catch(cleanupError){error??=cleanupError;}
+    if(error)reject(error);else resolve();
+   };
+   const cancel=()=>finish(new AudioCancelledError());
+   cancelPlayback=cancel;
+   try{
+    subscription=player.addListener('playbackStatusUpdate',status=>{
+     if(settled||generation!==playbackGeneration)return;
+     if(status.error)finish(new Error(status.error));
+     else if(status.didJustFinish)finish();
+    });
+    player.play();
+   }catch(error){finish(error);}
+  });},
+  stop:async()=>{++playbackGeneration;cancelPlayback?.();},
  });
 }
