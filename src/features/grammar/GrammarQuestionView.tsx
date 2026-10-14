@@ -8,7 +8,7 @@ import { normalizeGrammarSentence } from './grammarSentenceAnswer';
 import { grammarChoiceOptions } from './grammarChoiceOptions';
 import { GrammarMultiChoiceAnswer } from './GrammarMultiChoiceAnswer';
 import { grammarQuestionPrompt } from './grammarPresentation';
-export function GrammarQuestionView({ question, result, currentState, busy, onSubmit, onNext, onExplainError, onReference }: {
+export function GrammarQuestionView({ question, result, currentState, busy, onSubmit, onNext, onExplainError, onReference, onRepeatAudio, onStopAudio, audioUnavailable = false }: {
   question: GrammarQuestion;
   result: GrammarAttemptResult | null;
   currentState: LearningState | null;
@@ -17,6 +17,9 @@ export function GrammarQuestionView({ question, result, currentState, busy, onSu
   onNext: () => void;
   onExplainError: () => void;
   onReference?: () => void;
+  onRepeatAudio?: () => void;
+  onStopAudio?: () => void;
+  audioUnavailable?: boolean;
 }) {
   const prompt = grammarQuestionPrompt(question);
   const invariant = question.catalogVersion === 3 && question.kind === 'plural-invariant' ? question : null;
@@ -43,7 +46,7 @@ export function GrammarQuestionView({ question, result, currentState, busy, onSu
       const status = selected && !expected ? 'Лишний выбор' : !selected && expected ? 'Пропущено' : expected ? 'Неизменяемая форма' : 'Форма меняется';
       return <View key={item.nounId} testID={`grammar-multi-feedback-${item.nounId}`}><Text>{status}</Text><Text>{item.singularDe} → {item.pluralDe}</Text><Text>{item.translationRu}</Text></View>;
     })}</View> : null}
-    {result ? <View testID="grammar-result"><Text>{result.right ? `Верно! +${result.xpDelta} XP` : 'Ошибка. Повторите правило.'}</Text>{caseError ? <Text>{sieCaseError ? 'Проверьте регистр букв: Sie и sie имеют разное значение.' : 'Проверьте регистр букв.'}</Text> : null}{!invariant ? <><Text>Ответ: {question.feedback.sentenceDe}</Text><Text>{question.feedback.translationRu}</Text></> : null}<Text>{question.feedback.explanationRu}</Text>{result.right && currentState?.mastered ? <Text>Освоение завершено.</Text> : null}{question.reviewStage !== null && !result.right ? <Text>Освоение сохранено, следующее повторение назначено на завтра.</Text> : null}{currentState ? <Text testID="grammar-streak">Серия: {currentState.streak}/10</Text> : null}{!result.right ? <Button title="Объяснить ошибку" variant="secondary" testID="grammar-error-open" disabled={busy} onPress={onExplainError} /> : null}<Button title="Продолжить" testID="grammar-next" disabled={busy} onPress={onNext} /></View> : null}
+    {result ? <View testID="grammar-result"><Text>{result.right ? `Верно! +${result.xpDelta} XP` : 'Ошибка. Повторите правило.'}</Text>{caseError ? <Text>{sieCaseError ? 'Проверьте регистр букв: Sie и sie имеют разное значение.' : 'Проверьте регистр букв.'}</Text> : null}{!invariant ? <><Text>Ответ: {question.feedback.sentenceDe}</Text><Text>{question.feedback.translationRu}</Text></> : null}<Text>{question.feedback.explanationRu}</Text>{result.right && currentState?.mastered ? <Text>Освоение завершено.</Text> : null}{question.reviewStage !== null && !result.right ? <Text>Освоение сохранено, следующее повторение назначено на завтра.</Text> : null}{currentState ? <Text testID="grammar-streak">Серия: {currentState.streak}/10</Text> : null}{onRepeatAudio ? <Button title="Повторить озвучку" variant="secondary" testID="grammar-result-audio-repeat" disabled={busy} onPress={onRepeatAudio} /> : null}{onStopAudio ? <Button title="Остановить озвучку" variant="secondary" testID="grammar-result-audio-stop" disabled={busy} onPress={onStopAudio} /> : null}{audioUnavailable ? <Text>Офлайн-озвучка недоступна.</Text> : null}{!result.right ? <Button title="Объяснить ошибку" variant="secondary" testID="grammar-error-open" disabled={busy} onPress={onExplainError} /> : null}<Button title="Продолжить" testID="grammar-next" disabled={busy} onPress={onNext} /></View> : null}
     <Button title="Справочник" variant="secondary" testID="grammar-reference-open" disabled={busy} onPress={() => onReference?.()} />
   </View>;
 }
