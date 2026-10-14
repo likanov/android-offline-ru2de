@@ -158,3 +158,18 @@ test.each([true,false])('recording_setup_error_settles_with_offline_voice_%s',as
   expect(player.remove).toHaveBeenCalledTimes(1);
  }finally{await service.stop();await pending;}
 });
+
+// Each native resource must still be released if an earlier cleanup fails;
+// cancellation keeps its identity and must never turn into TTS fallback.
+test.each(['removeListener','pause'] as const)('cancel_releases_remaining_resources_after_%s_throws',async(failingStep)=>{
+ mockSpeech.listVoices.mockResolvedValue([offlineGerman]);
+ const service=createAudioService();const pending=service.playText('der Stuhl');
+ const outcome=expect(pending).rejects.toMatchObject({code:'AUDIO_CANCELLED'});
+ const player=await waitForPlayer();
+ player[failingStep].mockImplementationOnce(()=>{throw new Error('native cleanup failed');});
+ await service.stop();await outcome;
+ expect(player.removeListener).toHaveBeenCalledTimes(1);
+ expect(player.pause).toHaveBeenCalledTimes(1);
+ expect(player.remove).toHaveBeenCalledTimes(1);
+ expect(mockSpeech.speakOffline).not.toHaveBeenCalled();
+});

@@ -22,14 +22,16 @@ export function createAudioService(): AudioService {
   await setAudioModeAsync({playsInSilentMode:true,shouldPlayInBackground:false});
   if(generation!==playbackGeneration)return;
   await new Promise<void>((resolve,reject)=>{
-   const player=createAudioPlayer({uri});
+   const player=createAudioPlayer();
    let subscription:{remove():void}|undefined;
    let settled=false;
    const finish=(error?:unknown)=>{
     if(settled)return;
     settled=true;
     if(cancelPlayback===cancel)cancelPlayback=undefined;
-    try{subscription?.remove();player.pause();player.remove();}catch(cleanupError){error??=cleanupError;}
+    for(const cleanup of [()=>subscription?.remove(),()=>player.pause(),()=>player.remove()]){
+     try{cleanup();}catch(cleanupError){error??=cleanupError;}
+    }
     if(error)reject(error);else resolve();
    };
    const cancel=()=>finish(new AudioCancelledError());
@@ -40,7 +42,8 @@ export function createAudioService(): AudioService {
      if(status.error)finish(new Error(status.error));
      else if(status.didJustFinish)finish();
     });
-    player.play();
+    player.replace({uri});
+    if(!settled)player.play();
    }catch(error){finish(error);}
   });},
   stop:async()=>{++playbackGeneration;cancelPlayback?.();},
