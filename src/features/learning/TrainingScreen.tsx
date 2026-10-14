@@ -87,10 +87,14 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
         if (current()) { lock.current = false; setBusy(false); }
     } }
     async function next(reveal: 'card'|'helper'|false = false) { if (lock.current || !session)
-        return; ++actionEpoch.current; lock.current = true; setBusy(true); setError(''); try {
+        return; const epoch = ++actionEpoch.current; const current = () => epoch === actionEpoch.current;
+        lock.current = true; setBusy(true); setError(''); try {
         await resultAudio.stop();
-        if (reveal)
+        if (!current()) return;
+        if (reveal) {
             await services.sessions.cancelQuestion(profileId, session.id);
+            if (!current()) return;
+        }
         if (reveal==='card' && question && onReveal) {
             onReveal(question.wordId);
             return;
@@ -100,20 +104,23 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
             return;
         }
         const q = await services.sessions.next(profileId, session.id, currentDay());
+        if (!current()) return;
+        const nextWord = q ? await db.first<Word>('SELECT * FROM words WHERE profileId=? AND id=?', [profileId, q.wordId]) : null;
+        if (!current()) return;
+        const nextProgress = q ? await readState(db, profileId, q.wordId) : null;
+        if (!current()) return;
         setQuestion(q);
         setResult(null);
         setFinished(!q);
         if(reveal==='helper')setError('Помощник пока недоступен');
-        const nextWord = q ? await db.first<Word>('SELECT * FROM words WHERE profileId=? AND id=?', [profileId, q.wordId]) : null;
         setWord(nextWord);
-        setProgress(q ? await readState(db, profileId, q.wordId) : null);
+        setProgress(nextProgress);
     }
     catch (e) {
-        setError(String(e));
+        if (current()) setError(String(e));
     }
     finally {
-        lock.current = false;
-        setBusy(false);
+        if (current()) { lock.current = false; setBusy(false); }
     } }
     async function explainError() {
         if (lock.current || !question || !onExplainError) return;
@@ -144,5 +151,5 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
         }finally{if(current()){lock.current=false;setBusy(false);}}
     }
     const marker = word && (question?.markerVisible || result) && question?.kind !== 'listening' ? genderPresentation(word) : null;
-    return <QuestionScreen><QuestionHeader title="Тренировка" profileName={profileName} mode={session?.mode ?? selection?.mode ?? 'study'} state={result?.state ?? progress} />{error ? <Text accessibilityRole="alert">{error}</Text> : null}{finished ? <Text>Занятие завершено</Text> : question ? <><Text>{trainingInstruction(question.kind, word?.pos ?? 'adjective')}</Text><Text testID={`training-prompt-${question.kind}`} style={{ fontSize: 24, color: marker?.color ?? '#20252b' }}>{question.prompt}</Text>{marker?.article && question.markerVisible ? <Text testID="training-gender-hint" style={{ color: marker.color! }}>{marker.article}</Text> : null}{question.kind==='listening' ? <><Button title="Прослушать" disabled={busy} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : null}{result ? <><Text testID="training-result">{result.right ? `Верно! +${result.xpDelta} XP` : session?.mode === 'review' ? 'Ошибка. Повторение назначено на завтра.' : 'Ошибка. Серия этого слова сброшена.'}</Text><Text>Ответ: {question.expected.join(' / ')}</Text><Text testID="training-streak">Серия: {result.state.streak}/20</Text><Button title="Повторить звук" variant="secondary" testID="training-result-audio-repeat" disabled={busy} onPress={resultAudio.repeat}/><Button title="Остановить звук" variant="secondary" testID="training-result-audio-stop" disabled={busy} onPress={() => void resultAudio.stop()}/>{resultAudio.unavailable ? <Text>Офлайн-озвучка недоступна.</Text> : null}{!result.right && onExplainError ? <Button title="Объяснить ошибку" variant="secondary" testID="error-explanation-open" disabled={busy} onPress={() => void explainError()}/> : null}<Button title="Продолжить" disabled={busy} onPress={() => void next()}/></> : question.options.length ? question.options.map(option => <Button key={option} title={option} disabled={busy} onPress={() => void submit(option)}/>) : <TypedAnswer key={question.attemptId} disabled={busy} onSubmit={answer => void submit(answer)}/>}<Button title="Открыть карточку" variant="secondary" disabled={busy} onPress={() => void next('card')}/><Button title="Помощник" variant="secondary" disabled={busy} onPress={() => void next('helper')}/></> : <Text>Загрузка…</Text>}</QuestionScreen>;
+    return <QuestionScreen><QuestionHeader title="Тренировка" profileName={profileName} mode={session?.mode ?? selection?.mode ?? 'study'} state={result?.state ?? progress} />{error ? <Text accessibilityRole="alert">{error}</Text> : null}{finished ? <Text>Занятие завершено</Text> : question ? <><Text>{trainingInstruction(question.kind, word?.pos ?? 'adjective')}</Text><Text testID={`training-prompt-${question.kind}`} style={{ fontSize: 24, color: marker?.color ?? '#20252b' }}>{question.prompt}</Text>{marker?.article && question.markerVisible ? <Text testID="training-gender-hint" style={{ color: marker.color! }}>{marker.article}</Text> : null}{question.kind==='listening' && !result ? <><Button title="Прослушать" disabled={busy} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : null}{result ? <><Text testID="training-result">{result.right ? `Верно! +${result.xpDelta} XP` : session?.mode === 'review' ? 'Ошибка. Повторение назначено на завтра.' : 'Ошибка. Серия этого слова сброшена.'}</Text><Text>Ответ: {question.expected.join(' / ')}</Text><Text testID="training-streak">Серия: {result.state.streak}/20</Text><Button title="Повторить звук" variant="secondary" testID="training-result-audio-repeat" disabled={busy} onPress={resultAudio.repeat}/><Button title="Остановить звук" variant="secondary" testID="training-result-audio-stop" disabled={busy} onPress={() => void resultAudio.stop()}/>{resultAudio.unavailable ? <Text>Офлайн-озвучка недоступна.</Text> : null}{!result.right && onExplainError ? <Button title="Объяснить ошибку" variant="secondary" testID="error-explanation-open" disabled={busy} onPress={() => void explainError()}/> : null}<Button title="Продолжить" disabled={busy} onPress={() => void next()}/></> : question.options.length ? question.options.map(option => <Button key={option} title={option} disabled={busy} onPress={() => void submit(option)}/>) : <TypedAnswer key={question.attemptId} disabled={busy} onSubmit={answer => void submit(answer)}/>}<Button title="Открыть карточку" variant="secondary" disabled={busy} onPress={() => void next('card')}/><Button title="Помощник" variant="secondary" disabled={busy} onPress={() => void next('helper')}/></> : <Text>Загрузка…</Text>}</QuestionScreen>;
 }

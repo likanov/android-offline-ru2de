@@ -32,7 +32,8 @@ async function resultFixture(kindIndex=0){
  const w=(await h.words.list(p.id)).find(x=>x.de==='Stuhl')!;
  const session=await h.sessions.start(p.id,{mode:'study',wordIds:[w.id]},'2026-10-03');
  await h.db.run('UPDATE sessions SET kindIndex=? WHERE id=?',[kindIndex,session.id]);
- const question=(await h.sessions.next(p.id,session.id,'2026-10-03'))!;
+ const sessions=kindIndex===5?new SessionRepository(h.db,async()=>true):h.sessions;
+ const question=(await sessions.next(p.id,session.id,'2026-10-03'))!;
  return {h,p,w,session,question};
 }
 async function learningSnapshot(f:Awaited<ReturnType<typeof resultFixture>>){
@@ -244,4 +245,88 @@ test.each(['exit','profile'] as const)('pending result voice lookup after %s can
   await act(async()=>{lookup.resolve([{id:'de',language:'de-DE',installed:true,requiresNetwork:false}]);});
   expect(spoken).toEqual([]);
  }finally{view.unmount();f.h.close();}
+});
+
+// These cases catch departed result exits mutating a previous session or navigating
+// with its word after native Stop completes, and an old finally releasing a new lock.
+test.each(['Продолжить','Открыть карточку','Помощник'].flatMap(control=>
+ (['unmount','profile'] as const).map(change=>({control,change}))))(
+ 'deferred $control stop after $change leaves the departed session untouched',async({control,change})=>{
+ const f=await resultFixture();const other=await createProfile(f.h.db,'B');const device=resultDevice(),stopped=deferred<void>();
+ const revealed:string[]=[],helped:string[]=[];
+ await f.h.answers.submit(f.p.id,f.session.id,f.question.attemptId,'wrong','2026-10-03');
+ const props={db:f.h.db,profileId:f.p.id,audio:device.service,today:'2026-10-03',onReveal:(id:string)=>{revealed.push(id);},onHelper:(id:string)=>{helped.push(id);}};
+ const view=render(<TrainingScreen {...props}/>);
+ try{
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl']));
+  const saved=await learningSnapshot(f);
+  device.stopCompletions.push(stopped.promise);
+  fireEvent.press(screen.getByRole('button',{name:control}));
+  expect(screen.getByRole('button',{name:control})).toBeDisabled();
+  if(change==='unmount')view.unmount();else view.rerender(<TrainingScreen {...props} profileId={other.id}/>);
+  await act(async()=>{stopped.resolve();});
+  expect(revealed).toEqual([]);expect(helped).toEqual([]);
+  expect(await learningSnapshot(f)).toEqual(saved);
+ }finally{stopped.resolve();view.unmount();f.h.close();}
+});
+
+test('a departed Continue stop cannot unlock a new profile helper action',async()=>{
+ const f=await resultFixture();const other=await createProfile(f.h.db,'B');const device=resultDevice();
+ const oldStop=deferred<void>(),currentStop=deferred<void>();const helped:string[]=[];
+ await f.h.answers.submit(f.p.id,f.session.id,f.question.attemptId,'wrong','2026-10-03');
+ const otherWord=(await f.h.words.list(other.id)).find(x=>x.de==='Stuhl')!;
+ const otherSession=await f.h.sessions.start(other.id,{mode:'study',wordIds:[otherWord.id]},'2026-10-03');
+ const otherQuestion=(await f.h.sessions.next(other.id,otherSession.id,'2026-10-03'))!;
+ await f.h.answers.submit(other.id,otherSession.id,otherQuestion.attemptId,'wrong','2026-10-03');
+ const props={db:f.h.db,profileId:f.p.id,audio:device.service,today:'2026-10-03',onHelper:(id:string)=>{helped.push(id);}};
+ const view=render(<TrainingScreen {...props}/>);
+ try{
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl']));
+  device.stopCompletions.push(oldStop.promise);
+  fireEvent.press(screen.getByRole('button',{name:'Продолжить'}));
+  view.rerender(<TrainingScreen {...props} profileId={other.id}/>);
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl','der Stuhl']));
+  device.stopCompletions.push(currentStop.promise);
+  fireEvent.press(screen.getByRole('button',{name:'Помощник'}));
+  await act(async()=>{oldStop.resolve();});
+  expect(screen.getByRole('button',{name:'Помощник'})).toBeDisabled();
+  expect(screen.getByTestId('training-result')).toBeTruthy();
+  await act(async()=>{currentStop.resolve();});
+  expect(helped).toEqual([otherWord.id]);
+  expect(screen.getByRole('button',{name:'Помощник'})).toBeEnabled();
+ }finally{oldStop.resolve();currentStop.resolve();view.unmount();f.h.close();}
+});
+
+// A saved listening result must use snapshot result playback, never the mutable
+// pre-answer listening/fallback path, even while native speech is pending or fails.
+test.each(['Продолжить','Помощник'])(
+ 'restored listening result keeps snapshot playback non-blocking for %s',async(control)=>{
+ const f=await resultFixture(5);expect(f.question.kind).toBe('listening');
+ const device=resultDevice(),firstSpeech=deferred<void>(),replay=deferred<void>();
+ device.completions.push(firstSpeech.promise,replay.promise);const helped:string[]=[];
+ await f.h.answers.submit(f.p.id,f.session.id,f.question.attemptId,'wrong','2026-10-03');
+ await f.h.db.run("UPDATE words SET de='Sessel' WHERE profileId=? AND id=?",[f.p.id,f.w.id]);
+ const saved=await learningSnapshot(f);
+ const view=render(<TrainingScreen db={f.h.db} profileId={f.p.id} audio={device.service} today="2026-10-03" onHelper={id=>{helped.push(id);}}/>);
+ try{
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl']));
+  expect(screen.queryByRole('button',{name:'Прослушать'})).toBeNull();
+  expect(screen.getAllByRole('button',{name:'Остановить звук'})).toHaveLength(1);
+  expect(screen.getByRole('button',{name:'Продолжить'})).toBeEnabled();
+  expect(screen.getByRole('button',{name:'Помощник'})).toBeEnabled();
+  expect(await learningSnapshot(f)).toEqual(saved);
+  await act(async()=>{firstSpeech.reject(new Error('offline speech failed'));});
+  await screen.findByText('Офлайн-озвучка недоступна.');
+  expect(screen.getByTestId('training-result')).toBeTruthy();
+  expect(screen.queryByText('Офлайн-озвучка недоступна. Выбран другой тип вопроса.')).toBeNull();
+  expect(await learningSnapshot(f)).toEqual(saved);
+  fireEvent.press(screen.getByTestId('training-result-audio-repeat'));
+  await waitFor(()=>expect(device.spoken).toEqual(['der Stuhl','der Stuhl']));
+  expect(screen.getByRole('button',{name:'Продолжить'})).toBeEnabled();
+  expect(screen.getByRole('button',{name:'Помощник'})).toBeEnabled();
+  expect(await learningSnapshot(f)).toEqual(saved);
+  fireEvent.press(screen.getByRole('button',{name:control}));
+  if(control==='Продолжить')await screen.findByTestId('training-prompt-ru-de');
+  else await waitFor(()=>expect(helped).toEqual([f.w.id]));
+ }finally{firstSpeech.resolve();replay.resolve();view.unmount();f.h.close();}
 });
