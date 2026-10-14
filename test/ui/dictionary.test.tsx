@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import { createWordHarness } from '../harness';
 import { createProfile } from '../../src/features/profiles/profileRepository';
 import { DictionaryScreen } from '../../src/features/dictionary/DictionaryScreen';
+import { initialDictionaryViewState } from '../../src/features/dictionary/dictionaryViewState';
 
 test('extra_filters_are_collapsed_and_chips_expose_selected_state', async () => {
   const h = await createWordHarness();
@@ -46,5 +47,23 @@ test('list_rows_show_learning_status_and_open_callback', async () => {
     expect(screen.getAllByText('Новое').length).toBeGreaterThan(0);
     fireEvent.press(row);
     expect(opened).not.toBe('');
+  } finally { h.close(); }
+});
+
+test('large_dictionary_search_keeps_the_same_input_while_results_shrink', async () => {
+  const h = await createWordHarness();
+  const profile = await createProfile(h.db, 'A');
+  for (let index = 0; index < 70; index++) {
+    await h.words.create(profile.id, { de: `Suchwort${index}`, ru: `поисковое ${index}`, pos: 'noun', gender: 'n' });
+  }
+  const baseState = initialDictionaryViewState();
+  const { rerender } = render(<DictionaryScreen db={h.db} profileId={profile.id} viewState={baseState} onViewStateChange={() => {}} onOpen={() => {}} onCreate={() => {}}/>);
+  try {
+    await screen.findByText('Найдено: 110');
+    const search = screen.getByTestId('dictionary-search');
+    rerender(<DictionaryScreen db={h.db} profileId={profile.id} viewState={{ ...baseState, filter: { ...baseState.filter, query: 'Suchwort69' } }} onViewStateChange={() => {}} onOpen={() => {}} onCreate={() => {}}/>);
+    await screen.findByText('Найдено: 1');
+    expect(screen.getByTestId('dictionary-search')).toBe(search);
+    expect(screen.getByTestId('dictionary-search').props.value).toBe('Suchwort69');
   } finally { h.close(); }
 });
