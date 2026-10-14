@@ -17,15 +17,31 @@ export class AudioService {
  constructor(private recordings:readonly Recording[],private speech:OfflineSpeech,private player:AudioPlayer){}
  private async voice(){try{return (await this.speech.listVoices()).find(v=>v.installed&&!v.requiresNetwork&&/^de(?:[-_]|$)/i.test(v.language));}catch{return undefined;}}
  async available(word:Word):Promise<boolean>{return this.recordings.some(r=>r.text===displayGerman(word))||!!await this.voice();}
- async play(word:Word):Promise<void>{
+ play(word:Word):Promise<void>{return this.playText(displayGerman(word));}
+ async playText(text:string):Promise<void>{
+  if(!text.trim())return;
   const generation=++this.generation;
-  await Promise.all([this.player.stop(),this.speech.stopSpeech()]);
-  if(generation!==this.generation)return;
-  const text=displayGerman(word), recording=this.recordings.find(r=>r.text===text);
-  if(recording){const uri=await recording.localUri();if(generation===this.generation)await this.player.play(uri);return;}
-  const voice=await this.voice();if(generation!==this.generation)return;
-  if(!voice)throw new AudioUnavailableError();
-  try{await this.speech.speakOffline(text,voice.id,`audio-${generation}`);}catch(error){
+  try{
+   await Promise.all([this.player.stop(),this.speech.stopSpeech()]);
+   if(generation!==this.generation)return;
+   const recording=this.recordings.find(r=>r.text===text);
+   if(recording){
+    try{
+     const uri=await recording.localUri();
+     if(generation!==this.generation)return;
+     await this.player.play(uri);
+     if(generation!==this.generation)return;
+     return;
+    }catch(error){
+     if(generation!==this.generation || (error as {code?:string})?.code==='AUDIO_CANCELLED')throw new AudioCancelledError();
+    }
+   }
+   const voice=await this.voice();
+   if(generation!==this.generation)return;
+   if(!voice)throw new AudioUnavailableError();
+   await this.speech.speakOffline(text,voice.id,`audio-${generation}`);
+   if(generation!==this.generation)return;
+  }catch(error){
    if(generation!==this.generation || (error as {code?:string})?.code==='AUDIO_CANCELLED')throw new AudioCancelledError();
    throw new AudioUnavailableError();
   }
