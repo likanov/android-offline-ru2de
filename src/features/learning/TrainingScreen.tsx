@@ -1,5 +1,7 @@
 import { getAudioService } from '../../app/AppServices';
 import type { AudioService } from '../audio/audioService';
+import { dictionaryResultAudioText } from '../audio/resultAudioText';
+import { useResultAudio } from '../audio/useResultAudio';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from 'react-native';
 import type { SqlStore } from '../../core/sql';
@@ -35,6 +37,9 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
     const actionEpoch = useRef(0);
     const playbackEpoch = useRef({generation:0});
     const selectionRef = useRef(selection);
+    const resultAudioRequest = result && question && result.attemptId === question.attemptId && question.profileId === profileId && session?.profileId === profileId
+        ? { key: JSON.stringify([profileId, question.attemptId]), text: dictionaryResultAudioText(question) } : null;
+    const resultAudio = useResultAudio(audio, resultAudioRequest, true);
     useEffect(() => {
         // Calendar refreshes cannot interrupt actions or apply snapshots read before them.
         if (lock.current) return;
@@ -67,24 +72,23 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
             setBusy(false);
     } })(); return () => { alive = false; }; }, [services, profileId, today, db]);
     useEffect(() => { const playback=playbackEpoch.current, actions=actionEpoch; return () => {
-        ++actions.current; ++playback.generation; lock.current=false; void audio.stop();
+        ++actions.current; ++playback.generation; lock.current=false; void audio.stop().catch(() => {});
     }; }, [services, profileId, audio]);
     async function submit(answer: string) { if (lock.current || !session || !question || result)
-        return; ++actionEpoch.current; lock.current = true; setBusy(true); setError(''); try {
+        return; const epoch = ++actionEpoch.current; const current = () => epoch === actionEpoch.current;
+        lock.current = true; setBusy(true); setError(''); try {
         const saved = await services.answers.submit(profileId, session.id, question.attemptId, answer, currentDay());
-        setResult(saved);
-        setProgress(saved.state);
+        if (current()) { setResult(saved); setProgress(saved.state); }
     }
     catch (e) {
-        setError(`Не удалось сохранить ответ. Повторите попытку. ${String(e)}`);
+        if (current()) setError(`Не удалось сохранить ответ. Повторите попытку. ${String(e)}`);
     }
     finally {
-        lock.current = false;
-        setBusy(false);
+        if (current()) { lock.current = false; setBusy(false); }
     } }
     async function next(reveal: 'card'|'helper'|false = false) { if (lock.current || !session)
         return; ++actionEpoch.current; lock.current = true; setBusy(true); setError(''); try {
-        await audio.stop();
+        await resultAudio.stop();
         if (reveal)
             await services.sessions.cancelQuestion(profileId, session.id);
         if (reveal==='card' && question && onReveal) {
@@ -111,7 +115,13 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
         lock.current = false;
         setBusy(false);
     } }
-    useEffect(()=>{const playback=playbackEpoch.current;return()=>{++playback.generation;void audio.stop();};},[audio,question?.attemptId]);
+    async function explainError() {
+        if (lock.current || !question || !onExplainError) return;
+        lock.current = true; setBusy(true);
+        try { await resultAudio.stop(); onExplainError(question.attemptId); }
+        finally { lock.current = false; setBusy(false); }
+    }
+    useEffect(()=>{const playback=playbackEpoch.current;return()=>{++playback.generation;void audio.stop().catch(() => {});};},[audio,question?.attemptId]);
     async function play(){
         if(!word||!session||!question||lock.current)return;
         ++actionEpoch.current;
@@ -133,5 +143,5 @@ export function TrainingScreen({ db, profileId, selection, today: injectedDay, o
         }finally{if(current()){lock.current=false;setBusy(false);}}
     }
     const marker = word && (question?.markerVisible || result) && question?.kind !== 'listening' ? genderPresentation(word) : null;
-    return <QuestionScreen><QuestionHeader title="Тренировка" profileName={profileName} mode={session?.mode ?? selection?.mode ?? 'study'} state={result?.state ?? progress} />{error ? <Text accessibilityRole="alert">{error}</Text> : null}{finished ? <Text>Занятие завершено</Text> : question ? <><Text>{trainingInstruction(question.kind, word?.pos ?? 'adjective')}</Text><Text testID={`training-prompt-${question.kind}`} style={{ fontSize: 24, color: marker?.color ?? '#20252b' }}>{question.prompt}</Text>{marker?.article && question.markerVisible ? <Text testID="training-gender-hint" style={{ color: marker.color! }}>{marker.article}</Text> : null}{question.kind==='listening' ? <><Button title="Прослушать" disabled={busy} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : null}{result ? <><Text testID="training-result">{result.right ? `Верно! +${result.xpDelta} XP` : session?.mode === 'review' ? 'Ошибка. Повторение назначено на завтра.' : 'Ошибка. Серия этого слова сброшена.'}</Text><Text>Ответ: {question.expected.join(' / ')}</Text><Text testID="training-streak">Серия: {result.state.streak}/20</Text>{!result.right && onExplainError ? <Button title="Объяснить ошибку" variant="secondary" testID="error-explanation-open" disabled={busy} onPress={() => onExplainError(question.attemptId)}/> : null}<Button title="Продолжить" disabled={busy} onPress={() => void next()}/></> : question.options.length ? question.options.map(option => <Button key={option} title={option} disabled={busy} onPress={() => void submit(option)}/>) : <TypedAnswer key={question.attemptId} disabled={busy} onSubmit={answer => void submit(answer)}/>}<Button title="Открыть карточку" variant="secondary" disabled={busy} onPress={() => void next('card')}/><Button title="Помощник" variant="secondary" disabled={busy} onPress={() => void next('helper')}/></> : <Text>Загрузка…</Text>}</QuestionScreen>;
+    return <QuestionScreen><QuestionHeader title="Тренировка" profileName={profileName} mode={session?.mode ?? selection?.mode ?? 'study'} state={result?.state ?? progress} />{error ? <Text accessibilityRole="alert">{error}</Text> : null}{finished ? <Text>Занятие завершено</Text> : question ? <><Text>{trainingInstruction(question.kind, word?.pos ?? 'adjective')}</Text><Text testID={`training-prompt-${question.kind}`} style={{ fontSize: 24, color: marker?.color ?? '#20252b' }}>{question.prompt}</Text>{marker?.article && question.markerVisible ? <Text testID="training-gender-hint" style={{ color: marker.color! }}>{marker.article}</Text> : null}{question.kind==='listening' ? <><Button title="Прослушать" disabled={busy} onPress={()=>void play()}/><Button title="Остановить звук" onPress={()=>void audio.stop()}/></> : null}{result ? <><Text testID="training-result">{result.right ? `Верно! +${result.xpDelta} XP` : session?.mode === 'review' ? 'Ошибка. Повторение назначено на завтра.' : 'Ошибка. Серия этого слова сброшена.'}</Text><Text>Ответ: {question.expected.join(' / ')}</Text><Text testID="training-streak">Серия: {result.state.streak}/20</Text><Button title="Повторить звук" variant="secondary" testID="training-result-audio-repeat" disabled={busy} onPress={resultAudio.repeat}/><Button title="Остановить звук" variant="secondary" testID="training-result-audio-stop" disabled={busy} onPress={() => void resultAudio.stop()}/>{resultAudio.unavailable ? <Text>Офлайн-озвучка недоступна.</Text> : null}{!result.right && onExplainError ? <Button title="Объяснить ошибку" variant="secondary" testID="error-explanation-open" disabled={busy} onPress={() => void explainError()}/> : null}<Button title="Продолжить" disabled={busy} onPress={() => void next()}/></> : question.options.length ? question.options.map(option => <Button key={option} title={option} disabled={busy} onPress={() => void submit(option)}/>) : <TypedAnswer key={question.attemptId} disabled={busy} onSubmit={answer => void submit(answer)}/>}<Button title="Открыть карточку" variant="secondary" disabled={busy} onPress={() => void next('card')}/><Button title="Помощник" variant="secondary" disabled={busy} onPress={() => void next('helper')}/></> : <Text>Загрузка…</Text>}</QuestionScreen>;
 }
