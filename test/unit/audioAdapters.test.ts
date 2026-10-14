@@ -10,11 +10,15 @@ const mockSpeech={
 };
 const mockSetMode=jest.fn<Promise<void>,[]>(async()=>{});
 const mockPlayers: ReturnType<typeof mockCreatePlayer>[]=[];
+let mockSetupError:string|undefined;
 function mockCreatePlayer(){
  let listener:((status:AudioStatus)=>void)|undefined;
  const removeListener=jest.fn(()=>{listener=undefined;});
  return {
   play:jest.fn(),pause:jest.fn(),remove:jest.fn(),removeListener,
+  replace:jest.fn((_source:{uri:string})=>{
+   if(mockSetupError)listener?.(status({error:mockSetupError,playing:false}));
+  }),
   addListener:jest.fn((_event:string,onStatus:(status:AudioStatus)=>void)=>{
    listener=onStatus;
    return {remove:removeListener};
@@ -24,7 +28,13 @@ function mockCreatePlayer(){
 }
 jest.mock('expo-audio',()=>({
  setAudioModeAsync:()=>mockSetMode(),
- createAudioPlayer:()=>{const player=mockCreatePlayer();mockPlayers.push(player);return player;},
+ createAudioPlayer:(source?:{uri:string})=>{
+  const player=mockCreatePlayer();mockPlayers.push(player);
+  // Native media preparation begins as soon as a source is assigned, including
+  // constructor assignment. Its earliest error is lost without a listener.
+  if(source)player.replace(source);
+  return player;
+ },
 }));
 jest.mock('expo-asset',()=>({Asset:{fromModule:()=>({localUri:'file:///bundled.wav',downloadAsync:async()=>{}})}}));
 jest.mock('../../modules/german-offline',()=>({offlineSpeech:()=>mockSpeech}));
@@ -40,6 +50,7 @@ async function waitForPlayer(count=1){
 }
 beforeEach(()=>{
  mockPlayers.length=0;
+ mockSetupError=undefined;
  mockSetMode.mockReset().mockResolvedValue(undefined);
  mockSpeech.listVoices.mockReset().mockResolvedValue([]);
  mockSpeech.speakOffline.mockClear();
@@ -127,4 +138,23 @@ test('queued_old_player_error_cannot_affect_new_playback',async()=>{
  currentPlayer.emit(status({didJustFinish:true,playing:false}));await second;
  expect(currentPlayer.remove).toHaveBeenCalledTimes(1);
  expect(oldPlayer.remove).toHaveBeenCalledTimes(1);
+});
+
+// Catch lost preparation errors when the constructor receives media before the
+// status listener is attached. Exercise the real adapter and service fallback.
+test.each([true,false])('recording_setup_error_settles_with_offline_voice_%s',async(hasVoice)=>{
+ mockSetupError='corrupt source during preparation';
+ if(hasVoice)mockSpeech.listVoices.mockResolvedValue([offlineGerman]);
+ const service=createAudioService();let outcome='pending';
+ const pending=service.playText('der Stuhl').then(()=>{outcome='played';},error=>{outcome=error.code;});
+ try{
+  const player=await waitForPlayer();await flushPlayback();
+  expect(outcome).toBe(hasVoice?'played':'AUDIO_UNAVAILABLE');
+  if(hasVoice)expect(mockSpeech.speakOffline).toHaveBeenCalledWith('der Stuhl','de',expect.any(String));
+  else expect(mockSpeech.speakOffline).not.toHaveBeenCalled();
+  expect(player.play).not.toHaveBeenCalled();
+  expect(player.removeListener).toHaveBeenCalledTimes(1);
+  expect(player.pause).toHaveBeenCalledTimes(1);
+  expect(player.remove).toHaveBeenCalledTimes(1);
+ }finally{await service.stop();await pending;}
 });
